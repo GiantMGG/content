@@ -1,0 +1,49 @@
+overlay AlterMat {
+  sub = 1;
+  turbulence = 10;
+  algo = rndchecker;
+  zoomX = -70;
+  zoomY = -70;
+};
+
+map Embervein {
+  /* Corner 1 (top-left) */
+  overlay { x = 5; wdt = 15; y = 5; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } |
+  /* Corner 2 (top-right) */
+  overlay { x = 80; wdt = 15; y = 5; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } |
+  /* Corner 3 (bottom-left) */
+  overlay { x = 5; wdt = 15; y = 80; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } |
+  /* Corner 4 (bottom-right) */
+  overlay { x = 80; wdt = 15; y = 80; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } & overlay {
+    sub = 1; mat = Ashes; tex = Smooth3;
+    AlterMat { mat = Ashes; tex = Ridge; a = 4; };
+    AlterMat { mat = Ashes; tex = Rough; a = 4; };
+    AlterMat { zoomX = 20; zoomY = 20; loosebounds = 1;
+      mat = Lava; tex = Liquid; a = 3; };
+    AlterMat { zoomX = -20; zoomY = -20; loosebounds = 1;
+      mat = Rock; tex = Rough; a = 2;
+      AlterMat { mat = Rock; tex = Ridge; a = 3; }; };
+  };
+  /* Central resource island */
+  overlay {
+    mat = Gold; tex = Ridge;
+    x = 35; wdt = 30; y = 35; hgt = 30;
+    zoomX = 68; zoomY = 85; loosebounds = 1;
+    turbulence = 5000; lambda = 3;
+    AlterMat { mat = Gold; tex = Rough; a = 3; };
+    AlterMat { mat = Ore; tex = Ridge; a = 4; };
+    AlterMat { mat = Rock; tex = Rough; a = 6; };
+  };
+};

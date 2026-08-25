@@ -1,0 +1,44 @@
+overlay AlterMat {
+  sub = 1;
+  turbulence = 10;
+  algo = rndchecker;
+  zoomX = -70;
+  zoomY = -70;
+};
+
+map Tidemark {
+  /* Team 1 spawn pocket (left) */
+  overlay { x = 5; wdt = 15; y = 15; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } |
+  /* Team 2 spawn pocket (right) — mirrored around x=50 */
+  overlay { x = 80; wdt = 15; y = 15; hgt = 10;
+    turbulence = 1000; lambda = 2; loosebounds = 1;
+    zoomX = 75; zoomY = 55; grp = 1;
+  } & overlay {
+    sub = 1; mat = Earth; tex = Smooth;
+    AlterMat { mat = Earth; tex = Ridge; a = 4; };
+    AlterMat { mat = Earth; tex = Rough; a = 4; };
+    AlterMat { mat = Earth; tex = Smooth2; a = 4; };
+    AlterMat { zoomX = 20; zoomY = 20; loosebounds = 1;
+      mat = Sand; tex = Smooth; a = 3; };
+    AlterMat { zoomX = -20; zoomY = -20; loosebounds = 1;
+      mat = Rock; tex = Rough; a = 2;
+      AlterMat { mat = Rock; tex = Ridge; a = 3; }; };
+  };
+  /* Water edges (coastal) */
+  overlay {
+    x = 0; wdt = 10; y = 0; hgt = 100;
+    mat = Water; tex = Liquid; loosebounds = 1;
+  };
+  overlay {
+    x = 90; wdt = 10; y = 0; hgt = 100;
+    mat = Water; tex = Liquid; loosebounds = 1;
+  };
+  /* Central low-ground that floods over time */
+  overlay {
+    x = 35; wdt = 30; y = 60; hgt = 20;
+    mat = Earth; tex = Smooth; turbulence = 500; loosebounds = 1;
+  };
+};

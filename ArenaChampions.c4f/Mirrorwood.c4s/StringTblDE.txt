@@ -1,0 +1,4 @@
+TeamLeft=Forestborn
+TeamRight=Forestborn
+TeamLeftJoin=%s tritt %s bei.
+TeamRightJoin=%s tritt %s bei.
