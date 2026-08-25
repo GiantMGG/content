@@ -1,0 +1,1 @@
+Allows selecting any subset of the crew via a Clonk's right-click context menu.

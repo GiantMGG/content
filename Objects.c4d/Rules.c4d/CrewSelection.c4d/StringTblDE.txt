@@ -1,0 +1,6 @@
+SelectCrew=Crew auswählen...
+SelectCrewDesc=Öffnet ein Menü, in dem einzelne Crew-Mitglieder ausgewählt werden können.
+SelectAll=Alle auswählen
+SelectAllDesc=Wählt alle Crew-Mitglieder gleichzeitig aus.
+ClearSel=Auswahl aufheben
+ClearSelDesc=Hebt die aktuelle Crew-Auswahl auf.
