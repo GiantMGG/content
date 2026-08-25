@@ -1,0 +1,16 @@
+[Action]
+Name=Idle
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,28,58
+NextAction=Idle
+
+[Action]
+Name=Grinding
+Directions=1
+Length=3
+Delay=10
+Facet=0,58,28,58
+NextAction=Grinding
+StartCall=Grinding

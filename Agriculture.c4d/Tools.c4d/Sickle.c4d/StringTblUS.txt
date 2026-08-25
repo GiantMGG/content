@@ -1,0 +1,3 @@
+TxtHarvest=Harvest
+TxtNotRipe=Not ripe yet
+TxtNowheat=No wheat here

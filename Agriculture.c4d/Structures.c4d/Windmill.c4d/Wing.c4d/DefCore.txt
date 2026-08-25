@@ -1,0 +1,16 @@
+[DefCore]
+id=AGWG
+Version=4,9,8
+Name=Wing
+Category=C4D_Object
+Width=40
+Height=40
+Offset=-20,-20
+Vertices=1
+VertexX=0
+VertexY=0
+Value=5
+Mass=50
+Picture=0,0,40,40
+Rotate=1
+Float=1

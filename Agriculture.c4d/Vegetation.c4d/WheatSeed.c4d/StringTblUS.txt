@@ -1,0 +1,2 @@
+TxtPlant=Plant
+TxtBadSoil=Wheat won't grow here

@@ -1,0 +1,4 @@
+TxtGrind=Mahlen
+TxtNowheat=Kein Weizen
+TxtLowwind=Der Wind ist schwach
+TxtMorewheatwontfit=Es passt kein Weizen mehr

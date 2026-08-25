@@ -1,0 +1,2 @@
+TxtPlant=Plant
+TxtBadSoil=Apple trees won't grow here

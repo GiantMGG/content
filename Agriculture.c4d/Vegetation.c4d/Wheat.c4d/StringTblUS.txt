@@ -1,0 +1,2 @@
+TxtHarvest=Harvest
+TxtNotRipe=Not ripe yet

@@ -1,0 +1,2 @@
+TxtHarvest=Ernten
+TxtNotRipe=Noch nicht reif

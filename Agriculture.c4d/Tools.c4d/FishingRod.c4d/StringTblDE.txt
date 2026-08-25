@@ -1,0 +1,4 @@
+TxtStartFishing=Angeln
+TxtCantFish=%s ist noch zu jung zum Angeln
+TxtNoBait=Kein Köder dabei
+TxtNowater=Du musst am Wasser stehen

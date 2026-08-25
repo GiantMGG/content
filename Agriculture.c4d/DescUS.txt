@@ -1,0 +1,6 @@
+Fishing, wheat, apple orchard and smoking — a homestead cycle pack.
+
+Dependencies: the FishTrap (AGFT) spawns a Western MeatBait (MBAT) as its
+attract signal, so Western.c4d must be loaded for the trap to function.
+The FishingRod (AGFR) requires a crew type that exposes the ThrowFishingPole
+action (e.g. the Western Trapper). All other chains are self-contained.

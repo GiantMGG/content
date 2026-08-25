@@ -1,0 +1,1 @@
+A pack-local fishing rod. Requires a crew type that exposes the ThrowFishingPole action (e.g. the Western Trapper); the ReadyToFish check is otherwise self-contained.

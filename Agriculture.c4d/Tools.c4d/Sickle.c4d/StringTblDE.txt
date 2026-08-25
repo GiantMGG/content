@@ -1,0 +1,3 @@
+TxtHarvest=Ernten
+TxtNotRipe=Noch nicht reif
+TxtNowheat=Hier ist kein Weizen

@@ -1,0 +1,5 @@
+TxtSmoke=Smoke
+TxtNofish=No fish
+TxtNotenoughwood=Not enough wood
+TxtMorewoodwontfit=No more wood fits
+TxtMorefishwontfit=No more fish fits

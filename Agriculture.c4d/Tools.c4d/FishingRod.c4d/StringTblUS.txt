@@ -1,0 +1,4 @@
+TxtStartFishing=Fish
+TxtCantFish=%s is too young to fish
+TxtNoBait=No bait in inventory
+TxtNowater=You must stand by water

@@ -1,0 +1,16 @@
+[Action]
+Name=Idle
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,28,40
+NextAction=Idle
+
+[Action]
+Name=Smoking
+Directions=1
+Length=3
+Delay=10
+Facet=0,40,28,40
+NextAction=Smoking
+StartCall=Smoking

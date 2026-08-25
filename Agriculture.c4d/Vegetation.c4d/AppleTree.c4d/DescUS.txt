@@ -1,0 +1,1 @@
+A slow-spreading orchard tree. Drops Apples periodically.

@@ -1,0 +1,1 @@
+A net that passively catches fish in water.

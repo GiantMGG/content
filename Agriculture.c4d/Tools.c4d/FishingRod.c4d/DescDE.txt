@@ -1,0 +1,1 @@
+Eine pack-lokale Angel. Benoetigt eine Crew mit der Aktion ThrowFishingPole (z.B. Western Trapper); die ReadyToFish-Pruefung ist sonst selbsterhalten.

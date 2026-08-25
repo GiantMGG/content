@@ -1,0 +1,8 @@
+[Action]
+Name=Turn
+Directions=1
+Length=4
+Delay=2
+Facet=0,0,40,40
+NextAction=Turn
+PhaseCall=Wind2Turn

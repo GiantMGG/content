@@ -1,0 +1,8 @@
+[Map]
+Width=200
+Height=150
+MaterialMap=1
+ScenMap=1
+Ambient=1
+SkyPar=1
+CloudsAsLights=1

@@ -1,0 +1,15 @@
+[Scenario]
+Title=Homestead
+Version=4,9,8
+MaxPlayer=4
+MinPlayer=0
+Landscape=2
+AllowPlayer=1
+EarthMap=1
+RandomMap=1
+SmoothOval=1
+Vegetation=1
+Animals=1
+StartGold=100
+NoBuckets=0
+Rules=NDFO

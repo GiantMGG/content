@@ -1,0 +1,2 @@
+TxtPlant=Pflanzen
+TxtBadSoil=Hier wächst kein Apfelbaum

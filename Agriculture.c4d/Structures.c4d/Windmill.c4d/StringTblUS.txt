@@ -1,0 +1,4 @@
+TxtGrind=Grind
+TxtNowheat=No wheat
+TxtLowwind=The wind is weak
+TxtMorewheatwontfit=No more wheat fits

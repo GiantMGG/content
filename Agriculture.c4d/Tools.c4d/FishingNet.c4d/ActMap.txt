@@ -1,0 +1,7 @@
+[Action]
+Name=Idle
+Directions=1
+Length=2
+Delay=8
+Facet=0,0,16,16
+NextAction=Idle
