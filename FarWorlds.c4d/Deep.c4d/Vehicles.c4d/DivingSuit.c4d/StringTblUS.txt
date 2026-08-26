@@ -1,0 +1,2 @@
+US:TXT_NOTHING=Nothing
+DE:TXT_NOTHING=Nichts

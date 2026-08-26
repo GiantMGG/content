@@ -1,0 +1,17 @@
+[Action]
+Name=Idle
+Procedure=FLOAT
+Directions=1
+Length=1
+Delay=1
+Facet=0,0,6,6
+NextAction=Idle
+
+[Action]
+Name=Attach
+Procedure=ATTACH
+Directions=1
+Length=1
+Delay=1
+Facet=0,0,6,6
+NextAction=Attach

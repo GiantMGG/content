@@ -1,0 +1,1 @@
+DE:TXT_TERRITORY=Territorium

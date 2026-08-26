@@ -1,0 +1,8 @@
+[Action]
+Name=Dead
+Procedure=FLOAT
+Directions=1
+Length=1
+Delay=1
+Facet=0,0,44,28
+NextAction=Dead
