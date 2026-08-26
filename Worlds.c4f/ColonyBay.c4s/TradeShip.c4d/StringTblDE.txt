@@ -1,0 +1,2 @@
+TSHp=Handelsschiff
+$MsgShipArrived$=Ein Handelsschiff ist eingetroffen! Es bringt das Wissen um die Chemiefabrik.
