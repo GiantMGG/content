@@ -1,0 +1,4 @@
+LGHT=Lighthouse
+$MsgNotComplete$=The lighthouse is not yet complete.
+$MsgWaitForNight$=The lighthouse can only be lit at night.
+$TxtLight$=Light the beacon

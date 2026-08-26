@@ -1,0 +1,4 @@
+LGHT=Leuchtturm
+$MsgNotComplete$=Der Leuchtturm ist noch nicht fertiggestellt.
+$MsgWaitForNight$=Der Leuchtturm kann nur nachts entzundet werden.
+$TxtLight$=Leuchtturm entzunden
