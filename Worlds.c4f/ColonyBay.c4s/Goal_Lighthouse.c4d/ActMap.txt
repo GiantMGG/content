@@ -3,5 +3,5 @@ Name=Idle
 Procedure=NONE
 Length=1
 Delay=0
-Facet=0,0,10,10,0,0
+Facet=0,0,64,64,0,0
 NextAction=Idle

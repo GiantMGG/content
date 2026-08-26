@@ -19,8 +19,9 @@ global func TutorialMessage(string strMessage)
 
 protected func Initialize()
 {
-    // Create the goal object at center of map
-    CreateObject(GLHT, LandscapeWidth() / 2, LandscapeHeight() / 2, NO_OWNER);
+    // The GLHT goal object is created by the engine from [Game] Goals=GLHT=1
+    // (C4Game::InitGoals runs before this Initialize() callback). Do not
+    // create a duplicate here — see review H-1.
 
     // Place ruined HUT2 on headland (40% completion)
     var iHeadlandX = LandscapeWidth() * 70 / 100;

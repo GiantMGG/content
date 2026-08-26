@@ -17,6 +17,22 @@ protected func Initialize()
     return true;
 }
 
+/* Construction gate - block advancement unless the owner knows LGHT.
+   The pre-placed stump (10% completion) can only be advanced by a player
+   who has the LGHT recipe in their knowledge base. This prevents bypassing
+   the SETTLEMENT_VALUE_THRESHOLD progression gate. (Review M-1.) */
+
+public func Construction(object pCreator)
+{
+    // If the owner lacks LGHT knowledge, refuse to allow the construction
+    // to be advanced by component supply.
+    if (!GetPlrKnowledge(GetOwner(), LGHT, 0, 0))
+    {
+        return false;
+    }
+    return true;
+}
+
 /* Aktivierung - clonk enters lighthouse to light beacon */
 
 public func Activate(int byPlayer)

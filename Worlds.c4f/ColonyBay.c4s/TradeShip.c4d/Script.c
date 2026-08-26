@@ -12,18 +12,16 @@ protected func Initialize()
     hasGrantedKnowledge = false;
     iTimeout = 0;
 
-    // Sail toward the dock (beach area at 40% width, 50% height)
-    var iDockX = LandscapeWidth() * 40 / 100;
-    var iDockY = LandscapeHeight() * 50 / 100;
-    SetCommand(this, "MoveTo", 0, iDockX, iDockY);
-
-    // Add timer effect to check arrival (runs every 10 frames)
+    // Add timer effect to sail toward the dock and check arrival
+    // (runs every 10 frames). A driverless C4D_Vehicle won't execute a
+    // "MoveTo" command, so the timer applies velocity directly toward
+    // the dock each tick. (Review M-5.)
     AddEffect("SailToDock", this, 1, 10, this);
 
     return true;
 }
 
-/* SailToDock effect - checks if ship arrived at dock */
+/* SailToDock effect - moves the ship toward the dock and checks arrival */
 
 func FxSailToDockTimer(object target, int effect, int timer)
 {
@@ -31,6 +29,17 @@ func FxSailToDockTimer(object target, int effect, int timer)
 
     var iDockX = LandscapeWidth() * 40 / 100;
     var iDockY = LandscapeHeight() * 50 / 100;
+
+    // Apply velocity toward the dock (roughly 2 px/frame).
+    var iDX = iDockX - GetX();
+    var iDY = iDockY - GetY();
+    var iDist = Distance(iDX, iDY, 0, 0);
+    if (iDist > 0)
+    {
+        var iSpeed = 2;
+        SetXDir(iDX * iSpeed / iDist);
+        SetYDir(iDY * iSpeed / iDist);
+    }
 
     // Check if ship is near dock
     if (Distance(GetX(), GetY(), iDockX, iDockY) < 50)

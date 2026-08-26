@@ -3,7 +3,7 @@ Name=Idle
 Procedure=NONE
 Length=1
 Delay=0
-Facet=0,0,48,96,0,0
+Facet=0,0,48,64,0,0
 NextAction=Idle
 
 [Action]
@@ -11,7 +11,7 @@ Name=Constructing
 Procedure=NONE
 Length=1
 Delay=0
-Facet=0,0,48,96,0,0
+Facet=0,0,48,64,0,0
 NextAction=Constructing
 
 [Action]
@@ -19,5 +19,5 @@ Name=Lantern
 Procedure=NONE
 Length=1
 Delay=0
-Facet=0,0,48,96,0,0
+Facet=0,0,48,64,0,0
 NextAction=Lantern
