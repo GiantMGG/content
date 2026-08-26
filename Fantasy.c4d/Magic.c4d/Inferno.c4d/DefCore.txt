@@ -1,0 +1,7 @@
+[DefCore]
+id=MINF
+Version=4,9,8
+Name=MagicInferno
+Category=C4D_StaticBack|C4D_Magic
+Value=30
+Picture=0,0,64,64

@@ -1,0 +1,4 @@
+MnuCombineSpells=Combine: pick first spell
+MnuCombineSpells2=Combine: pick second spell
+MnuNoSpells=No spells known
+MsgNoCombination=These spells do not combine.

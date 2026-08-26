@@ -1,0 +1,4 @@
+MnuCombineSpells=Kombinieren: waehle ersten Zauber
+MnuCombineSpells2=Kombinieren: waehle zweiten Zauber
+MnuNoSpells=Keine Zauber bekannt
+MsgNoCombination=Diese Zauber lassen sich nicht kombinieren.

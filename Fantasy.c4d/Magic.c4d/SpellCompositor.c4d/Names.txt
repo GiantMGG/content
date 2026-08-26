@@ -1,0 +1,2 @@
+DE:SpellCompositor
+US:SpellCompositor

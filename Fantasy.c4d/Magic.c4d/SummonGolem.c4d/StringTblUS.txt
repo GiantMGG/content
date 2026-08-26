@@ -1,0 +1,1 @@
+MsgNoSpace=No space to summon a golem here.

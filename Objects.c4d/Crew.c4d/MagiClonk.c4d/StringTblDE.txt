@@ -3,12 +3,12 @@
 descChooseSpellClass=Zauberklassenwahl
 MsgNotReadyToMagic=%s kann|jetzt nicht zaubern.
 
-#Menü
+#Menï¿½
 
-MnuNoSpells=Keine Zaubersprüche verfügbar
+MnuNoSpells=Keine Zaubersprï¿½che verfï¿½gbar
 MnuCast=Zaubern
 MnuEmpty=nicht belegt
-MnuDelQuickspell=löschen
+MnuDelQuickspell=lï¿½schen
 MnuSetQuickspell=Belegen
 MnuSlotQuickspell=Schnellzauber
 MnuSlotNumber=Platz %d
@@ -17,19 +17,22 @@ MnuSlotNumber=Platz %d
 
 CtxQuickspellDesc=Schnellzauber belegen
 CtxMagicDesc=Zaubern
-CtxCombo=Zaubersystem ändern
+CtxCombo=Zaubersystem ï¿½ndern
 CtxComboHelp=Kombinationssystem
 
 # Nachrichten
 
 MsgNoQuickSpells=Keine Schnellzauber belegt!
-ChangedToCombo=Kombinationssystem|ausgewählt
-ChangedToCombo2=Festes Kombinationssystem|ausgewählt
-ChangedToMenu=Menüsystem|ausgewählt
+ChangedToCombo=Kombinationssystem|ausgewï¿½hlt
+ChangedToCombo2=Festes Kombinationssystem|ausgewï¿½hlt
+ChangedToMenu=Menï¿½system|ausgewï¿½hlt
 MsgNotEnoughEnergy=Nicht genug|Zauberenergie!
 MsgNotEnoughIngredients=Nicht genug|alchemische Zutaten!|Es fehlen|%s.
-MsgComboHelp=Bei aktiviertem Kombinationssystem werden Zaubersprüche nicht mehr über ein Menü ausgewählt, sondern über eine Tastenkombination ausgesprochen. Kombinationen bestehen aus Taste Spezial 1, dann Hoch / Runter / Rechts / Links / Werfen / Graben für Element- und Zauberwahl.
+MsgComboHelp=Bei aktiviertem Kombinationssystem werden Zaubersprï¿½che nicht mehr ï¿½ber ein Menï¿½ ausgewï¿½hlt, sondern ï¿½ber eine Tastenkombination ausgesprochen. Kombinationen bestehen aus Taste Spezial 1, dann Hoch / Runter / Rechts / Links / Werfen / Graben fï¿½r Element- und Zauberwahl.
 
 # Control
 
 CtrlQuickspellDesc=Schnellzauber
+
+CtxCombineDesc=Zauber kombinieren
+MsgNoCompositor=Der Zauberkompositor ist in diesem Szenario nicht verfuegbar.

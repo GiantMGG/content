@@ -1,0 +1,1 @@
+MsgNoSpace=Hier ist kein Platz, um einen Golem zu beschwoeren.

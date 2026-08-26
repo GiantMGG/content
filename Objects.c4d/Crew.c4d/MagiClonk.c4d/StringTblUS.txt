@@ -3,7 +3,7 @@
 descChooseSpellClass=Magic class selection
 MsgNotReadyToMagic=%s cannot cast|a spell at the moment.
 
-# Menü
+# Menï¿½
 
 MnuNoSpells=No spells known
 MnuCast=Cast
@@ -34,3 +34,5 @@ MsgComboHelp=With the combination system spells are no longer selected through a
 
 CtrlQuickspellDesc=Cast quick spell
 
+CtxCombineDesc=Combine spells
+MsgNoCompositor=Spell compositor is not available in this scenario.

@@ -1,0 +1,1 @@
+Bibliotheksobjekt fuer das Zauber-Kombinationsprotokoll. Platziere eines im Szenario, um die Zauber-Kombinationskontextaktion fuer Magier-Besatzungen zu aktivieren.

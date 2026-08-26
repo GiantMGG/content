@@ -1,0 +1,15 @@
+[Action]
+Name=Walk
+Procedure=WALK
+Length=1
+Delay=1
+Facet=0,0,20,20
+NextAction=Walk
+
+[Action]
+Name=Dead
+Procedure=KNEEL
+Length=1
+Delay=1
+Facet=0,0,20,20
+NextAction=Hold

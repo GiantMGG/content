@@ -1,0 +1,1 @@
+Library object for the spell-combine protocol. Place one in a scenario to enable the Combine Spells context action on mage crews.

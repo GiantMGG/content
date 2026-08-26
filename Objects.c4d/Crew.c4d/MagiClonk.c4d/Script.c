@@ -8,18 +8,18 @@ static const MCLK_ComboExtraDataName = "MCLK_PrefCombo";
 static const MCLK_ManaTrainRate = 10; // Zauber geben Wert/x Magiephysicaltraining
 static const MCLK_QSPrefix = "MCLK_QS";
 
-local iCombo;			// Kombomenümodus (Nur Fantasypack): 0 (Normales Menü), 1 (Kombomenü), 2(Kombomenü mit festen links/rechts-Kombos)
-local pComboMenu;		// Aktives Kombomenü; wird geschlossen, wenn der Zauberer gestört wird (Nur Fantasypack)
-local idCurSpell, iCurPhase;        // Animationsphase und zugewiesener Zauber während des Zaubers
+local iCombo;			// Kombomenï¿½modus (Nur Fantasypack): 0 (Normales Menï¿½), 1 (Kombomenï¿½), 2(Kombomenï¿½ mit festen links/rechts-Kombos)
+local pComboMenu;		// Aktives Kombomenï¿½; wird geschlossen, wenn der Zauberer gestï¿½rt wird (Nur Fantasypack)
+local idCurSpell, iCurPhase;        // Animationsphase und zugewiesener Zauber wï¿½hrend des Zaubers
 
-local idLastSpell;		// ID des gegenwärtigen/letzten Zauberspruches
+local idLastSpell;		// ID des gegenwï¿½rtigen/letzten Zauberspruches
 
 local iProcess;			// Verarbeitungszeit
 
 
 public func MaxMagicPhysical()
 {
-  // Maximal trainierbarer Magiewert eines Zauberclonks (Achtung: DefinitionCall für Infoobjekte!)
+  // Maximal trainierbarer Magiewert eines Zauberclonks (Achtung: DefinitionCall fï¿½r Infoobjekte!)
   // Physical-Wert der Ursprungsdefinition plus 50.000
   return (GetPhysical("Magic", 0, 0, GetID()) + 50000);
 }
@@ -33,7 +33,7 @@ protected func GetFairCrewPhysical(string sPhysical, int iRank, & piVal)
     piVal = iBase + (MaxMagicPhysical()-iBase)*BoundBy(iRank,0,10)/10;
     return(true);
     }
-  // Clonk-FairCrew-Physicalüberladungen
+  // Clonk-FairCrew-Physicalï¿½berladungen
   return(_inherited(sPhysical, iRank, piVal));
 }
 
@@ -49,7 +49,7 @@ protected func Initialize(a,b,c)
   {
   // Clonk-Initialisierung
   inherited(a,b,c);
-   // Neue Physicals dauerhaft setzen, wenn der Clonk nicht schon höher trainiert hat
+   // Neue Physicals dauerhaft setzen, wenn der Clonk nicht schon hï¿½her trainiert hat
   UpdatePhysical ("Breath");
   UpdatePhysical ("Scale");
   UpdatePhysical ("Hangle");
@@ -63,7 +63,7 @@ protected func Initialize(a,b,c)
 
 protected func Destruction(a,b,c)
   {
-  // Objekt wird gelöscht: Vorsichtshalber das Menü entfernen
+  // Objekt wird gelï¿½scht: Vorsichtshalber das Menï¿½ entfernen
   if (pComboMenu) RemoveObject(pComboMenu);
   if (pAimer) RemoveObject(pAimer);
   return(inherited(a,b,c));
@@ -81,7 +81,7 @@ protected func Recruitment(int iPlayer, a,b,c)
 
 protected func ControlThrow()
 {
- // Kein Fallenlassen von Objekten während ein Zauber vorbereitet wird
+ // Kein Fallenlassen von Objekten wï¿½hrend ein Zauber vorbereitet wird
  if(idCurSpell) return true;
  return _inherited(...);
 }
@@ -92,13 +92,13 @@ protected func ControlSpecial(object pCaller)
   // Kombosystem: Zauber starten
   if(iCombo) return(DoComboCasting());
   
-  // Menüsystem: Schnellzauber
+  // Menï¿½system: Schnellzauber
   
   // Keine Schnellzauber belegt
   if (!Quickspells()) { DoCastError("$MsgNoQuickSpells$"); return(); }
   // Nicht bereit
   if (!ReadyToMagic()) return(0, DoCastError(Format("$MsgNotReadyToMagic$", GetName())));
-  // Menü öffnen
+  // Menï¿½ ï¿½ffnen
   OpenEmptySpellMenu(MCMS, this, this, this, "");
   for(var i=0; i < MaxQuickspells(); ++i)
   {
@@ -123,7 +123,7 @@ protected func ControlSpecialDouble(object pCaller)
   }
 
 
-/* Kontextmenü */  
+/* Kontextmenï¿½ */  
   
 public func ContextComboHelp(object pByObject)
 {
@@ -136,7 +136,7 @@ public func ContextComboHelp(object pByObject)
 public func ContextCombo(pByObject)
 {
   [$CtxCombo$|Image=MCMC|Condition=IsComboSystemEnabled]
-  // Kombosystem ändern
+  // Kombosystem ï¿½ndern
   iCombo = (iCombo+1) % 3;
   // Meldung und Sound
   if(iCombo)
@@ -163,7 +163,7 @@ public func ContextCombo(pByObject)
     CreateParticle("NoGravSpark", 0,0,  0, 6, 5*10, RGBa(255,0,0, 0), this());
   }
  
-  // Dies als Default für zukünftige Clonks
+  // Dies als Default fï¿½r zukï¿½nftige Clonks
   SetPlrExtraData(GetController(), MCLK_ComboExtraDataName(), iCombo);
 }
   
@@ -172,7 +172,7 @@ public func ContextQuickspell(object pByObject, int iSelection)
   [$CtxQuickspellDesc$|Image=MCMQ|Condition=NoCombo]
   // Clonk soll anhalten
   SetComDir(COMD_Stop(), pByObject);
-  // Menü öffnen
+  // Menï¿½ ï¿½ffnen
   OpenEmptySpellMenu(MCMQ, this, this, this, "");
   for(var i=0; i < MaxQuickspells(); ++i)
   {
@@ -182,7 +182,7 @@ public func ContextQuickspell(object pByObject, int iSelection)
     else
       AddMenuItem(Format("$MnuSlotNumber$: $MnuEmpty$",i+1), "QuickspellEditMenu",MCMX,0,0,i);
   }
-  // mittleren Spruch auswählen
+  // mittleren Spruch auswï¿½hlen
   SelectMenuItem(MaxQuickspells()/2);
   return(1);
 }
@@ -194,8 +194,19 @@ public func ContextMagic(object pByObject)
   if (!ReadyToMagic()) return(0, DoCastError(Format("$MsgNotReadyToMagic$", GetName())));
   // Clonk soll anhalten
   SetComDir(COMD_Stop(), pByObject);
-  // Menü öffnen
+  // Menï¿½ ï¿½ffnen
   OpenSpellMenu(this, this, "$MnuCast$: %s", "DoMagic", GetOwner(), this, "$MnuNoSpells$", idLastSpell);
+  return(1);
+}
+
+public func ContextCombineSpells(object pByObject)
+{
+  [$CtxCombineDesc$|Image=MSCP|Condition=ReadyToMagic]
+  if (!ReadyToMagic()) return(0, DoCastError(Format("$MsgNotReadyToMagic$", GetName())));
+  if (!FindObject(MSCP)) return(0, DoCastError("$MsgNoCompositor$"));
+  SetComDir(COMD_Stop(), pByObject);
+  var pComp = FindObject(MSCP);
+  pComp->StartCombineMenu(this());
   return(1);
 }
 
@@ -211,8 +222,8 @@ public func ReadyToMagic()
       && GetAction() ne "KneelDown" && GetAction() ne "KneelUp" && GetAction() ne "FlatUp"
       && GetAction() ne "Dive")
     return(0);
-  // Kann jetzt auch im Springen und in Gebäuden zaubern, dies sollten die Zauber 
-  // aber berücksichtigen
+  // Kann jetzt auch im Springen und in Gebï¿½uden zaubern, dies sollten die Zauber 
+  // aber berï¿½cksichtigen
   return(1);
 }
 
@@ -227,19 +238,19 @@ protected func DoMagic(idSpell)
   // Kein Mana/Zutaten
   if (!CheckMagicRequirements(idSpell)) return();
 
-  // Zauberaktion starten: Dies zaubert direkt im Schwimmen; ansonsten setzt es die Magieaktivität, die verzögert zaubert
+  // Zauberaktion starten: Dies zaubert direkt im Schwimmen; ansonsten setzt es die Magieaktivitï¿½t, die verzï¿½gert zaubert
   return (SetMagicAction(idSpell));
 }
 
 public func ExecMagic(id idSpell)
 {
-  // Weiterer Mana/Zutatencheck: Könnte während der Magieaktion Mana verloren haben
+  // Weiterer Mana/Zutatencheck: Kï¿½nnte wï¿½hrend der Magieaktion Mana verloren haben
   if (!CheckMagicRequirements(idSpell)) return();
   
   // Kombosystem: Zaubernamen anzeigen
   if (iCombo) PlayerMessage(GetController(), GetName(0, idSpell), this());
   
-  // Eventuelle Überbleibsel der letzten Zauberdaten zurücksetzen
+  // Eventuelle ï¿½berbleibsel der letzten Zauberdaten zurï¿½cksetzen
   pAimedSpellOrigin = 0;
 
   // Zauberobjekt erschaffen und aktivieren
@@ -294,10 +305,10 @@ private func SetMagicAction(id idForSpell)
   // Beim Reiten
   if (IsRiding())
     return(SetAction("RideMagic", GetActionTarget()));
-  // Bei KNEEL erstmal nicht; EndCall der KNEEL-Aktivität spricht den Zauber
+  // Bei KNEEL erstmal nicht; EndCall der KNEEL-Aktivitï¿½t spricht den Zauber
   if (GetAction() eq "KneelDown" || GetAction() eq "KneelUp" || GetAction() eq "FlatUp")
     return(true);
-  // Bei Dive Übergangsaktion
+  // Bei Dive ï¿½bergangsaktion
   if (GetAction() eq "Dive")
     {
     var iPhase = Min(8-GetPhase(), 6);
@@ -306,7 +317,7 @@ private func SetMagicAction(id idForSpell)
     return(true);
     }
   // Wenn bereits gezaubert wird, dann wird nur die Phase zurueckgesetzt,
-  // als Maßnahme gegen den AbortCall
+  // als Maï¿½nahme gegen den AbortCall
   // Es gibt einen Zauberzeitbonus von zwei Frames extra!
   if(GetAction() eq "Magic" || GetAction() eq "JumpMagic")
   {
@@ -318,14 +329,14 @@ private func SetMagicAction(id idForSpell)
 }
 
 
-// Der normale Zauberclonk hat keine spezielle Schwebeaktion fürs Zaubern
+// Der normale Zauberclonk hat keine spezielle Schwebeaktion fï¿½rs Zaubern
 // Diese bringt erst der Magus mit
 private func SetCastAction() {}
 
 private func EndMagicAction()
 {
   // Zielen abbrechen
-  // Aimer zurücksetzen, damit nicht rekursiv sofort wieder Aim gestartet wird...
+  // Aimer zurï¿½cksetzen, damit nicht rekursiv sofort wieder Aim gestartet wird...
   if(GetAction() S= "AimMagic")
     {
     var pAimerBck = pAimer; pAimer = 0;
@@ -333,17 +344,17 @@ private func EndMagicAction()
     pAimer = pAimerBck;
     return(true);
     }
-  // Hat er überhaupt eine Magieaktion?
+  // Hat er ï¿½berhaupt eine Magieaktion?
   if (!IsCasting()) return();
-  // Zurück zum Reiten
+  // Zurï¿½ck zum Reiten
   if (IsRiding())
     SetAction("Ride");
-  // Sonst zurück zum Gehen
+  // Sonst zurï¿½ck zum Gehen
   else
     SetAction("Walk");
 }
 
-// Zur Sicherheit, damit Überladungen keinen Fehler beim Starten geben
+// Zur Sicherheit, damit ï¿½berladungen keinen Fehler beim Starten geben
 protected func Scaling()
 {
   var szDesiredAction;
@@ -354,26 +365,26 @@ protected func Scaling()
 
 protected func CheckStuck()
 {                   
-  // Verhindert Festhängen am Mittelvertex
+  // Verhindert Festhï¿½ngen am Mittelvertex
   if(!GetXDir()) if(Abs(GetYDir()) < 5)
     if(GBackSolid(0, 3))
       SetPosition(GetX(), GetY() + 1);
 }
 
-/* ++++++ Menükombokram +++++ */
+/* ++++++ Menï¿½kombokram +++++ */
 
-/* Menüzeugs */
+/* Menï¿½zeugs */
 
 protected func QuickspellEditMenu(id idSpell, int iSelection) {
   // Clonk soll anhalten
   SetComDir(COMD_Stop());
-  // Menü öffnen
+  // Menï¿½ ï¿½ffnen
   OpenEmptySpellMenu(MCMQ, this, this, this, "$MnuNoSpells$");
   var idMagic, i = 0;
-  // "Schnellzauber löschen"
+  // "Schnellzauber lï¿½schen"
   if ((idSpell != MCM1) && (idSpell != MCM2) && (idSpell != MCM3) && (idSpell != MCM4) && (idSpell != MCM5))
     AddMenuItem(Format("$MnuSlotNumber$: $MnuDelQuickspell$", iSelection+1),"QuickspellDel",MCMX,0,0,iSelection);
-  // Alles außer schon ausgewählte anzeigen
+  // Alles auï¿½er schon ausgewï¿½hlte anzeigen
   while (idMagic = GetPlrMagic(GetOwner(), 0, i++))
     if(!IsQuickspell(idMagic))
       AddMenuItem(Format("$MnuSlotNumber$: %s", iSelection+1, "%s"), "QuickspellAdd", idMagic,0,0,iSelection);
@@ -391,10 +402,10 @@ protected func QuickspellDel(id idSpell, int iSelection) {
 
 /* Schnellzauber */
 
-protected func AddQuickspell(id idSpell, int iPos)	// fügt einen Zauber zum Schnellzugriff hinzu
+protected func AddQuickspell(id idSpell, int iPos)	// fï¿½gt einen Zauber zum Schnellzugriff hinzu
 { SetPlrExtraData(GetOwner(),Format("%s%d",MCLK_QSPrefix(),iPos),idSpell); }
 
-protected func DelQuickspell(id idSpell, int iPos)	// löscht einen Zauber aus dem Schnellzugriff
+protected func DelQuickspell(id idSpell, int iPos)	// lï¿½scht einen Zauber aus dem Schnellzugriff
 { SetPlrExtraData(GetOwner(),Format("%s%d",MCLK_QSPrefix(),iPos),false); }
 
 private func MaxQuickspells() { return(15); }		// Maximale Anzahl der Zauber im Schnellzugriff
@@ -413,7 +424,7 @@ private func IsQuickspell(id idSpell)			// der angegebene Zauber ist immo im Sch
   return(0);
 }
 
-private func IsQSID(id idItem) {				// Ist eine geladene ID und als Schnellzauber zulässig
+private func IsQSID(id idItem) {				// Ist eine geladene ID und als Schnellzauber zulï¿½ssig
   if(GetType(idItem) != C4V_C4ID()) return(false);
   if(!FindDefinition(idItem)) return(false);
   if(!GetPlrMagic(GetOwner(),idItem)) return(false);
@@ -440,7 +451,7 @@ private func CheckMagic()
   var idSpell = idCurSpell;
   idCurSpell = 0;
  
-  // Zauberspruch ausführen
+  // Zauberspruch ausfï¿½hren
   ExecMagic(idSpell);
 }
 
@@ -453,7 +464,7 @@ private func CheckMagicStart()
 
 private func AfterMagic()
 {
-  // Aktuellen Spruch zurücksetzen
+  // Aktuellen Spruch zurï¿½cksetzen
   iCurPhase = 0;
   idCurSpell = 0;
   
@@ -489,21 +500,21 @@ protected func DoComboCasting()
   if (!pComboMenu) return();
   // Clonk soll anhalten
   SetComDir(COMD_Stop());
-  // Zauberaktivität setzen
+  // Zauberaktivitï¿½t setzen
   SetCastAction();
-  // Auswahlmenü zurückgeben
+  // Auswahlmenï¿½ zurï¿½ckgeben
   return(pComboMenu);
   }
 
 public func OnComboMenuEnter(id idSpell)
   {
-  // Spruch ausführen
+  // Spruch ausfï¿½hren
   return(DoMagic(idSpell));
   }
 
 public func OnComboMenuAbort()
   {
-  // Redundant; das Menü ist eh gelöscht
+  // Redundant; das Menï¿½ ist eh gelï¿½scht
   pComboMenu = 0;
   // Zaubern abbrechen
   EndMagicAction();
@@ -511,12 +522,12 @@ public func OnComboMenuAbort()
 
 public func OnComboMenuSpecial()
   {
-  // Spezial im Komnbomenü: Klassenwahl (Momentan gar nix)
+  // Spezial im Komnbomenï¿½: Klassenwahl (Momentan gar nix)
   return(ControlSpecialDouble());
   }
 
 
-/* Zielsteuerung - nur aktiv, wenn das Fantasypack die globalen Funktionen CreateAimer und CreateSelector überladen hat */
+/* Zielsteuerung - nur aktiv, wenn das Fantasypack die globalen Funktionen CreateAimer und CreateSelector ï¿½berladen hat */
 
 // StartCall von Walk, wechselt bei laufendem Aimer wieder in die Aim-Aktion
 private func ReAim()
@@ -534,11 +545,11 @@ protected func AbortCasting(a,b,c)
   }
 
 
-/* Magiefähigkeit temporär geben (Aufgerufen vom Aufwertungszauber) */
+/* Magiefï¿½higkeit temporï¿½r geben (Aufgerufen vom Aufwertungszauber) */
 
 public func OnRevaluation()
   {
-  // Magiefähigkeit geben
+  // Magiefï¿½higkeit geben
   MagicEnergy();
   // Kombo nach Spieler-Default
   if (IsComboSystemEnabled())
@@ -548,10 +559,10 @@ public func OnRevaluation()
 
 public func MagicEnergy()
 {
-  // Normalerweise wird die Physical schon im Redefine2 gesetzt - dies ist ein Workaround für Aufwertungen von Clonks,
+  // Normalerweise wird die Physical schon im Redefine2 gesetzt - dies ist ein Workaround fï¿½r Aufwertungen von Clonks,
   // die kein #include CLNK im Script haben
   if (!GetPhysical("Magic")) SetPhysical("Magic", GetPhysical("Magic", 0, 0, GetID()), PHYS_Temporary);
-  // Und gleich auffüllen
+  // Und gleich auffï¿½llen
   for (var i = 0; i < 10; i++)
     DoMagicEnergy(10);
   return(1);
