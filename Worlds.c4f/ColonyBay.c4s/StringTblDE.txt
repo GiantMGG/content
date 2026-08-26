@@ -1,0 +1,3 @@
+$MsgIntro$=R"aume den Schutt, baue den Leuchtturm wieder auf und entzunde ihn nachts.
+$MsgLighthouseUnlocked$=Das Leuchtturm-Rezept ist jetzt verfugbar! Baue ihn auf dem Kopf-Stumpf.
+$MsgShipArrived$=Ein Handelsschiff ist mit Chemie-Wissen eingetroffen!

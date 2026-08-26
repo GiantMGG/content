@@ -1,0 +1,3 @@
+$MsgIntro$=Clear the ruins, rebuild the lighthouse, light the beacon at night.
+$MsgLighthouseUnlocked$=The lighthouse recipe is now available! Build it on the headland stump.
+$MsgShipArrived$=A trade ship has arrived with chemistry knowledge!
