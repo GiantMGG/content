@@ -1,0 +1,9 @@
+[Team1]
+Name=Attackers
+Color=1
+MaxPlayer=1
+
+[Team2]
+Name=Defenders
+Color=2
+MaxPlayer=1

@@ -1,0 +1,4 @@
+TxtFire=Feuern
+TxtAim1=Tiefer zielen
+TxtAim2=Hoeher zielen
+TxtResetview=Sicht zuruecksetzen

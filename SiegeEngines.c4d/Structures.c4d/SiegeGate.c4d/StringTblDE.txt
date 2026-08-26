@@ -1,0 +1,2 @@
+TxtOpen=Tor oeffnen
+TxtName=Belagerungs-Tor

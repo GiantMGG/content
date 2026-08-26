@@ -1,0 +1,2 @@
+TxtOpen=Open gate
+TxtName=Siege Gate

@@ -1,8 +1,10 @@
 /*-- Wand --*/
 
-// Stellt die Grundfunktionalität für alle Burgbauteile bereit
+// Stellt die GrundfunktionalitÃ¤t fÃ¼r alle Burgbauteile bereit
 
 #strict
+
+#include STGT // shared destructible-wall interface (siege-engines-pack)
 
 local basement;
 
@@ -14,7 +16,7 @@ protected func Initialize()
   SetCategory(C4D_StaticBack());
   // Bei Fertigstellung an anderen Teilen ausrichten
   CastlePartAdjust();
-  // Objekte im Umkreis ihre Überprüfungen durchführen lassen
+  // Objekte im Umkreis ihre ï¿½berprï¿½fungen durchfï¿½hren lassen
   CastlePartInitialize();
   // Fertig
   return(1);
@@ -49,6 +51,9 @@ public func CastlePartHeight()   { return (74);  }
 public func CastlePartTop()      { return (-13); }
 public func CastlePartBasement() { return(BSC3); }
 
+/* STGT: this wall is siege-damageable with 200 HP. */
+public func MaxSiegeHP() { return 200; }
+
 protected func CastlePartRange() { return(15);   } // Maximale Ausrichtungsentfernung
 
 public func InCastlePartRange(int iDist)
@@ -71,9 +76,9 @@ public func FindCastlePart(int iX, int iY, object pObj)
 public func CastlePartAdjust()
 {
   var pPart;          // Jeweils gefundenes Teil
-  var iWdtH, iHgtH;   // Breite/Höhe dieses Teils div 2
+  var iWdtH, iHgtH;   // Breite/Hï¿½he dieses Teils div 2
   var iAdjustRange;   // CastlePartRange
-  // Breite, Höhe und Oberkante des auszurichtenden Teils ermitteln
+  // Breite, Hï¿½he und Oberkante des auszurichtenden Teils ermitteln
   iWdtH = CastlePartWidth()/2; 
   iHgtH = CastlePartHeight()/2;
   // CastlePartRange ermitteln
@@ -178,22 +183,22 @@ public func RecheckBasement()
 {
   // Fundament vorhanden?
   if (!basement) return(1);
-  // Prüfen, ob links und rechts ein Burgteil unterhalb existiert
+  // Prï¿½fen, ob links und rechts ein Burgteil unterhalb existiert
   var iWdt4 = CastlePartWidth()/4;
   var iY = CastlePartHeight()/2 + CastlePartRange();
-  // Unterhalb rechts prüfen
+  // Unterhalb rechts prï¿½fen
   if (FindCastlePart(iWdt4, iY))
-    // Unterhalb links prüfen
+    // Unterhalb links prï¿½fen
     if (FindCastlePart(-iWdt4, iY))
-      // OK; das Fundament ist unnötig
+      // OK; das Fundament ist unnï¿½tig
       RemoveObject(basement);
   // Fertig
   return(1);
 }
 
-/* Überprüfungen bei Veränderungen in der Burg */
+/* ï¿½berprï¿½fungen bei Verï¿½nderungen in der Burg */
 
-// Burgteile auf ihre Daseinsberechtigung überprüfen (Brustwehren inmitten der Burg, etc)
+// Burgteile auf ihre Daseinsberechtigung ï¿½berprï¿½fen (Brustwehren inmitten der Burg, etc)
 public func FCastleChange()
 {
   // Alle Teile benachrichtigen
@@ -214,7 +219,7 @@ public func CastlePartConstruction()
   // Fundament erstellen?
   var idBasement = CastlePartBasement();
   if (!idBasement) return(1);
-  // nötig?
+  // nï¿½tig?
   if(FindCastlePart(0, CastlePartRange())) return(1);
   // OK, Fundament erstellen und speichern
   basement = CreateObject(idBasement, 0, 8, GetOwner());
@@ -223,13 +228,13 @@ public func CastlePartConstruction()
   return(1);
 }
 
-// Der Aufruf von CastleChange muss verzögert erfolgen, damit das Teil zum Aufruf auch wirklich weg ist
+// Der Aufruf von CastleChange muss verzï¿½gert erfolgen, damit das Teil zum Aufruf auch wirklich weg ist
 public func CastlePartDestruction()
 {
   // Fundament?
   if (basement) 
   	RemoveObject(basement);
-  // Globaler Temporäreffekt, wenn nicht schon vorhanden
+  // Globaler Temporï¿½reffekt, wenn nicht schon vorhanden
   if (!GetEffect("IntCPW2CastleChange"))
   	AddEffect("IntCPW2CastleChange", 0, 1, 2, 0, CPW2);
   return(1);
@@ -246,7 +251,7 @@ protected func FxIntCPW2CastleChangeStop()
 }
 
 // Wird von verbrannten Burgenbauteilen bei Incineration aufgerufen.
-// Muss seltsamerweise ebenso verzögert aufgerufen werden
+// Muss seltsamerweise ebenso verzï¿½gert aufgerufen werden
 public func CastlePartIncinerate(object pPart)
 {
   return(UpdateAllCastleParts());
@@ -254,7 +259,7 @@ public func CastlePartIncinerate(object pPart)
 
 global func UpdateAllCastleParts()
   {
-  // Globaler Temporäreffekt, wenn nicht schon vorhanden
+  // Globaler Temporï¿½reffekt, wenn nicht schon vorhanden
   if (!GetEffect("IntCPW2CastleChange")) 
   	AddEffect("IntCPW2CastleChange", 0, 1, 2, 0, CPW2);
   return(1);

@@ -1,0 +1,5 @@
+[DefCore]
+id=SIEE
+Version=4,9,8
+Name=Siege Engines
+Category=C4D_StaticBack

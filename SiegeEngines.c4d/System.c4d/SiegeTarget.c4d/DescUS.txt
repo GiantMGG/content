@@ -1,0 +1,1 @@
+SiegeTarget: shared destructible-wall interface. Include via "#include STGT".

@@ -1,0 +1,5 @@
+[DefCore]
+id=STGT
+Version=4,9,8
+Name=SiegeTarget
+Category=C4D_Rule

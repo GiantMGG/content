@@ -3,11 +3,15 @@
 #strict
 
 #include CPT1 // Burgteil - Treppenhausfunktion
+#include STGT // shared destructible-wall interface (siege-engines-pack)
 
 /* Burgteil */
 
 public func CastlePartWidth() { return(0); } // Wand hinter dem Turm gilt als Burgteil
-public func StaircaseExit() { return(-31); } // Oberer Ausgang fürs Treppenhaus
+
+/* STGT: this tower is siege-damageable with 400 HP. */
+public func MaxSiegeHP() { return 400; }
+public func StaircaseExit() { return(-31); } // Oberer Ausgang fï¿½rs Treppenhaus
 public func CastlePartBasement() { return(0); } // Wand hinter dem Turm erzeugt das Fundament
 
 
@@ -16,8 +20,8 @@ public func CastlePartBasement() { return(0); } // Wand hinter dem Turm erzeugt 
 
 protected func CtxControlLeft(object pClonk)
 {
-  // Kontextfunktion: Nur Kontrolle ermöglichen, wenn der Clonk auch tatsächlich das Tor anfasst
-  // Zur Abwärtskompatibilität mit Szenarienscripten, die Tore öffnen, wird dies in eine eigene Funktion ausgelagert
+  // Kontextfunktion: Nur Kontrolle ermï¿½glichen, wenn der Clonk auch tatsï¿½chlich das Tor anfasst
+  // Zur Abwï¿½rtskompatibilitï¿½t mit Szenarienscripten, die Tore ï¿½ffnen, wird dies in eine eigene Funktion ausgelagert
   if (GetProcedure(pClonk) eq "PUSH")
     if (GetActionTarget(0, pClonk) == this())
       return (ControlLeft(pClonk));
@@ -50,25 +54,25 @@ protected func ControlRight()
   pGate->Activate();
 }
 
-/* Zugbrücke */
+/* Zugbrï¿½cke */
 
 protected func FindDrawbridge()
 {
 	var pBridge;
-  // Zugbrücke rechts suchen
+  // Zugbrï¿½cke rechts suchen
   while (pBridge = FindObject(CPBR, +40,0,0,0, 0, 0,0, NoContainer(), pBridge))
   	if (pBridge->IsAttachedTo(this()))
       return(pBridge);
-  // Zugbrücke links suchen
+  // Zugbrï¿½cke links suchen
   pBridge = 0;
   while (pBridge = FindObject(CPBL, -40,0,0,0, 0, 0,0, NoContainer(), pBridge))
   	if (pBridge->IsAttachedTo(this()))
       return(pBridge);
-  // Keine Zugbrücke gefunden
+  // Keine Zugbrï¿½cke gefunden
   return(0);
 }
 
-// Heruntergelassene Zugrücke suchen 
+// Heruntergelassene Zugrï¿½cke suchen 
 protected func FindDrawbridgeDown()
 {
 	var pBridge;
@@ -76,7 +80,7 @@ protected func FindDrawbridgeDown()
   return(pBridge->IsDown());
 }
 
-// Hochgezogene Zugrücke suchen 
+// Hochgezogene Zugrï¿½cke suchen 
 protected func FindDrawbridgeUp()
 {
 	var pBridge;
@@ -134,7 +138,7 @@ public func ContextBridgeDown(object pClonk)
   return(1); 
 }
   
-/* Wenn der Turm mal runterfällt */
+/* Wenn der Turm mal runterfï¿½llt */
 
 protected func Hit()
 {
@@ -155,13 +159,13 @@ protected func Initialize()
   CreateObject(CPB1, +22, -27, GetOwner())->AttachTo(pWall, DIR_Right());
   // Niedergang erzeugen
   CreateObject(CPTE, 0, -31, GetOwner());
-  // Tür ist immer offen
+  // Tï¿½r ist immer offen
   SetEntrance(1);
   // Turmspezifische Teile erzeugen
   InitializeTower();
   // Transferzone setzen
   UpdateTransferZone();
-  // Objekte im Umkreis ihre Überprüfungen durchführen lassen
+  // Objekte im Umkreis ihre ï¿½berprï¿½fungen durchfï¿½hren lassen
   CastlePartInitialize();
   // Fertig
   return(1);
@@ -178,17 +182,17 @@ private func InitializeTower()
 
 public func UpdateTransferZone()
 {
-  // Mit darüberliegendem Niedergang
+  // Mit darï¿½berliegendem Niedergang
   if (FindStaircaseAbove())
     if (GetOCF() & OCF_Fullcon())
       return(SetTransferZone(-19, -47, 38, 61));
-  // Ohne darüberliegenden Niedergang (kein Auf- oder Abstieg möglich)
+  // Ohne darï¿½berliegenden Niedergang (kein Auf- oder Abstieg mï¿½glich)
   return(SetTransferZone(-19, +10, 38, 4));
 }
 
 public func ControlTransfer(object pObj, int iTx, int iTy)
 { 
-	//Log("Zugbrücke - ControlTransfer");
+	//Log("Zugbrï¿½cke - ControlTransfer");
   // Aufstieg
   if (Inside(iTx - GetX(), -20, +20) && Inside(iTy - GetY(), -50, -20))
     if ((pObj->Contained() == this()) || (GetY(pObj) > GetY() - 20))
@@ -204,16 +208,16 @@ public func ControlTransfer(object pObj, int iTx, int iTy)
   if (Inside(iTx - GetX(), -30, -16) && Inside(iTy - GetY(), -20, +37))
     return(HandleTransferGateLeft(pObj, iTx, iTy));
 
-  // Zugbrücke
+  // Zugbrï¿½cke
   if (FindDrawbridge())
-  	// Seitlicher Ausgang gewünscht
+  	// Seitlicher Ausgang gewï¿½nscht
   	if (Inside(iTx - GetX(), +16, +30) || Inside(iTx - GetX(), -30, -16))
-  		// Der nächste Wegpunkt liegt unten im Burggraben
+  		// Der nï¿½chste Wegpunkt liegt unten im Burggraben
   		if (iTy > GetY() + 30)
-  			// Zugbrücke öffnen
+  			// Zugbrï¿½cke ï¿½ffnen
 	  		return(HandleTransferDrawbridge(pObj, iTx, iTy));
     
-  // Transfer nicht möglich
+  // Transfer nicht mï¿½glich
 	//Log("can't handle");
   return(0);
 }
@@ -235,7 +239,7 @@ private func HandleTransferGateRight(object pObj, int iTx, int iTy)
     return(AddCommand(pObj, "Grab", this()));
   // Tor bewegt sich: warten
   if (pGate->GetComDir() == COMD_Up()) return(1);
-  // Tor öffnen
+  // Tor ï¿½ffnen
   return(ControlRight(pObj));
 }
 
@@ -256,30 +260,30 @@ private func HandleTransferGateLeft(object pObj, int iTx, int iTy)
     return(AddCommand(pObj, "Grab", this()));
   // Tor bewegt sich: warten
   if (pGate->GetComDir() == COMD_Up()) return(1);
-  // Tor öffnen
+  // Tor ï¿½ffnen
   return(ControlLeft(pObj));
 }
 
 private func HandleTransferDrawbridge(object pObj, int iTx, int iTy)
 {
 	//Log("HandleTransferDrawbridge");
-  // Zugbrücke suchen
+  // Zugbrï¿½cke suchen
   var pBridge = FindDrawbridge();
   if (!pBridge) return(0);
-  // Zugbrücke ist offen
+  // Zugbrï¿½cke ist offen
   if (pBridge->IsOpen())
   {
   	// Turm loslassen
     if ((pObj->GetAction() S= "Push") && (pObj->GetActionTarget() == this()))
       return(AddCommand(pObj, "UnGrab", this()));      
-    // Keine weitere Transferaktion nötig
+    // Keine weitere Transferaktion nï¿½tig
   	return(0);
   }
   // Clonk soll den Turm anfassen
   if (!((pObj->GetAction() S= "Push") && (pObj->GetActionTarget() == this())))
     return(AddCommand(pObj, "Grab", this()));
-  // Zugbrücke bewegt sich: warten
+  // Zugbrï¿½cke bewegt sich: warten
   if (pBridge->IsOpening()) return(1);
-  // Zugbrücke öffnen
+  // Zugbrï¿½cke ï¿½ffnen
   return(DrawbridgeDown(pBridge));
 }  

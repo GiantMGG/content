@@ -1,0 +1,2 @@
+TxtName=Belagerungsmaschinen
+TxtDesc=Ein Paket Belagerungsmaschinen: Katapult, Rammbock und Trebuchet, mit Munition und zerstoerbaren Mauern.
