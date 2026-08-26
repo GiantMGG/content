@@ -19,7 +19,7 @@ local baseline_wind, baseline_temp;
 public func Construction()
 {
 	phase = 0;
-	phase_timer = GetWeatherEventDuration() / 3; // rough 3-phase split
+	phase_timer = 0;
 	baseline_wind = GetWind(0, 0, true);
 	baseline_temp = GetTemperature();
 	return 1;
@@ -27,6 +27,9 @@ public func Construction()
 
 public func Start()
 {
+	// EventDuration is only valid from Start onward (LaunchWeatherEvent
+	// sets it after CreateObject returns), so the phase split is read here.
+	phase_timer = GetWeatherEventDuration() / 3;
 	GameMsg("The clouds gather…");
 	SetSkyFade(20, 20, 30, 60, 60, 80);  // darken sky
 }

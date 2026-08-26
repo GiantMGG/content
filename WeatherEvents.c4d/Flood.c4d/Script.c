@@ -15,12 +15,16 @@ local total_duration;
 public func Construction()
 {
 	tick_counter   = 0;
-	total_duration = GetWeatherEventDuration();
+	total_duration = 0;
 	return 1;
 }
 
 public func Start()
 {
+	// EventDuration is only valid from Start onward (LaunchWeatherEvent
+	// sets it after CreateObject returns), so the rising/receding split
+	// is read here.
+	total_duration = GetWeatherEventDuration();
 	GameMsg("Waters rise — the flood is coming!");
 }
 
