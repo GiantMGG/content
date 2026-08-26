@@ -1,0 +1,3 @@
+GLHT=Lighthouse Goal
+$MsgGoalFulfilled$=The goal is fulfilled! The lighthouse beacon burns and the chemical factory is built.
+$MsgGoalDesc$=Rebuild the lighthouse and light its beacon at night. Then construct a chemical factory.

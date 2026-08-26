@@ -1,0 +1,10 @@
+[DefCore]
+id=GLHT
+Version=4,9,8
+Name=GoalLighthouse
+Category=C4D_Goal
+MaxUserSelect=1
+Width=10
+Height=10
+Offset=-5,-5
+Picture=0,0,10,10

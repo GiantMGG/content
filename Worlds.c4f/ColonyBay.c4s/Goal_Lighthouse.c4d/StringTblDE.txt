@@ -1,0 +1,3 @@
+GLHT=Leuchtturm-Ziel
+$MsgGoalFulfilled$=Das Ziel ist erreicht! Der Leuchtturm brennt und die Chemiefabrik steht.
+$MsgGoalDesc$=Baut den Leuchtturm wieder auf und entzundet ihn nachts. Errichtet dann eine Chemiefabrik.
