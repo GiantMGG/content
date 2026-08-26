@@ -49,3 +49,11 @@ global func SetTutorialMessagePos(int posflags, int offx, int offy, int wdt)
 	g_msgwdt = wdt;
 	return true;
 }
+
+global func SkipTutorial()
+{
+	// Clear any chained next-mission, then end the round.
+	// The game-over dialog will offer only "Exit" -> main menu.
+	SetNextMission("", "", "");
+	GameOver();
+}

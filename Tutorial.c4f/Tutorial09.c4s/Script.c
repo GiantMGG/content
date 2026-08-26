@@ -21,6 +21,8 @@ func InitializePlayer(int iPlr)
   GetCrew(iPlr, 0)->SetPhysical("Swim", 90000, 2);
   GetCrew(iPlr, 0)->SetPhysical("Breath", 250000, 2);
   SetTutorialMessagePos(MSG_HCenter | MSG_Top, 0, 30);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(iPlr), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 }
 
 func Script1()

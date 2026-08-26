@@ -10,3 +10,4 @@ BtnNextTutorial=&Next tutorial
 BtnNextTutorialDesc=Start the next tutorial scenario.
 BtnRepeatRound=&Repeat this round
 BtnRepeatRoundDesc=Restart this scenario.
+TxtSkipHint=Press Esc and choose 'Exit' to leave the tutorial at any time.

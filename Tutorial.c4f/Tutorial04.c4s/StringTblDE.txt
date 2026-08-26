@@ -25,3 +25,4 @@ BtnNextTutorial=&N‰chste Lernrunde
 BtnNextTutorialDesc=Die n‰chste Lernrunde starten.
 BtnRepeatRound=Runde &wiederholen
 BtnRepeatRoundDesc=Diese Runde wiederholen.
+TxtSkipHint=Dr√ºcke Esc und w√§hle 'Beenden', um das Tutorial jederzeit zu verlassen.

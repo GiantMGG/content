@@ -1,6 +1,6 @@
 #strict 2
 
-// Gespeicherte Positionen für den Relaunch
+// Gespeicherte Positionen fï¿½r den Relaunch
 static iBlnX, iBlnY, iPlrX, iPlrY, iCounter;
 
 func Initialize()
@@ -47,6 +47,8 @@ func InitializePlayer(int iPlr)
   iCounter = 0;
   
   CreateMaterial(iPlr);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(iPlr), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 }
 
 func Script1()
@@ -222,14 +224,14 @@ func RelaunchPlayer(iPlr)
   RemoveAll(FLAG); RemoveAll(LOAM); RemoveAll(BALN);
   CreateMaterial(iPlr);
   CreateObject(BALN, iBlnX, iBlnY, iPlr);
-  // Neuen Clonk erzeugen, falls nötig
+  // Neuen Clonk erzeugen, falls nï¿½tig
   if (!FindObject(CLNK)->GetAlive())
  	{
 	  var pClonk = CreateObject(CLNK, iPlrX, iPlrY, iPlr);
 	  MakeCrewMember(pClonk, iPlr);
 	  SetCursor(iPlr, pClonk);
 	}
-  // Scriptcounter zurück setzen
+  // Scriptcounter zurï¿½ck setzen
   goto(iCounter);
 }
 

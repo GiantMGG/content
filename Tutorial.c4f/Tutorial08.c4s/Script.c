@@ -31,6 +31,8 @@ func InitializePlayer(int plr)
 	CreateObject(LORY, x + 20, y - 10);
 	// Set message position
 	SetTutorialMessagePos(MSG_HCenter | MSG_Top, 0, 30);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(plr), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 }
 
 

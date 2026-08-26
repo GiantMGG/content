@@ -28,6 +28,8 @@ func InitializePlayer(int plr)
 	// Message positioning
 	SetPlrShowControlPos(plr, SHOWCTRLPOS_TopLeft);
 	SetTutorialMessagePos(MSG_Top | MSG_Left | MSG_WidthRel | MSG_XRel, 50, 50, 30);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(plr), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 	return true;
 }
 

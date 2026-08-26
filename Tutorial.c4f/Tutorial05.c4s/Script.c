@@ -50,6 +50,8 @@ func InitializePlayer(int plr)
 	SetTutorialMessagePos(MSG_Bottom | MSG_Left | MSG_XRel | MSG_WidthRel, 10, -10, 35);
 	// Start script
 	ScriptGo(1);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(plr), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 	return true;
 }
 

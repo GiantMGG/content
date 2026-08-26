@@ -22,6 +22,8 @@ func InitializePlayer() {
   // Less energy for the clonk to prevent crystal snatching
   GetCrew()->SetPhysical("Energy", 5000, PHYS_Temporary);
   GetCrew()->SetCommand(0, "MoveTo", 0, 500, 439);
+	// One-time skip hint shown at the top of the screen
+	CustomMessage("$TxtSkipHint$", GetCrew(0), 0, 0, -120, 0xffffff, DECO, "", MSG_Top | MSG_XRel | MSG_WidthRel, 35);
 }
 
 func EmergencyLinekit(int n) {
