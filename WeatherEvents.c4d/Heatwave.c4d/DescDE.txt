@@ -1,0 +1,2 @@
+[Desc]
+1=Hitzewelle: Feuer breitet sich schneller aus.

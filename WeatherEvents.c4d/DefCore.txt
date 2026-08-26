@@ -1,0 +1,3 @@
+[DefCore]
+Id=WEAT
+Version=1

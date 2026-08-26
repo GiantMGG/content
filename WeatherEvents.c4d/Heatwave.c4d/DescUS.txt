@@ -1,0 +1,2 @@
+[Desc]
+1=Heatwave: fire spreads aggressively.

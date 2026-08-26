@@ -1,0 +1,2 @@
+[Desc]
+1=A blizzard: temperature plunges, snow falls, seedlings die.

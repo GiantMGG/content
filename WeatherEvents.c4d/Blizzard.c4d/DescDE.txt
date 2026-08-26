@@ -1,0 +1,2 @@
+[Desc]
+1=Ein Blizzard: Temperatur stürzt ab, Schnee fällt, Setzlinge sterben.
