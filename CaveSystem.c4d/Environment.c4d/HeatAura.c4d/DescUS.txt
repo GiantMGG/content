@@ -1,0 +1,1 @@
+Invisible heat aura in the lava caverns. Drains energy unless in Water or heat-immune.

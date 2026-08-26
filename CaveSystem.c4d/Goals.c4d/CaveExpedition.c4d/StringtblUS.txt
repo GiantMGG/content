@@ -1,0 +1,2 @@
+MsgGoalFulfilled=The Selenite Heart has been retrieved!
+MsgGoalUnfulfilled=The Selenite Heart must be brought from the deepest lava pocket to the homebase.

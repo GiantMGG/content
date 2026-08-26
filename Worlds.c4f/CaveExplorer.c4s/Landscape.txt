@@ -1,0 +1,47 @@
+/* CaveExplorer -- four-strata cave map */
+
+overlay EarthBorder { algo=border; a=1; b=1; mat=Earth; tex=Rough; };
+
+map CaveParcour {
+  mat=Tunnel; tex=Smooth;
+
+  // ---- Stratum 0: Damp Top Caves (y 0..100) ----
+  overlay Stratum0 { algo=bozo; zoomX=40; zoomY=40; turbulence=800; a=-1;
+    loosebounds=1; x=0; y=0; wdt=100; hgt=25; } &
+  overlay { mat=Earth; tex=Rough; loosebounds=1; x=0; y=0; wdt=100; hgt=25;
+    overlay { algo=bozo; mat=Quartz; tex=Ridge; zoomX=20; zoomY=20; turbulence=600; a=2; };
+    EarthBorder;
+  } & Stratum0;
+
+  // ---- Stratum 1: Underground Lake (y 100..200) ----
+  overlay Stratum1 { algo=bozo; zoomX=40; zoomY=40; turbulence=800; a=-1;
+    loosebounds=1; x=0; y=25; wdt=100; hgt=25; } &
+  overlay { mat=Rock; tex=Rough; loosebounds=1; x=0; y=25; wdt=100; hgt=25;
+    overlay { algo=bozo; mat=Water-Smooth; tex=Smooth; zoomX=30; zoomY=20; turbulence=400; a=4; };
+    overlay { algo=bozo; mat=Amethyst; tex=Ridge; zoomX=15; zoomY=15; turbulence=500; a=2; };
+    overlay { algo=bozo; mat=Quartz; tex=Ridge; zoomX=15; zoomY=15; turbulence=500; a=2; };
+    EarthBorder;
+  } & Stratum1;
+
+  // ---- Stratum 2: Crystal Caverns (y 200..300) ----
+  overlay Stratum2 { algo=bozo; zoomX=40; zoomY=40; turbulence=800; a=-1;
+    loosebounds=1; x=0; y=50; wdt=100; hgt=25; } &
+  overlay { mat=Rock; tex=Rough; loosebounds=1; x=0; y=50; wdt=100; hgt=25;
+    overlay { algo=bozo; mat=Amethyst; tex=Ridge; zoomX=20; zoomY=20; turbulence=600; a=4; };
+    overlay { algo=bozo; mat=Quartz; tex=Ridge; zoomX=20; zoomY=20; turbulence=600; a=3; };
+    EarthBorder;
+  } & Stratum2;
+
+  // ---- Stratum 3: Lava Caverns (y 300..400) ----
+  overlay Stratum3 { algo=bozo; zoomX=40; zoomY=40; turbulence=800; a=-1;
+    loosebounds=1; x=0; y=75; wdt=100; hgt=25; } &
+  overlay { mat=Granite; tex=Rough; loosebounds=1; x=0; y=75; wdt=100; hgt=25;
+    overlay { algo=bozo; mat=DuroLava; tex=Smooth; zoomX=40; zoomY=20; turbulence=600; a=6; };
+    overlay { algo=bozo; mat=Sulphur; tex=Swirl; zoomX=20; zoomY=20; turbulence=500; a=3; };
+    overlay { algo=bozo; mat=Selenite; tex=Ridge; zoomX=15; zoomY=15; turbulence=400; a=2; };
+    EarthBorder;
+  } & Stratum3;
+
+  // ---- Map-wide border closure ----
+  Border & EarthBorder;
+};

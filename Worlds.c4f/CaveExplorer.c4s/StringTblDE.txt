@@ -1,0 +1,3 @@
+MsgGoalFulfilled=Das Selenitherz wurde geborgen!
+MsgGoalUnfulfilled=Bringen Sie das Selenitherz an die Heimatbasis.
+MsgHeartLost=Das Selenitherz ist in die Lava gefallen und wurde zerst\~ort!

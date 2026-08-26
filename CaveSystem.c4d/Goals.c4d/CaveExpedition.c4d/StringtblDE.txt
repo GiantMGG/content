@@ -1,0 +1,2 @@
+MsgGoalFulfilled=Das Selenitherz wurde geborgen!
+MsgGoalUnfulfilled=Das Selenitherz muss aus der tiefsten Lavatasche an die Heimatbasis gebracht werden.

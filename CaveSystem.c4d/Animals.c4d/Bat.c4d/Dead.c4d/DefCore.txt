@@ -1,0 +1,9 @@
+[DefCore]
+id=DBAT
+Version=4,9,8
+Name=DeadBat
+Category=C4D_StaticBack|C4D_SelectMaterial
+Width=28
+Height=24
+Offset=-14,-12
+Picture=560,64,64,64

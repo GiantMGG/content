@@ -1,0 +1,1 @@
+A player-built crystal lamp. Casts a warm, faked glow.

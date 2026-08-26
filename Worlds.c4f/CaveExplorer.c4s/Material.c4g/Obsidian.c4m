@@ -1,0 +1,13 @@
+[Material]
+Name=Obsidian
+Color=20,10,30,40,20,50,10,5,15
+Shape=2
+Density=80
+Friction=80
+DigFree=1
+BlastFree=1
+Dig2Object=OBSN
+Dig2ObjectRatio=80
+MaxAirSpeed=100
+MaxSlide=1
+TextureOverlay=Smooth

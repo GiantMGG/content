@@ -1,0 +1,3 @@
+MsgGoalFulfilled=The Selenite Heart has been retrieved!
+MsgGoalUnfulfilled=Bring the Selenite Heart to the homebase.
+MsgHeartLost=The Selenite Heart fell into the lava and was destroyed!

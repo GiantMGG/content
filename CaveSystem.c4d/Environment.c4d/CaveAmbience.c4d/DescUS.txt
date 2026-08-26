@@ -1,0 +1,1 @@
+Drives the stratum-dependent gamma lighting and drip particles.
