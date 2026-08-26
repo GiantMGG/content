@@ -10,6 +10,7 @@ Origin=Worlds.c4f\ColonyBay.c4s
 
 [Definitions]
 Definition1=Objects.c4d
+Definition2=WeatherEvents.c4d
 
 [Game]
 StructNeedEnergy=0
@@ -66,3 +67,10 @@ Wind=1,100
 
 [Environment]
 Objects=TIME=1;EGLN=1;EGRS=1
+
+[WeatherEvents]
+Event=STRM=10;0;100
+Event=BLZD=4;0;25
+Event=DRGT=3;50;100
+Event=HTWV=2;60;100
+Event=FLDD=4;25;75
