@@ -1,0 +1,11 @@
+MsgTrade=Trade
+MsgCancel=Cancel
+MsgTooFewGoods=Too few goods!
+MsgRefineSilk=Refine Silk into Spice
+MsgRefineGold=Refine Gold into Incense
+MsgSellSpice=Sell Spice
+MsgSellIncense=Sell Incense
+MsgSilkRefine=Silk refined into Spice. +50 wealth.
+MsgGoldRefine=Gold refined into Incense. +50 wealth.
+MsgSpiceSold=Spice sold. +50 wealth.
+MsgIncenseSold=Incense sold. +50 wealth.

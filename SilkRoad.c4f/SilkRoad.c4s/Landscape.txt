@@ -1,0 +1,19 @@
+overlay AlterMat {
+  sub = 1;
+  turbulence = 10;
+  algo = rndchecker;
+  zoomX = -70;
+  zoomY = -70;
+};
+
+map SilkRoad {
+  /* Flat valley floor spanning the full width */
+  overlay { x = 0; wdt = 100; y = 75; hgt = 25; mat = Earth; tex = Rough;
+    turbulence = 200; lambda = 2; loosebounds = 1; zoomX = 40; zoomY = 30; grp = 1;
+  } &
+  overlay { sub = 1; x = 0; wdt = 100; y = 73; hgt = 2; mat = Earth; tex = Smooth;
+    AlterMat { mat = Rock; tex = Rough; a = 2; };
+  } &
+  /* Bedrock floor */
+  overlay { sub = 1; x = 0; wdt = 100; y = 95; hgt = 5; mat = Rock; tex = Ridge; }
+}

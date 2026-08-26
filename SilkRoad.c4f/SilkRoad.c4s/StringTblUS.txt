@@ -1,0 +1,4 @@
+TeamCaravaneers=Caravaneers
+TeamMerchants=Merchants
+TeamEastJoin=%s joins the Caravaneers.
+TeamWestJoin=%s joins the Merchants.

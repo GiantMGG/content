@@ -1,0 +1,20 @@
+[Teams]
+TeamDistribution=Free
+AutoGenerateTeams=0
+AllowTeamSwitch=0
+AllowHostilityChange=0
+TeamColors=1
+
+	[Team]
+	id=1
+	Name=$TeamCaravaneers$
+	PlrStartIndex=1
+	MaxPlayer=2
+	IconSpec=TMS1:2
+
+	[Team]
+	id=2
+	Name=$TeamMerchants$
+	PlrStartIndex=2
+	MaxPlayer=2
+	IconSpec=TMS1:3

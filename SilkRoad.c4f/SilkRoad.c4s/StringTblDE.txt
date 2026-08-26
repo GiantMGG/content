@@ -1,0 +1,4 @@
+TeamCaravaneers=Karawanenführer
+TeamMerchants=Kaufleute
+TeamEastJoin=%s schließt sich den Karawanenführern an.
+TeamWestJoin=%s schließt sich den Kaufleuten an.

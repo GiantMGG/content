@@ -1,0 +1,11 @@
+MsgTrade=Handel
+MsgCancel=Abbrechen
+MsgTooFewGoods=Zu wenige Waren!
+MsgRefineSilk=Seide zu Gewürz veredeln
+MsgRefineGold=Gold zu Weihrauch veredeln
+MsgSellSpice=Gewürz verkaufen
+MsgSellIncense=Weihrauch verkaufen
+MsgSilkRefine=Seide zu Gewürz veredelt. +50 Vermögen.
+MsgGoldRefine=Gold zu Weihrauch veredelt. +50 Vermögen.
+MsgSpiceSold=Gewürz verkauft. +50 Vermögen.
+MsgIncenseSold=Weihrauch verkauft. +50 Vermögen.
