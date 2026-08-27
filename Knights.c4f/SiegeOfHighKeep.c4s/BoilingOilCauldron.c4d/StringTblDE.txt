@@ -1,0 +1,4 @@
+[StringTable]
+Name=Kochend-Öl-Kessel
+Desc=Ein Kessel mit kochendem Öl. Gieße ihn auf Angreifer unten.
+TxtPour=Gießen

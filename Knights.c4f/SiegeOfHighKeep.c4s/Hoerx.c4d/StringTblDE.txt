@@ -1,0 +1,3 @@
+[StringTable]
+Name=König
+Desc=Der König der Verteidiger. Beschütze ihn um jeden Preis.

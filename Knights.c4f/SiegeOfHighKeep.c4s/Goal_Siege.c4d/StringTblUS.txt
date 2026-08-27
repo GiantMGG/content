@@ -1,0 +1,3 @@
+[StringTable]
+Name=Siege Goal
+Desc=Siege goal wrapper.

@@ -1,0 +1,10 @@
+[DefCore]
+Id=GLST
+Version=1,0,0,0
+DefaultWidth=10
+DefaultHeight=10
+Action=nil
+ObjectPlacement=2
+Picture=Graphics.png
+Name=$Name$
+Description=$Desc$

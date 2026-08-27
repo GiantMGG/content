@@ -1,0 +1,11 @@
+[DefCore]
+Id=HOERX
+Version=1,0,0,0
+InheritedID=KING
+DefaultWidth=20
+DefaultHeight=25
+Action=Walk
+ObjectPlacement=2
+Picture=Graphics.png
+Name=$Name$
+Description=$Desc$

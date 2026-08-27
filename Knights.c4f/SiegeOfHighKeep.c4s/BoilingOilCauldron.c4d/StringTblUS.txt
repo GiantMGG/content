@@ -1,0 +1,4 @@
+[StringTable]
+Name=Boiling Oil Cauldron
+Desc=A cauldron of boiling oil. Pour it on attackers below.
+TxtPour=Pour

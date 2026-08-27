@@ -1,0 +1,3 @@
+[StringTable]
+Name=King
+Desc=The defender's King. Protect him at all costs.
