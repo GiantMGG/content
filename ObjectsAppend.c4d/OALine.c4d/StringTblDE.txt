@@ -1,0 +1,3 @@
+CtxLine=Leitung...
+CtxLineDesc=Ein Leitungsziel in Reichweite auswaehlen
+OALineConnects=verbindet Leitung

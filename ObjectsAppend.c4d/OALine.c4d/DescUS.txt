@@ -1,0 +1,1 @@
+Line-connect context item for ObjectsAppend.
