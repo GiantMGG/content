@@ -1,0 +1,1 @@
+Chop context item for ObjectsAppend.
