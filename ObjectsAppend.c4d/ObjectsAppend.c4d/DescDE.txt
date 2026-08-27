@@ -1,0 +1,1 @@
+Master-Regel fuer ObjectsAppend. Aggregiert Enter/Grab/Chop/Build/Line Kind-Regeln.
