@@ -206,7 +206,7 @@ public func ContextCombineSpells(object pByObject)
   if (!FindObject(MSCP)) return(0, DoCastError("$MsgNoCompositor$"));
   SetComDir(COMD_Stop(), pByObject);
   var pComp = FindObject(MSCP);
-  pComp->StartCombineMenu(this());
+  pComp->~StartCombineMenu(this());
   return(1);
 }
 

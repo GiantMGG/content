@@ -2,6 +2,8 @@
 
 #strict 2
 
+#include STGT
+
 local fCooldown;
 
 protected func Initialize()

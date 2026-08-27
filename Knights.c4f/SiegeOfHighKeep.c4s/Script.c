@@ -61,6 +61,8 @@ func BuildCastle()
 	// BoilingOilCauldron pre-placed on the gatehouse battlement.
 	CreateConstruction(BOIL, iCX, iCY - 5, -1, 100, 1);
 
+	CreateObject(KING, iCX, iCY - 20, 1);
+
 	return true;
 }
 

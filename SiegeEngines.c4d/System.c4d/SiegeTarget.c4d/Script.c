@@ -34,9 +34,9 @@ public func SiegeDamage(int iDmg, int iByPlayer, id idAmmo) {
 	// Crack-state graphics (thresholds based on MaxSiegeHP)
 	var iMax = MaxSiegeHP();
 	if (iSiegeDamage >= iMax * 2 / 3)
-		SetGraphics("Crack2", GetID(), 1, 3);
+		SetGraphics("Crack2", this(), GetID(), 1, 3);
 	else if (iSiegeDamage >= iMax / 3)
-		SetGraphics("Crack1", GetID(), 1, 3);
+		SetGraphics("Crack1", this(), GetID(), 1, 3);
 	// Destruction threshold: SBLD ignores 50% of MaxSiegeHP
 	var iEffMax = iMax;
 	if (idAmmo == SBLD) iEffMax = iMax / 2;
@@ -53,9 +53,9 @@ public func SiegeRepair(int iAmt, int iByPlayer) {
 	iSiegeDamage = Max(0, iSiegeDamage - iAmt);
 	// Re-evaluate crack overlays (clear at < 1/3, Crack1 at < 2/3)
 	if (iSiegeDamage < MaxSiegeHP() / 3)
-		SetGraphics(0, GetID(), 1, 3);  // clear overlay slot 1
+		SetGraphics(0, this(), GetID(), 1, 3);  // clear overlay slot 1
 	else if (iSiegeDamage < MaxSiegeHP() * 2 / 3)
-		SetGraphics("Crack1", GetID(), 1, 3);
+		SetGraphics("Crack1", this(), GetID(), 1, 3);
 	// SolidMask is never cleared until OnSiegeDestroyed, so no re-arming here.
 }
 
@@ -66,7 +66,7 @@ public func OnSiegeDestroyed(int iByPlayer) {
 	if (fSiegeDestroyed) return;
 	fSiegeDestroyed = true;
 	CastObjects(ROCK, 8, 20);
-	SetGraphics("Ruin", GetID(), 0, 5);
+	SetGraphics("Ruin", this(), GetID(), 0, 5);
 	SetSolidMask(0, 0, 0, 0);
 	Schedule("RemoveObject()", 1, 0, this());
 }
