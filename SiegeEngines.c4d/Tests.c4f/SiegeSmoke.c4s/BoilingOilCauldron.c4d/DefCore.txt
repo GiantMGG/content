@@ -1,0 +1,10 @@
+[DefCore]
+Id=BOIL
+Version=1,0,0,0
+DefaultWidth=20
+DefaultHeight=25
+Action=nil
+SolidMask=0,0,0,0
+Picture=Graphics.png
+Name=$Name$
+Description=$Desc$
