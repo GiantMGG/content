@@ -1,0 +1,1 @@
+Opt-in fuel library: fuel table, IsFuel/GetFuelValue trait callbacks, and a Burn_Consume helper with residual-energy banking.

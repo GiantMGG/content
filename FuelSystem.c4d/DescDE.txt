@@ -1,0 +1,1 @@
+Opt-in Brennstoff-Bibliothek: Brennstoff-Tabelle, IsFuel/GetFuelValue-Trait-Callbacks und Burn_Consume-Helper mit Restenergie-Speicherung.
