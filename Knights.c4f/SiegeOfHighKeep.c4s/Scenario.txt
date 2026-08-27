@@ -5,8 +5,6 @@ Version=1,0,0,0
 Difficulty=70
 MaxPlayer=4
 MinPlayer=2
-Access=1
-MissionAccess=HighKeep
 Origin=Knights.c4f\SiegeOfHighKeep.c4s
 
 [Definitions]

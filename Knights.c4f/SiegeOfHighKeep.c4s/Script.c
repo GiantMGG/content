@@ -15,7 +15,9 @@ static g_iTimeRemaining;   // in seconds
 static g_fInitialized;
 static g_fInitializedPlayers;
 
-local const g_SiegeEngines = [SCAT, TRBT, BRAM];
+static const g_SiegeEngines0 = SCAT;
+static const g_SiegeEngines1 = TRBT;
+static const g_SiegeEngines2 = BRAM;
 
 protected func Initialize()
 {
@@ -128,8 +130,9 @@ func FxSiegeDirectorTimer(object target, int effect, int timer)
 		return -1;
 	}
 	var iEnginesLeft = 0;
-	for (var id in g_SiegeEngines)
-		if (FindObject(id)) ++iEnginesLeft;
+	if (FindObject(g_SiegeEngines0)) ++iEnginesLeft;
+	if (FindObject(g_SiegeEngines1)) ++iEnginesLeft;
+	if (FindObject(g_SiegeEngines2)) ++iEnginesLeft;
 	if (iEnginesLeft == 0)
 	{
 		Log("$MsgDefendersWin$");

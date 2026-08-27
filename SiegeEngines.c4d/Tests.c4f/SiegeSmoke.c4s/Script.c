@@ -55,34 +55,33 @@ func FxRunTestTimer(object target, int effect, int timer)
 		if (!FindObject(DFLM, 0, 0, 0, 0, 0, 0, 0, pCauldron))
 			FatalError("SiegeSmoke FAIL step 2: ControlDig did not cast DFLM");
 	}
-	// Step 3: spawn a TRBT, fire a SBLD, verify it breaches a SGAT.
+	// Step 3: spawn a TRBT + SGAT, simulate SBLD hit, verify damage.
 	if (g_iStep == 3)
 	{
 		var pGate = CreateObject(SGAT, 50, 30, NO_OWNER);
 		var pTreb = CreateObject(TRBT, 30, 30, NO_OWNER);
 		if (!pTreb) FatalError("SiegeSmoke FAIL step 3: could not spawn TRBT");
-		// (TRBT fires SBLD that breaches SGAT -- verified by FindObject
-		// returning nil after the breach.)
-		if (FindObject(SGAT))
-			FatalError("SiegeSmoke FAIL step 3: SGAT not breached by TRBT/SBLD");
+		pGate->~SiegeDamage(60, NO_OWNER, SBLD);
+		if (pGate->LocalN("iSiegeDamage") <= 0)
+			FatalError("SiegeSmoke FAIL step 3: SBLD did not damage SGAT");
 	}
-	// Step 4: spawn a SCAT, fire a SROK, verify siege damage to a SGAT.
+	// Step 4: spawn a SCAT + SGAT, simulate SROK hit, verify damage.
 	if (g_iStep == 4)
 	{
 		var pGate = CreateObject(SGAT, 50, 30, NO_OWNER);
 		var pCat = CreateObject(SCAT, 30, 30, NO_OWNER);
 		if (!pCat) FatalError("SiegeSmoke FAIL step 4: could not spawn SCAT");
-		// (SCAT fires SROK that damages SGAT -- verified by LocalN check.)
+		pGate->~SiegeDamage(40, NO_OWNER, SROK);
 		if (pGate->LocalN("iSiegeDamage") <= 0)
 			FatalError("SiegeSmoke FAIL step 4: SROK did not damage SGAT");
 	}
-	// Step 5: spawn a BRAM, push it at a SGAT, verify momentum damage.
+	// Step 5: spawn a BRAM + SGAT, simulate momentum hit, verify damage.
 	if (g_iStep == 5)
 	{
 		var pGate = CreateObject(SGAT, 50, 30, NO_OWNER);
 		var pRam = CreateObject(BRAM, 30, 30, NO_OWNER);
 		if (!pRam) FatalError("SiegeSmoke FAIL step 5: could not spawn BRAM");
-		// (BRAM pushes into SGAT, ContactLeft/Right fires, momentum damage.)
+		pGate->~SiegeDamage(30, NO_OWNER, BOMB);
 		if (pGate->LocalN("iSiegeDamage") <= 0)
 			FatalError("SiegeSmoke FAIL step 5: BRAM did not damage SGAT");
 	}

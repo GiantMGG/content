@@ -1,10 +1,8 @@
 [DefCore]
-Id=GLST
-Version=1,0,0,0
-DefaultWidth=10
-DefaultHeight=10
-Action=nil
-ObjectPlacement=2
-Picture=Graphics.png
-Name=$Name$
-Description=$Desc$
+id=GLST
+Version=4,9,8
+Name=GoalSiege
+Category=C4D_Goal
+Width=10
+Height=10
+Picture=0,0,10,10
