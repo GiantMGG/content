@@ -1,0 +1,9 @@
+OAPicker=Ziel auswaehlen
+OAMore=Weitere...
+OAMoreDesc=Naechste 12 Ziele anzeigen
+OAPrevious=Zurueck...
+OAPreviousDesc=Vorherige 12 Ziele anzeigen
+OAAll=Alle (%d)
+OAAllDesc=Befehl fuer alle %d Ziele in Reichweite ausloesen
+OACancel=Abbrechen
+OACancelDesc=Menue schliessen ohne Befehl

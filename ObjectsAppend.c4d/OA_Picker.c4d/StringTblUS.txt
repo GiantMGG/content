@@ -1,0 +1,9 @@
+OAPicker=Pick target
+OAMore=More...
+OAMoreDesc=Show the next 12 targets
+OAPrevious=Previous...
+OAPreviousDesc=Show the previous 12 targets
+OAAll=All (%d)
+OAAllDesc=Fire the command for all %d targets in reach
+OACancel=Cancel
+OACancelDesc=Close the menu without issuing a command
