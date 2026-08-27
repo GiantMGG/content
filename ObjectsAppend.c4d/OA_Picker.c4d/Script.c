@@ -107,7 +107,7 @@ public func OA_RenderPage(object pRule)
 	{
 		var szAllCmd = Format("Object(%d)->OA_FireAll(Object(%d))",
 		                      pRule->ObjectNumber(), pCaller->ObjectNumber());
-		pCaller->AddMenuItem("$OAAll$", szAllCmd, pRule->GetID(), pCaller, 0, 0,
+		pCaller->AddMenuItem(Format("$OAAll$", n), szAllCmd, pRule->GetID(), pCaller, 0, 0,
 		                     Format("$OAAllDesc$", n));
 	}
 
@@ -157,8 +157,10 @@ public func OA_SortByDistance(array candidates, object pCaller)
 	return a;
 }
 
-/* Fire SetCommand on a single target. Re-validates target (spec Edge case #5). */
-public func OA_Fire(object pRule, object pTgt, string cmd, object pCaller)
+/* Fire SetCommand on a single target. Re-validates target (spec Edge case #5).
+   Invoked as `Object(pRuleNr)->OA_Fire(tgt, cmd, caller)`, so `this` is the
+   child rule that inherited this function via #include OAPK. */
+public func OA_Fire(object pTgt, string cmd, object pCaller)
 {
 	if (!pTgt || pTgt->GetStatus() != C4OS_NORMAL)
 	{
@@ -171,11 +173,13 @@ public func OA_Fire(object pRule, object pTgt, string cmd, object pCaller)
 }
 
 /* "All" batch: re-queue SetCommand for every stashed candidate, capped at
-   OA_AllCap() (which we already checked before showing the row). */
-public func OA_FireAll(object pRule, object pCaller)
+   OA_AllCap() (which we already checked before showing the row).
+   Invoked as `Object(pRuleNr)->OA_FireAll(caller)`, so `this` is the child
+   rule and the stashed `oa_*` locals live on `this`. */
+public func OA_FireAll(object pCaller)
 {
-	var sorted = pRule->LocalN("oa_candidates");
-	var cmd    = pRule->LocalN("oa_cmd");
+	var sorted = this->LocalN("oa_candidates");
+	var cmd    = this->LocalN("oa_cmd");
 	var cap    = OA_AllCap();
 	var i, fired = 0;
 	for (i = 0; i < GetLength(sorted) && fired < cap; i++)
@@ -189,8 +193,9 @@ public func OA_FireAll(object pRule, object pCaller)
 	return true;
 }
 
-/* Cancel: close the submenu. */
-public func OA_Cancel(object pRule, object pCaller)
+/* Cancel: close the submenu.
+   Invoked as `Object(pRuleNr)->OA_Cancel(caller)`. */
+public func OA_Cancel(object pCaller)
 {
 	if (pCaller) pCaller->CloseMenu();
 	return true;

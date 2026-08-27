@@ -7,12 +7,12 @@
 private func OA_Candidates(object pCaller)
 {
 	return FindObjects(
-		Find_Distance(OA_Reach("Enter")),
+		pCaller->Find_Distance(OA_Reach("Enter")),
 		Find_Exclude(Find_Category(C4D_Rule)),
 		Find_Exclude(Find_Category(C4D_StaticBack)),
 		Find_NoContainer(),
 		Find_Layer(pCaller->GetObjectLayer()),
-		Find_Func("IsEnterable"),
+		Find_OCF(OCF_Container),
 		Sort_Distance()
 	);
 }

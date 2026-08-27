@@ -6,12 +6,12 @@
 private func OA_Candidates(object pCaller)
 {
 	return FindObjects(
-		Find_Distance(OA_Reach("Grab")),
+		pCaller->Find_Distance(OA_Reach("Grab")),
 		Find_Exclude(Find_Category(C4D_Rule)),
 		Find_Exclude(Find_Category(C4D_StaticBack)),
 		Find_NoContainer(),
 		Find_Layer(pCaller->GetObjectLayer()),
-		Find_Func("IsGrabable"),
+		Find_OCF(OCF_Grab),
 		Sort_Distance()
 	);
 }

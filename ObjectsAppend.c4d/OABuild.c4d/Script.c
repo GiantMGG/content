@@ -6,7 +6,7 @@
 private func OA_Candidates(object pCaller)
 {
 	return FindObjects(
-		Find_Distance(OA_Reach("Build")),
+		pCaller->Find_Distance(OA_Reach("Build")),
 		Find_Exclude(Find_Category(C4D_Rule)),
 		Find_Exclude(Find_Category(C4D_StaticBack)),
 		Find_NoContainer(),

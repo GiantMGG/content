@@ -1,4 +1,9 @@
-/*-- OALine: line-connect target context item (OALN) --*/
+/*-- OALine: line-connect target context item (OALN) -- v2 placeholder.
+   The engine has no line-connect SetCommand (line connection is driven by
+   the Linekit's Activate via CreateLine/ConnectLine, not a clonk command),
+   so this family is not aggregated by the OAPP master rule in v1. A v2
+   implementation would mirror the Linekit's ConnectLine/CreateLine flow
+   via a custom dispatcher instead of SetCommand. --*/
 
 #strict
 #include OAPK
@@ -6,7 +11,7 @@
 private func OA_Candidates(object pCaller)
 {
 	return FindObjects(
-		Find_Distance(OA_Reach("Line")),
+		pCaller->Find_Distance(OA_Reach("Line")),
 		Find_Exclude(Find_Category(C4D_Rule)),
 		Find_Exclude(Find_Category(C4D_StaticBack)),
 		Find_NoContainer(),

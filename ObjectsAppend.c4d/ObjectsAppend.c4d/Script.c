@@ -3,8 +3,12 @@
 #strict
 
 /* Hardcoded child-rule ID order. Deterministic menu order without depending
-   on section link order (spec "Module discovery contract"). */
-static const C4ID OA_Children[] = {OAEN, OAGR, OACH, OABD, OALN};
+   on section link order (spec "Module discovery contract").
+   OALN (line-connect) is deferred to v2: the engine has no line-connect
+   SetCommand (line connection is driven by the Linekit's Activate via
+   CreateLine/ConnectLine, not a clonk command), so the OALine family is a
+   v2 placeholder and is not aggregated here. */
+static const C4ID OA_Children[] = {OAEN, OAGR, OACH, OABD};
 
 /* Singleton guard: if another OAPP already exists, remove ourselves.
    Spec Edge case #7. */
@@ -20,7 +24,6 @@ protected func Construction()
 public func GetContextMenuItems(object pTarget, object pCaller)
 {
 	if (!pTarget || !pCaller) return [];
-	if (pCaller->GetOwner() != pTarget->GetOwner()) return [];
 
 	var out = [];
 	var i;
