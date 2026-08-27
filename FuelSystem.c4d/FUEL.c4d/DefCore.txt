@@ -1,0 +1,5 @@
+[DefCore]
+id=FUEL
+Version=4,9,8
+Name=FUEL
+Category=C4D_None
