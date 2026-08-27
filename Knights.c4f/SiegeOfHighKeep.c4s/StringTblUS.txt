@@ -1,0 +1,6 @@
+[StringTable]
+MsgIntro=Siege of High Keep -- besiege the castle and slay the King!
+MsgAttackersWin=The King is dead! Attackers triumph!
+MsgDefendersWin=The siege has failed! Defenders triumph!
+MsgTimeUp=Time has expired.
+MsgEnginesDestroyed=All siege engines destroyed.
