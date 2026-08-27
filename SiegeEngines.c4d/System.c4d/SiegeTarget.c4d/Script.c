@@ -43,6 +43,22 @@ public func SiegeDamage(int iDmg, int iByPlayer, id idAmmo) {
 	if (iSiegeDamage >= iEffMax) OnSiegeDestroyed(iByPlayer);
 }
 
+/* Decrement accumulated siege damage, re-evaluate crack overlays.
+   Called by a repair action on the structure:
+     pTarget->~SiegeRepair(iAmt, GetController());
+   No-op if the structure is already destroyed. */
+public func SiegeRepair(int iAmt, int iByPlayer) {
+	if (iAmt <= 0) return;
+	if (fSiegeDestroyed) return;
+	iSiegeDamage = Max(0, iSiegeDamage - iAmt);
+	// Re-evaluate crack overlays (clear at < 1/3, Crack1 at < 2/3)
+	if (iSiegeDamage < MaxSiegeHP() / 3)
+		SetGraphics(0, GetID(), 1, 3);  // clear overlay slot 1
+	else if (iSiegeDamage < MaxSiegeHP() * 2 / 3)
+		SetGraphics("Crack1", GetID(), 1, 3);
+	// SolidMask is never cleared until OnSiegeDestroyed, so no re-arming here.
+}
+
 /* Called when the structure reaches its siege-damage threshold. Clears the
    SolidMask so clonks can walk through, swaps to Ruin graphics, casts debris,
    and removes the object after 1 frame so any Hit() chain completes. */
