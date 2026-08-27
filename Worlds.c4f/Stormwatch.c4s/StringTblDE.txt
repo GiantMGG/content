@@ -1,0 +1,18 @@
+[StringTable]
+MsgIntro=Fünf Stürme kommen. Halte das Gehöft am Leben.
+MsgStormPrep=Sturm im Anmarsch -- bring deinen Clonk in Sicherheit.
+MsgStormHit=Der Sturm ist über dir!
+MsgStormDone=Der Sturm zieht ab.
+MsgBlizPrep=Ein Blizzard zieht auf -- Setzlinge sterben.
+MsgBlizHit=Der Blizzard wütet.
+MsgBlizDone=Der Blizzard lässt nach.
+MsgDrgtPrep=Eine Dürre setzt ein -- Wasser verdunstet.
+MsgDrgtHit=Das Land verdorrt unter der Dürre.
+MsgDrgtDone=Die Dürre bricht.
+MsgHtwvPrep=Eine Hitzewelle kommt -- Feuer wird sich ausbreiten.
+MsgHtwvHit=Die Hitzewelle lodert.
+MsgHtwvDone=Die Hitzewelle lässt nach.
+MsgFloodPrep=Eine Flut kommt -- die Schutzwand wird überflutet.
+MsgFloodHit=Die Flutwasser steigen.
+MsgFloodDone=Die Flut weicht.
+MsgAllDone=Die Stürme sind vorüber. Das Gehöft überdauert.

@@ -1,0 +1,18 @@
+[StringTable]
+MsgIntro=Five storms are coming. Keep the homestead alive.
+MsgStormPrep=Storm incoming -- shelter your clonk.
+MsgStormHit=The storm is upon you!
+MsgStormDone=The storm passes.
+MsgBlizPrep=A blizzard descends -- crops will die.
+MsgBlizHit=The blizzard rages.
+MsgBlizDone=The blizzard lifts.
+MsgDrgtPrep=A drought sets in -- water will evaporate.
+MsgDrgtHit=The land withers under the drought.
+MsgDrgtDone=The drought breaks.
+MsgHtwvPrep=A heatwave is coming -- fire will spread.
+MsgHtwvHit=The heatwave blazes.
+MsgHtwvDone=The heatwave fades.
+MsgFloodPrep=A flood is coming -- the sea wall will be overtopped.
+MsgFloodHit=The floodwaters rise.
+MsgFloodDone=The flood recedes.
+MsgAllDone=The storms have passed. The homestead endures.
