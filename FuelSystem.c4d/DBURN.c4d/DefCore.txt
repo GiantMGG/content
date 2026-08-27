@@ -1,0 +1,11 @@
+[DefCore]
+id=DBURN
+Version=4,9,8
+Name=DummyBurner
+Category=C4D_StaticBack
+MaxUserSelect=1
+Width=10
+Height=10
+Offset=-5,-5
+Value=1
+Picture=0,0,1,1
