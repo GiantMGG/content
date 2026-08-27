@@ -16,6 +16,12 @@ static g_iChapter;
 // Five chapters: [C4ID, prepMsgKey, threatMsgKey, debriefMsgKey, durationTicks]
 // Duration is in 35-frame timer ticks (~1s each); 700 ticks ~= 20s real time.
 // The spec's §Mid-game table drives the order.
+static const C4ID STRM = C4Id("STRM");
+static const C4ID BLZD = C4Id("BLZD");
+static const C4ID DRGT = C4Id("DRGT");
+static const C4ID HTWV = C4Id("HTWV");
+static const C4ID FLDD = C4Id("FLDD");
+
 static const g_Chapters = [
 	[STRM, "$MsgStormPrep$",  "$MsgStormHit$",   "$MsgStormDone$",  700],
 	[BLZD, "$MsgBlizPrep$",   "$MsgBlizHit$",    "$MsgBlizDone$",   700],
@@ -88,13 +94,14 @@ func FxCrisisDirectorTimer(object target, int effect, int timer)
 {
 	var chapter = g_Chapters[g_iChapter];
 	var iDuration = chapter[4];
+	var iLaunchAt = (iDuration / 7 + 34) / 35 * 35;
 
 	// Phase 1: prep window (first ~15% of duration) -- event not yet launched.
-	if (timer < iDuration / 7)
+	if (timer < iLaunchAt)
 		return 1;
 
 	// Phase 2: launch the event (one-shot at the ~15% mark).
-	if (timer == iDuration / 7)
+	if (timer == iLaunchAt)
 	{
 		var idEvent = chapter[0];
 		LaunchWeatherEvent(idEvent, 50, chapter[4]);
