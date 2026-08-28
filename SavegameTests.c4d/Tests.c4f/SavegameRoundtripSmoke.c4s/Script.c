@@ -7,22 +7,29 @@
 // RollbackLoadState C4Script wrappers, with a second round-trip to
 // catch cross-cycle drift.
 //
-// Known limitation (matches RollbackRestoreSmoke.c4s):
-//   LoadRuntimeDataFromBuffer re-creates sections from the scenario
-//   template and does NOT replay runtime object positions captured in
-//   the savegame's SaveSect*.c4g entries. Runtime-created objects (the
-//   ROCK spawned in Initialize) may vanish after restore. Full
-//   object-position restoration is a follow-up item.
+// Contract:
+//   step 1: RollbackSaveState() returns true. [FatalError]
+//   step 2: object mutates to (80, 20, R=45). [FatalError]
+//   step 3: RollbackLoadState() returns true. [FatalError]
+//   step 4: FindObject(ROCK) -- NON-FATAL characterization.
+//           LoadRuntimeDataFromBuffer does not call InitSecondPart,
+//           so Objects.Load is never invoked and runtime-created
+//           objects (the ROCK) vanish after restore. This is a known
+//           limitation logged here as a non-fatal Log.
+//   step 5: second RollbackSaveState() AND second RollbackLoadState()
+//           both return true. [FatalError]
+//           The engine fix in C4GameSave::LoadRuntimeDataFromBuffer
+//           calls Landscape.Init on each restored section (after
+//           InitMaterialTexture), putting the landscape in a saveable
+//           state so the second SaveRuntimeDataToBuffer succeeds.
+//   step 6: Log("SavegameRoundtripSmoke PASS"); GameOver();.
 //
-//   Until then, this scenario asserts the weaker contract that the
-//   spec's edge cases rely on:
-//     - RollbackSaveState() returns true,
-//     - RollbackLoadState() returns true,
-//     - the engine does not crash or LogFatal during the round-trip.
-//   The stronger position assertion (restored ROCK at savedX/savedY) is
-//   included as a non-fatal characterization log, not a FatalError, so
-//   the scenario passes the acceptance gate regardless of whether the
-//   restore path currently replays positions.
+// The engine fix that makes step 5 pass lives in
+// C4GameSave::LoadRuntimeDataFromBuffer (a Landscape.Init loop
+// mirroring C4Game::InitGameSecondPart, preceded by an
+// InitMaterialTexture loop mirroring C4Game::InitGameFirstPart).
+// See spec
+// .opencode/specs/2026-08-29-1445-savegame-second-roundtrip-fix.md.
 //
 // Implementation note: the work is done synchronously in Initialize
 // (the direct-call pattern used by SiegeSmoke.c4s / AirshipSmoke.c4s).
@@ -52,10 +59,10 @@ protected func Initialize()
 	if (!RollbackLoadState())
 		FatalError("SavegameRoundtripSmoke FAIL step 3: RollbackLoadState failed");
 
-	// Step 4: characterize the restore. The weaker contract only
-	// requires the round-trip to complete without crashing; the
-	// stronger position assertion is a non-fatal log (see known
-	// limitation above).
+	// Step 4: characterize the restore. LoadRuntimeDataFromBuffer does
+	// not call InitSecondPart, so Objects.Load is never invoked and
+	// runtime-created objects vanish after restore. This is a known
+	// limitation, logged here as a non-fatal Log.
 	var restoredObj = FindObject(ROCK);
 	if (!restoredObj)
 		Log("SavegameRoundtripSmoke step 4: rock not found after restore (known limitation)");
@@ -64,20 +71,16 @@ protected func Initialize()
 	else
 		Log("SavegameRoundtripSmoke step 4: position restored OK");
 
-	// Step 5: second round-trip to catch cross-cycle drift.
-	// A second consecutive RollbackSaveState currently fails because
-	// LoadRuntimeDataFromBuffer leaves Game.Sections in a state that
-	// C4GameSaveRollback::Save cannot re-serialize synchronously. This
-	// is a known engine limitation, characterized here as a non-fatal
-	// log rather than a FatalError so the scenario still passes the
-	// acceptance gate (the weaker contract).
+	// Step 5: second round-trip to catch cross-cycle drift. The engine
+	// fix makes LoadRuntimeDataFromBuffer re-Init the restored
+	// sections' landscape, so a second RollbackSaveState can
+	// re-serialize the landscape. FatalError on any failure.
 	var secondSaveOk = RollbackSaveState();
 	if (!secondSaveOk)
-		Log("SavegameRoundtripSmoke step 5: second RollbackSaveState failed (known limitation)");
-	else if (!RollbackLoadState())
-		Log("SavegameRoundtripSmoke step 5: second RollbackLoadState failed (known limitation)");
-	else
-		Log("SavegameRoundtripSmoke step 5: second round-trip OK");
+		FatalError("SavegameRoundtripSmoke FAIL step 5a: second RollbackSaveState failed");
+	if (!RollbackLoadState())
+		FatalError("SavegameRoundtripSmoke FAIL step 5b: second RollbackLoadState failed");
+	Log("SavegameRoundtripSmoke step 5: second round-trip OK");
 
 	// Step 6: success.
 	Log("SavegameRoundtripSmoke PASS");
