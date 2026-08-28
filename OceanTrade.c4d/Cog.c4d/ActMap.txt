@@ -1,0 +1,6 @@
+[Action]
+Name=Sailing
+Delay=20
+Facet=0,0,60,40
+NextAction=Sailing
+StartCall=Wind2Sail
