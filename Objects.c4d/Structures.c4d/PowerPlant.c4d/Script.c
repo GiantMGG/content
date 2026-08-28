@@ -5,6 +5,9 @@
 #include DOOR
 #include BAS4
 
+static const BURN_NEED = 100;   // one COAL (value 100) = one burn cycle
+local fuel_residual;            // Burn_Consume banks overshoot here
+
 /* Initialisierung */
 
 protected func Initialize()
@@ -45,7 +48,7 @@ private func Burning()
   SetAction("Idle");
 }
 
-/* Inhaltsüberprüfung */
+/* Inhaltsï¿½berprï¿½fung */
 
 private func ContentsCheck()
 {
@@ -60,22 +63,31 @@ private func ContentsCheck()
     }
   }
 
-  // Erstes Inhaltsobjekt prüfen
+  // Erstes Inhaltsobjekt prï¿½fen
   obj = Contents(0);
   def = GetID(obj);
   
-  // Alles außer Brennmaterial raus
+  // Alles auï¿½er Brennmaterial raus
   if(def != COAL && def != OBRL && def != WOOD)
     SetCommand(obj, "Exit");
     
-  // Wird Energie benötigt
+  // Opt-in overlay: FuelSystem.c4d geladen -> Bibliothek nutzen.
+  if(DefinitionCall(FUEL, "IsFuel"))
+  {
+    if(CheckEnergyNeedChain() && Call("Burn_Consume", this, BURN_NEED))
+      SetAction("Burning");
+    return(1);
+  }
+
+  // Legacy-Pfad (FuelSystem.c4d nicht geladen) â€” unverÃ¤ndert.
+  // Wird Energie benï¿½tigt
   if(!CheckEnergyNeedChain() ) return(1);
   
   // Holz?
   if(ContentsCount(WOOD) > 1)
     return(BurnWood() );
     
-  // Öl?
+  // ï¿½l?
   if(ContentsCount(OBRL) )
     return(BurnOil() );
     
@@ -87,7 +99,7 @@ private func ContentsCheck()
 
 private func BurnWood()
 {
-  // Zwei Holz löschen
+  // Zwei Holz lï¿½schen
   for(var i = 0; i < 2; ++ i)
     RemoveObject(FindContents(WOOD) );
 
