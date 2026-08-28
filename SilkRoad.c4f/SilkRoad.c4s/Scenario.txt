@@ -11,6 +11,7 @@ Origin=SilkRoad.c4f\SilkRoad.c4s
 [Definitions]
 Definition1=Objects.c4d
 Definition2=Western.c4d
+Definition3=TradeGoods.c4d
 
 [Game]
 StructNeedEnergy=0

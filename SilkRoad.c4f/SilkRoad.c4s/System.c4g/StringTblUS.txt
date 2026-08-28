@@ -1,5 +1,7 @@
 MsgTrade=Trade
 MsgCancel=Cancel
+MsgBuy=Buy
+MsgSell=Sell
 MsgTooFewGoods=Too few goods!
 MsgRefineSilk=Refine Silk into Spice
 MsgRefineGold=Refine Gold into Incense

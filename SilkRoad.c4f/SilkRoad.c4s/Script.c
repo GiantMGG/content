@@ -28,6 +28,14 @@ func Initialize() {
 	Local(0, pCenterPost) = 1;
 	Local(0, pWestPost)   = 2;
 
+	// --- Register trade goods at each post (seeds stock + baseline) ---
+	RegisterTradeGood(SILK, pEastPost, 10);
+	RegisterTradeGood(GLDN, pEastPost, 10);
+	RegisterTradeGood(SPIC, pCenterPost, 10);
+	RegisterTradeGood(INCN, pCenterPost, 10);
+	RegisterTradeGood(SILK, pWestPost, 10);
+	RegisterTradeGood(SPIC, pWestPost, 10);
+
 	// --- Team chests + respawners per settlement. ---
 	CreateObject(TCHS, iEastX, iGroundY, NO_OWNER);
 	CreateObject(TCHS, iWestX, iGroundY, NO_OWNER);
