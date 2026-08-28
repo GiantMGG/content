@@ -8,17 +8,21 @@
 #strict 2
 
 #include AERO
+#include FUEL
 
 local active;
 local carrier;
 
 public func IsFuel() { return false; }
 
-public func RejectCollect(id idObject, object pObj)
+/* One steampack per clonk. RejectEntrance is called on the item
+   being collected (the steampack) when it is about to enter a
+   container; the container is passed as `into`. We reject if the
+   container already holds a steampack. */
+public func RejectEntrance(object into)
 {
-	if (idObject == STPK)
-		if (pObj->FindContents(STPK))
-			return true;
+	if (into->FindContents(STPK))
+		return true;
 	return false;
 }
 

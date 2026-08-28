@@ -7,6 +7,7 @@
 #strict 2
 
 #include AERO
+#include FUEL
 
 local fuel_out;
 
@@ -34,7 +35,7 @@ public func BurnerTimer()
 	var burn_pct = mods[2];
 
 	var need = 10 * burn_pct / 100;
-	if (Aero_Burn(this, need))
+	if (Burn_Consume(this, need))
 	{
 		SetPhysical("Float", 100 * lift_pct / 100, PHYS_Temporary, this);
 		fuel_out = false;

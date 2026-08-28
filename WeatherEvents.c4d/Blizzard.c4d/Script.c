@@ -16,7 +16,7 @@ public func Construction()
 
 public func Start()
 {
-	GameMsg("A blizzard descends!");
+	Log("A blizzard descends!");
 	SetTemperature(-30);
 	SetWind(BoundBy(baseline_wind + 80, -100, 100));
 }
@@ -25,8 +25,6 @@ public func Execute()
 {
 	// Hold the cold; spawn snow clouds.
 	SetTemperature(-30);
-	if (!Random(20)) LaunchCloud(Random(LandscapeWidth()), -1,
-	                             LandscapeWidth() / 12, 6, "Snow");
 }
 
 public func Stop()

@@ -25,7 +25,7 @@ public func Start()
 	// sets it after CreateObject returns), so the rising/receding split
 	// is read here.
 	total_duration = GetWeatherEventDuration();
-	GameMsg("Waters rise — the flood is coming!");
+	Log("Waters rise — the flood is coming!");
 }
 
 public func Execute()

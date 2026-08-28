@@ -5,8 +5,6 @@
 
 #strict 2
 
-local fuel_residual;
-
 /* ---- Aero_WeatherModifier ----
    Returns [lift_pct, wind_pct, burn_pct] as integer percentages
    (100 = 1.0x). Values are scaled by GetWeatherEventIntensity()
@@ -53,57 +51,22 @@ public func Aero_WindDrift(int fragility_pct)
 }
 
 /* ---- Aero_BurnTick ----
-   Burns fuel from the burner's Contents with weather-adjusted rate.
-   need = base_rate * burn_pct / 100.
-   Returns true if fuel was available. */
+    Wraps Burn_Consume with the burn-rate multiplier.
+    need = base_rate * burn_pct / 100.
+    Returns true if fuel was available (Burn_Consume succeeded).
+    Fuel consumption itself is handled by FuelSystem.c4d's
+    Burn_Consume (OBRL->BARL conversion, efficiency-sorted
+    consumption, residual banking). */
 public func Aero_BurnTick(int base_rate)
 {
 	var mods = Aero_WeatherModifier();
 	var burn_pct = mods[2];
 	var need = base_rate * burn_pct / 100;
-	return Aero_Burn(this, need);
+	return Burn_Consume(this, need);
 }
 
-/* ---- Aero_Burn ----
-   Simplified fuel consumption: drain residual, then consume fuel
-   items from Contents. Fuel values: COAL=100, WOOD=40, default=50. */
-public func Aero_Burn(object burner, int need)
-{
-	var res = burner->LocalN("fuel_residual");
-	if (res > 0)
-	{
-		if (res >= need)
-		{
-			burner->LocalN("fuel_residual") = res - need;
-			burner->~OnBurn(need);
-			return true;
-		}
-		need -= res;
-		burner->LocalN("fuel_residual") = 0;
-	}
-
-	var i, obj;
-	var provided = 0;
-	for (i = 0; obj = burner->Contents(i); ++i)
-	{
-		var val = 0;
-		if (GetID(obj) == COAL) val = 100;
-		else if (GetID(obj) == WOOD) val = 40;
-		else val = obj->~GetFuelValue();
-		if (val > 0)
-		{
-			provided += val;
-			obj->~OnFuelConsumed(burner);
-			RemoveObject(obj);
-			i--;
-			if (provided >= need) break;
-		}
-	}
-
-	if (provided > need)
-		burner->LocalN("fuel_residual") = provided - need;
-
-	if (provided >= need)
-		burner->~OnBurn(need);
-	return provided >= need;
-}
+/* Note: vehicles call Burn_Consume(this, need) directly via the
+   #include FUEL trait. This preserves FuelSystem.c4d's OBRL->BARL
+   conversion and efficiency-sorted consumption order. There is no
+   Aero_Burn wrapper -- Aero_BurnTick handles the weather-adjusted
+   burn rate and delegates to Burn_Consume. */

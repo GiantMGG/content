@@ -1,16 +1,12 @@
 /*-- FUEL: fuel-trait include library for FuelSystem.c4d --
-  A fuel source is registered either by adding a row to the fuel table
-  below (zero-callback path) or by #including FUEL on the fuel item and
-  overriding GetFuelValue()/GetFuelEfficiency() (callback path).
-  A burner consumes fuel via the global Burn_Consume(burner, need) helper.
-  Residual energy is banked in the burner's local fuel_residual. --*/
+  A fuel source is registered either by adding a branch to the fuel
+  table below (zero-callback path) or by #including FUEL on the fuel
+  item and overriding GetFuelValue()/GetFuelEfficiency() (callback
+  path).  A burner consumes fuel via the global Burn_Consume(burner,
+  need) helper.  Residual energy is banked in the burner's local
+  fuel_residual. --*/
 
 #strict 2
-
-/* ---- Fuel table (parallel arrays; add a row to register a fuel) ---- */
-static const C4ID FuelIDs[]          = {COAL, WOOD, OBRL};
-static const      FuelValues[]       = {100,  40,   200};
-static const      FuelEfficiencies[] = {1.2,  0.7,  1.5};
 
 /* Residual-energy local on the burner. Burners that #include FUEL
    inherit this declaration so LocalN("fuel_residual") works. */
@@ -20,16 +16,18 @@ local fuel_residual;
    Any def that #includes FUEL becomes a fuel source by default. */
 public func IsFuel()            { return true; }
 public func GetFuelValue()      { return 50; }
-public func GetFuelEfficiency() { return 1.0; }
+public func GetFuelEfficiency() { return 10; }
 public func OnFuelConsumed(object byObject) {}
 
-/* ---- Table accessors ----
-   The per-item callback overrides the table. */
-global func Fuel_TableIndex(C4ID id)
+/* ---- Fuel table ----
+   Efficiencies are scaled by 10 (12 = 1.2x, 7 = 0.7x, 15 = 1.5x)
+   because this C4Aul dialect has no float literals.  Add a branch to
+   register a fuel.  The per-item callback overrides the table. */
+global func Fuel_TableIndex(id fuel_id)
 {
-	var i;
-	for (i = 0; i < GetLength(FuelIDs); ++i)
-		if (FuelIDs[i] == id) return i;
+	if (fuel_id == COAL) return 0;
+	if (fuel_id == WOOD) return 1;
+	if (fuel_id == OBRL) return 2;
 	return -1;
 }
 
@@ -37,18 +35,22 @@ global func Fuel_GetValue(object fuel)
 {
 	var v = fuel->~GetFuelValue();
 	if (v) return v;
-	var idx = Fuel_TableIndex(GetID(fuel));
-	if (idx < 0) return 0;
-	return FuelValues[idx];
+	var id = GetID(fuel);
+	if (id == COAL) return 100;
+	if (id == WOOD) return 40;
+	if (id == OBRL) return 200;
+	return 0;
 }
 
 global func Fuel_GetEfficiency(object fuel)
 {
 	var e = fuel->~GetFuelEfficiency();
 	if (e) return e;
-	var idx = Fuel_TableIndex(GetID(fuel));
-	if (idx < 0) return 1.0;
-	return FuelEfficiencies[idx];
+	var id = GetID(fuel);
+	if (id == COAL) return 12;
+	if (id == WOOD) return 7;
+	if (id == OBRL) return 15;
+	return 10;
 }
 
 global func Fuel_IsFuel(object fuel)
@@ -58,13 +60,13 @@ global func Fuel_IsFuel(object fuel)
 }
 
 /* ---- Burn_Consume: the burner helper ----
-   1. Drain residual first.
-   2. If need remains, collect fuel items from burner contents.
-   3. Sort by efficiency descending (most clunker-efficient first).
-   4. Consume items until need is met (OBRL -> BARL, else destroyed).
-   5. Bank overshoot as residual.
-   6. Call OnBurn(need) on the burner.
-   Returns true if need was met (residual or fuel). */
+    1. Drain residual first.
+    2. If need remains, collect fuel items from burner contents.
+    3. Sort by efficiency descending (most clunker-efficient first).
+    4. Consume items until need is met (OBRL -> BARL, else destroyed).
+    5. Bank overshoot as residual.
+    6. Call OnBurn(need) on the burner.
+    Returns true if need was met (residual or fuel). */
 global func Burn_Consume(object burner, int need)
 {
 	/* 1. Drain residual first. */

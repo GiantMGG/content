@@ -16,7 +16,7 @@ public func Construction()
 
 public func Start()
 {
-	GameMsg("The land withers under a drought.");
+	Log("The land withers under a drought.");
 	SetTemperature(70);
 }
 

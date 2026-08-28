@@ -30,7 +30,7 @@ public func Start()
 	// EventDuration is only valid from Start onward (LaunchWeatherEvent
 	// sets it after CreateObject returns), so the phase split is read here.
 	phase_timer = GetWeatherEventDuration() / 3;
-	GameMsg("The clouds gather…");
+	Log("The clouds gather…");
 	SetSkyFade(20, 20, 30, 60, 60, 80);  // darken sky
 }
 
@@ -41,8 +41,6 @@ public func Execute()
 	if (phase == 0)  // gathering: ramp wind, spawn rain clouds
 	{
 		SetWind(BoundBy(baseline_wind + (50 + intensity / 3), -100, 100));
-		if (!Random(30)) LaunchCloud(Random(LandscapeWidth()), -1,
-		                             LandscapeWidth() / 10, 5, "Water");
 	}
 	else if (phase == 1)  // raging: lightning barrage
 	{
@@ -57,8 +55,8 @@ public func Execute()
 	if (--phase_timer <= 0)
 	{
 		phase++;
-		if (phase == 1) { GameMsg("Hold fast — the storm is upon us!"); phase_timer = GetWeatherEventDuration() / 2; }
-		else if (phase == 2) { GameMsg("The storm passes."); phase_timer = GetWeatherEventDuration() / 6; }
+		if (phase == 1) { Log("Hold fast — the storm is upon us!"); phase_timer = GetWeatherEventDuration() / 2; }
+		else if (phase == 2) { Log("The storm passes."); phase_timer = GetWeatherEventDuration() / 6; }
 	}
 }
 

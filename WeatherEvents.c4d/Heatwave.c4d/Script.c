@@ -20,7 +20,7 @@ public func Construction()
 
 public func Start()
 {
-	GameMsg("A blistering heatwave grips the land.");
+	Log("A blistering heatwave grips the land.");
 	SetTemperature(85);
 }
 
@@ -43,7 +43,7 @@ public func Execute()
 		if (GBackSemiSolid(nx, ny))
 			Incinerate(nx, ny);
 		++processed;
-		flame = FindObject(FLAM, 0, 0, -1, -1, OCF_All, nullptr, nullptr, flame);
+		flame = FindObject(FLAM, 0, 0, -1, -1, 0, 0, 0, flame);
 	}
 }
 
