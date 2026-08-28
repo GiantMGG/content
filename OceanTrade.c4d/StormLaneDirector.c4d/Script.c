@@ -17,7 +17,7 @@ protected func Initialize() {
 /* ---- Storm timer ---- */
 func FxStormTickTimer(object pTarget, int fx) {
 	// Spec edge case #10: skip if a weather event is already active.
-	if (GetActiveWeatherEvent() != nil) return 1;
+	if (GetActiveWeatherEvent() != 0) return 1;
 	LaunchWeatherEvent(STRM, 50, 200);
 	return 1;
 }

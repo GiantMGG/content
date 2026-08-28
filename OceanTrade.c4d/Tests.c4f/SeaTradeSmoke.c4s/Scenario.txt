@@ -1,24 +1,17 @@
 [Head]
 Title=SeaTradeSmoke
 Version=1
-MaxPlayer=1
+MaxPlayer=0
 Origin=OceanTrade.c4d\Tests.c4f\SeaTradeSmoke.c4s
 
 [Definitions]
-Definition1=TradeGoods.c4d
-Definition2=WeatherEvents.c4d
-Definition3=OceanTrade.c4d
+Definition1=Objects.c4d
+Definition2=TradeGoods.c4d
+Definition3=WeatherEvents.c4d
+Definition4=OceanTrade.c4d
 
 [Game]
 StructNeedEnergy=0
-
-[Player1]
-StandardCrew=CLNK
-Clonks=1
-Position=50,30
-EnforcePosition=1
-Crew=CLNK=1;
-Wealth=1000
 
 [Landscape]
 Map.bmp=Map.bmp
@@ -37,6 +30,3 @@ YearSpeed=20
 Meteorite=0
 Volcano=0
 Earthquake=0
-
-[WeatherEvents]
-Event=STRM=10;0;100

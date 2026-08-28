@@ -1,6 +1,6 @@
 [DefCore]
 id=CGSH
-Version=4,9,11,3
+Version=4,9,11,2
 Name=Cog
 Category=C4D_Vehicle|C4D_SelectVehicle|C4D_SelectKnowledge
 MaxUserSelect=5

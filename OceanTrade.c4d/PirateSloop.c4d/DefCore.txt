@@ -1,6 +1,6 @@
 [DefCore]
 id=PSLP
-Version=4,9,11,3
+Version=4,9,11,2
 Name=PirateSloop
 Category=C4D_Vehicle
 MaxUserSelect=1
