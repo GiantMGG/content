@@ -1,0 +1,5 @@
+[DefCore]
+id=AIRS
+Version=4,9,8
+Name=Airships
+Category=C4D_StaticBack

@@ -1,0 +1,5 @@
+[DefCore]
+id=AERO
+Version=4,9,8
+Name=AERO
+Category=C4D_None
