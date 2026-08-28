@@ -1,0 +1,17 @@
+[DefCore]
+id=INCN
+Version=4,9,11,3
+Name=Incense
+Category=C4D_Object
+Width=8
+Height=8
+Offset=-4,-4
+Vertices=1
+VertexX=0
+VertexY=0
+Value=40
+Mass=5
+Picture=0,0,16,16
+Collectible=1
+Rebuy=1
+Float=1
