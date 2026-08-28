@@ -1,0 +1,1 @@
+A hot-air balloon. Steers by choosing altitude in the wind.

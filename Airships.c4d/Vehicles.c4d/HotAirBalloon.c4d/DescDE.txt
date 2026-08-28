@@ -1,0 +1,1 @@
+Ein Heissluftballon. Steuert durch Hoehenauswahl im Wind.
