@@ -1,6 +1,6 @@
 [DefCore]
 id=CSHP
-Version=4,9,11,3
+Version=4,9,11,2
 Name=CargoShipCaravan
 Category=C4D_StaticBack|C4D_Rule
 MaxUserSelect=1

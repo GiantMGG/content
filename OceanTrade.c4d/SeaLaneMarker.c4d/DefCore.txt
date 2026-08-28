@@ -1,6 +1,6 @@
 [DefCore]
 id=SLMR
-Version=4,9,11,3
+Version=4,9,11,2
 Name=SeaLaneMarker
 Category=C4D_StaticBack
 Width=1
