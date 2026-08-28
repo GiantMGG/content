@@ -1,0 +1,6 @@
+[Action]
+Name=Float
+Delay=10
+Facet=0,0,60,30
+NextAction=Float
+StartCall=PatrolTick
