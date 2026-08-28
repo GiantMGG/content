@@ -69,6 +69,7 @@ global func Fuel_IsFuel(object fuel)
     Returns true if need was met (residual or fuel). */
 global func Burn_Consume(object burner, int need)
 {
+	var orig_need = need;                 // M-1: pass original need to OnBurn
 	/* 1. Drain residual first. */
 	var res = burner->LocalN("fuel_residual");
 	if (res > 0)
@@ -76,7 +77,7 @@ global func Burn_Consume(object burner, int need)
 		if (res >= need)
 		{
 			burner->LocalN("fuel_residual") = res - need;
-			burner->~OnBurn(need);
+			burner->~OnBurn(orig_need);
 			return true;
 		}
 		need -= res;
@@ -123,6 +124,6 @@ global func Burn_Consume(object burner, int need)
 
 	/* 6. Callback to the burner. */
 	if (provided >= need)
-		burner->~OnBurn(need);
+		burner->~OnBurn(orig_need);
 	return provided >= need;
 }
