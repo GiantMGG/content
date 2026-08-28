@@ -1,6 +1,6 @@
 [DefCore]
 id=MKTS
-Version=4,9,11,3
+Version=1
 Name=MarketStall
 Category=C4D_Structure
 Width=20

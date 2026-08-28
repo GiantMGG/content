@@ -25,7 +25,7 @@ global func GetStockBaseline(id idGood, object pStall) {
 	var aGoods = pStall->~GetTradeGoods();
 	var aBases = pStall->~GetTradeBaselines();
 	if (!aGoods) return 10;
-	var iIdx = GetIndexOf(aGoods, idGood);
+	var iIdx = GetIndexOf(idGood, aGoods);
 	if (iIdx < 0) return 10;
 	return aBases[iIdx];
 }

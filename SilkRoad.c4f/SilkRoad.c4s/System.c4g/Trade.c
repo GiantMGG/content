@@ -56,9 +56,9 @@ protected func ContainedUp(object pClonk) {
 	for (var i = 0; i < GetLength(aGoods); i++) {
 		var idGood = aGoods[i];
 		var iPrice = GetMarketPrice(idGood);
-		AddMenuItem(Format("{{%s}} $MsgBuy$ (%d)", C4IdText(idGood), iPrice),
+		AddMenuItem(Format("$MsgBuy$ %s (%d)", GetName(0, idGood), iPrice),
 			"BuyMenu", idGood, pClonk);
-		AddMenuItem(Format("{{%s}} $MsgSell$ (%d)", C4IdText(idGood), iPrice),
+		AddMenuItem(Format("$MsgSell$ %s (%d)", GetName(0, idGood), iPrice),
 			"SellMenu", idGood, pClonk);
 	}
 	AddMenuItem("$MsgCancel$", "Cancel", MCMX, pClonk);

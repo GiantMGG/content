@@ -1,6 +1,6 @@
 [DefCore]
 id=GLDN
-Version=4,9,11,3
+Version=1
 Name=GoldNugget
 Category=C4D_Object
 MaxUserSelect=10

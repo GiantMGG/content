@@ -1,6 +1,6 @@
 [DefCore]
 id=SALT
-Version=4,9,11,3
+Version=1
 Name=Salt
 Category=C4D_Object
 Width=8

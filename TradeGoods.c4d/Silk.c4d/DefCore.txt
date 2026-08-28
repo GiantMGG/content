@@ -1,6 +1,6 @@
 [DefCore]
 id=SILK
-Version=4,9,11,3
+Version=1
 Name=Silk
 Category=C4D_Object
 Width=5

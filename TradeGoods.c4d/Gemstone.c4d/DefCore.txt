@@ -1,6 +1,6 @@
 [DefCore]
 id=GMST
-Version=4,9,11,3
+Version=1
 Name=Gemstone
 Category=C4D_Object
 Width=6
