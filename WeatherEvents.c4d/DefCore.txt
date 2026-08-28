@@ -1,3 +1,3 @@
 [DefCore]
-Id=WEAT
+id=WEAT
 Version=1

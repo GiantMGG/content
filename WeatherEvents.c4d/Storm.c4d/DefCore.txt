@@ -1,5 +1,5 @@
 [DefCore]
-Id=STRM
+id=STRM
 Version=1
 Action=Idle
 Category=65536

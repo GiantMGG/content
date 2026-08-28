@@ -1,5 +1,5 @@
 [DefCore]
-Id=DRGT
+id=DRGT
 Version=1
 Action=Idle
 Category=65536
