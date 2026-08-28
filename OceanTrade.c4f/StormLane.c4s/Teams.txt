@@ -1,0 +1,5 @@
+[Team1]
+Name=Merchants
+
+[Team2]
+Name=Pirates
