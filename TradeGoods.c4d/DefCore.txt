@@ -1,0 +1,3 @@
+[DefCore]
+Id=TRDG
+Version=1
