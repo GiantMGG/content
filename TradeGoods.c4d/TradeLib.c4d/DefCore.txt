@@ -1,0 +1,9 @@
+[DefCore]
+id=TRDL
+Version=4,9,11,3
+Name=TradeLib
+Category=C4D_Rule
+MaxUserSelect=1
+Width=1
+Height=1
+Value=1
