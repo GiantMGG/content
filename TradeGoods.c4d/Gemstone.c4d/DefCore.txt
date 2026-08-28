@@ -1,0 +1,17 @@
+[DefCore]
+id=GMST
+Version=4,9,11,3
+Name=Gemstone
+Category=C4D_Object
+Width=6
+Height=6
+Offset=-3,-3
+Vertices=1
+VertexX=0
+VertexY=0
+Value=80
+Mass=5
+Picture=0,0,16,16
+Collectible=1
+Rebuy=1
+Float=1
