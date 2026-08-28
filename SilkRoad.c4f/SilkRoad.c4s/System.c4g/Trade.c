@@ -57,9 +57,9 @@ protected func ContainedUp(object pClonk) {
 		var idGood = aGoods[i];
 		var iPrice = GetMarketPrice(idGood);
 		AddMenuItem(Format("$MsgBuy$ %s (%d)", GetName(0, idGood), iPrice),
-			"BuyMenu", idGood, pClonk);
+			"BuyMenu", idGood, pClonk, 0, pClonk);
 		AddMenuItem(Format("$MsgSell$ %s (%d)", GetName(0, idGood), iPrice),
-			"SellMenu", idGood, pClonk);
+			"SellMenu", idGood, pClonk, 0, pClonk);
 	}
 	AddMenuItem("$MsgCancel$", "Cancel", MCMX, pClonk);
 	return 1;
