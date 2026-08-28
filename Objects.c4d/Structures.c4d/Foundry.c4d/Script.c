@@ -5,6 +5,9 @@
 #include BAS5
 #include DOOR
 
+static const BURN_NEED = 100;   // one COAL (value 100) = one smelt cycle
+local fuel_residual;            // Burn_Consume banks overshoot here
+
 /* Produktion */
 
 public func IsProducerOf (object clonk, id def) {
@@ -44,7 +47,7 @@ public func Production(object clonk, id idProduct)
   
 func WorkerAcquireFuel (object clonk) {
   AddCommand (clonk, "Call", this (), 0, 0, 0, 0, "Acquisition", 0, 3);
-  // Wenn Kohle da (Leider noch keine Überprüfung auf Kohleherstellendes Objekt)
+  // Wenn Kohle da (Leider noch keine ï¿½berprï¿½fung auf Kohleherstellendes Objekt)
   var obj = GetAvailableObject (COAL, this());
   // Oder Kohle kaufbar
   if (!obj)
@@ -66,7 +69,7 @@ func WorkerAcquireFuel (object clonk) {
   AddCommand(clonk,"Acquire",0,0,0,this(),0,WOOD);
   // Damit er es nicht nochmal holt:
   AddCommand(clonk,"Wait",0,0,0,0,0,10);
-  // Erstes Holzstück holen...
+  // Erstes Holzstï¿½ck holen...
   AddCommand(clonk,"Put",this(),0,0,0,0,WOOD);
   AddCommand(clonk,"Acquire",0,0,0,this(),0,WOOD);
 }    
@@ -86,7 +89,7 @@ public func SupportWithCOAL() { return(1); }
 
 public func SupportWithCOALFailed(pClonk)
 {
-  // Hat auch nicht geklappt. Dann halt Ölfässer suchen...
+  // Hat auch nicht geklappt. Dann halt ï¿½lfï¿½sser suchen...
   AddCommand(pClonk, "Call", this(), 0, 0, 0, 0, "Acquisition", 0, 3);
   AddCommand(pClonk, "Put", this(), 0, 0, 0, 0, OBRL);
   AddCommand(pClonk, "Acquire", 0, 0, 0, this(), 0, OBRL);
@@ -178,7 +181,7 @@ private func Burning()
   return(1);
 }
 
-/* Inhaltsüberprüfung */  
+/* Inhaltsï¿½berprï¿½fung */  
   
 private func ContentsCheck()
 {
@@ -192,9 +195,9 @@ private func ContentsCheck()
       {
       SetCommand(obj,"Exit");
       }
-  // Erstes Inhaltsobjekt überprüfen
+  // Erstes Inhaltsobjekt ï¿½berprï¿½fen
   obj = Contents(0); var id = GetID(obj);
-  // Alles außer Mannschaftsmitgliedern, Rohmaterial und Loren sofort auswerfen
+  // Alles auï¿½er Mannschaftsmitgliedern, Rohmaterial und Loren sofort auswerfen
   if (obj)
     if ( !(    GetOCF(obj) & OCF_CrewMember()
             || obj->~IsLorry()
@@ -206,11 +209,20 @@ private func ContentsCheck()
         SetCommand(obj, "Exit");
       else
         Exit(obj,-27,+13,0,-1);
-  // Erz prüfen
+  // Opt-in overlay: FuelSystem.c4d geladen -> Bibliothek nutzen.
+  if(DefinitionCall(FUEL, "IsFuel"))
+  {
+    if(FindContents(ORE1) && Call("Burn_Consume", this, BURN_NEED))
+      SetAction("Burning");
+    return(1);
+  }
+
+  // Legacy-Pfad (FuelSystem.c4d nicht geladen) â€” unverÃ¤ndert.
+  // Erz prï¿½fen
   if (!FindContents(ORE1)) return(1);
   // Holz verbrennen
   if (ContentsCount(WOOD)>1) return(BurnWood());
-  // Öl verbrennen
+  // ï¿½l verbrennen
   if (ContentsCount(OBRL)>0) return(BurnOil());
   // Kohle verbrennen
   if (!(obj=FindContents(COAL))) return(1);
