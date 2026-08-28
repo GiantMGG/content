@@ -1,0 +1,5 @@
+[DefCore]
+id=OCNT
+Version=4,9,11,3
+Name=OceanTrade
+Category=C4D_StaticBack
