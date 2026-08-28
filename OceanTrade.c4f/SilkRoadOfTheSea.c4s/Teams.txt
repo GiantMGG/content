@@ -1,0 +1,5 @@
+[Team1]
+Name=East Alliance
+
+[Team2]
+Name=West Alliance

@@ -1,2 +1,2 @@
-[Title]
-1=Ocean Trade
+DE:Ocean Handel
+US:Ocean Trade
