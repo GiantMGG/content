@@ -7,7 +7,6 @@
 #strict 2
 
 #include AERO
-#include FUEL
 
 local fuel_out;
 
@@ -35,7 +34,7 @@ public func BurnerTimer()
 	var burn_pct = mods[2];
 
 	var need = 10 * burn_pct / 100;
-	if (Burn_Consume(this, need))
+	if (Aero_Burn(this, need))
 	{
 		SetPhysical("Float", 100 * lift_pct / 100, PHYS_Temporary, this);
 		fuel_out = false;
@@ -72,9 +71,9 @@ private func NoPilotCheck()
 {
 	if (!FindObject(0, 0, 0, 0, 0, 0, "Push", this()))
 	{
-		if (GetAction() ne "FloatIdle")
+		if (GetAction() != "FloatIdle")
 			SetAction("FloatIdle");
-		SetComDir(COMD_Down());
+		SetComDir(COMD_Down);
 		return true;
 	}
 	return false;

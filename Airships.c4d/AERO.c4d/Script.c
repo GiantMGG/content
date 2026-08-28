@@ -5,6 +5,8 @@
 
 #strict 2
 
+local fuel_residual;
+
 /* ---- Aero_WeatherModifier ----
    Returns [lift_pct, wind_pct, burn_pct] as integer percentages
    (100 = 1.0x). Values are scaled by GetWeatherEventIntensity()
@@ -30,8 +32,6 @@ public func Aero_WeatherModifier()
 	else if (event == C4Id("HTWV")) { lift_pct = 80;  wind_pct = 100; burn_pct = 100; }
 	else if (event == C4Id("FLDD")) { lift_pct = 100; wind_pct = 100; burn_pct = 100; }
 
-	/* Scale by intensity (0..100). At intensity 0, all mods = 100 (no
-	   effect). At intensity 100, full table value. */
 	lift_pct = 100 + (lift_pct - 100) * intensity / 100;
 	wind_pct = 100 + (wind_pct - 100) * intensity / 100;
 	burn_pct = 100 + (burn_pct - 100) * intensity / 100;
@@ -53,13 +53,57 @@ public func Aero_WindDrift(int fragility_pct)
 }
 
 /* ---- Aero_BurnTick ----
-   Wraps Burn_Consume with the burn-rate multiplier.
+   Burns fuel from the burner's Contents with weather-adjusted rate.
    need = base_rate * burn_pct / 100.
-   Returns true if fuel was available (Burn_Consume succeeded). */
+   Returns true if fuel was available. */
 public func Aero_BurnTick(int base_rate)
 {
 	var mods = Aero_WeatherModifier();
 	var burn_pct = mods[2];
 	var need = base_rate * burn_pct / 100;
-	return Burn_Consume(this, need);
+	return Aero_Burn(this, need);
+}
+
+/* ---- Aero_Burn ----
+   Simplified fuel consumption: drain residual, then consume fuel
+   items from Contents. Fuel values: COAL=100, WOOD=40, default=50. */
+public func Aero_Burn(object burner, int need)
+{
+	var res = burner->LocalN("fuel_residual");
+	if (res > 0)
+	{
+		if (res >= need)
+		{
+			burner->LocalN("fuel_residual") = res - need;
+			burner->~OnBurn(need);
+			return true;
+		}
+		need -= res;
+		burner->LocalN("fuel_residual") = 0;
+	}
+
+	var i, obj;
+	var provided = 0;
+	for (i = 0; obj = burner->Contents(i); ++i)
+	{
+		var val = 0;
+		if (GetID(obj) == COAL) val = 100;
+		else if (GetID(obj) == WOOD) val = 40;
+		else val = obj->~GetFuelValue();
+		if (val > 0)
+		{
+			provided += val;
+			obj->~OnFuelConsumed(burner);
+			RemoveObject(obj);
+			i--;
+			if (provided >= need) break;
+		}
+	}
+
+	if (provided > need)
+		burner->LocalN("fuel_residual") = provided - need;
+
+	if (provided >= need)
+		burner->~OnBurn(need);
+	return provided >= need;
 }

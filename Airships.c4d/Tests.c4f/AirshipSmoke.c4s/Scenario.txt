@@ -6,9 +6,7 @@ Origin=Airships.c4d\Tests.c4f\AirshipSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d
-Definition2=FuelSystem.c4d
-Definition3=WeatherEvents.c4d
-Definition4=Airships.c4d
+Definition2=Airships.c4d
 
 [Game]
 StructNeedEnergy=0

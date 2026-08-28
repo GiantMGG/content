@@ -9,7 +9,6 @@
 #strict 2
 
 #include AERO
-#include FUEL
 
 local heat;
 
@@ -35,7 +34,7 @@ public func BurnerTimer()
 	var burn_pct = mods[2];
 
 	var need = 5 * burn_pct / 100;
-	if (Burn_Consume(this, need))
+	if (Aero_Burn(this, need))
 	{
 	}
 	else

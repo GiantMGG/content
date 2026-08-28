@@ -8,7 +8,6 @@
 #strict 2
 
 #include AERO
-#include FUEL
 
 local active;
 local carrier;
@@ -34,7 +33,7 @@ public func Entrance(object container)
 public func Departure(object container)
 {
 	Deactivate();
-	carrier = nil;
+	carrier = 0;
 	if (container->GetEffect("SteampackControl", container))
 		container->RemoveEffect("SteampackControl", container);
 	return true;
@@ -51,7 +50,7 @@ public func Activate(object clonk)
 	active = true;
 	carrier = clonk;
 
-	if (clonk->GetAction() ne "Jump")
+	if (clonk->GetAction() != "Jump")
 		clonk->SetAction("Jump");
 
 	if (!clonk->GetEffect("IntSteampackHover", clonk))
@@ -102,6 +101,6 @@ public func FxSteampackControlControlDown(object target)
 protected func Initialize()
 {
 	active = false;
-	carrier = nil;
+	carrier = 0;
 	return true;
 }
