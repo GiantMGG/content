@@ -1,7 +1,6 @@
 [DefCore]
 id=STRM
 Version=1
-Action=Idle
 Category=65536
 TimerCall=Execute
 Timer=1
