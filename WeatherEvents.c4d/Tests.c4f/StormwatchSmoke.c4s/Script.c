@@ -8,60 +8,48 @@
 /* On any assertion failure, FatalError produces a non-zero exit  */
 /* code, failing the CTest entry.                                 */
 
-#strict 2
+#strict 3
 
-static const C4ID BLZD = C4Id("BLZD");
-static const C4ID DRGT = C4Id("DRGT");
-static const C4ID STRM = C4Id("STRM");
-static const C4ID HTWV = C4Id("HTWV");
-static const C4ID FLDD = C4Id("FLDD");
-
-static g_iStep;
+// BLZD, DRGT, STRM, HTWV, FLDD are C4ID literals (def ids in this pack).
 
 protected func Initialize()
 {
-	g_iStep = 0;
-	// Run one test step every 35 frames (~1s).
-	AddEffect("RunTest", this, 1, 35, this);
+	RunSmokeSteps();
 	return true;
 }
 
-func FxRunTestStart(target, effect, temp, v1, v2, v3, v4) { return 1; }
-
-func FxRunTestTimer(object target, int effect, int timer)
+func RunSmokeSteps()
 {
-	// Steps 0-4: launch each event in turn, assert it became active, stop it.
-	if (g_iStep >= 0 && g_iStep <= 4)
+	/* Steps 0-4: launch each event in turn, assert it became active, stop it. */
+	var i;
+	for (i = 0; i <= 4; i++)
 	{
-		var idToLaunch = [STRM, BLZD, DRGT, HTWV, FLDD][g_iStep];
+		var idToLaunch = [STRM, BLZD, DRGT, HTWV, FLDD][i];
 		LaunchWeatherEvent(idToLaunch, 50, 100);
 		if (GetActiveWeatherEvent() != idToLaunch)
 			FatalError(Format("StormwatchSmoke FAIL step %d: expected %s got %s",
-			                  g_iStep, C4IdText(idToLaunch),
+			                  i, C4IdText(idToLaunch),
 			                  C4IdText(GetActiveWeatherEvent())));
 		StopWeatherEvent();
 		if (GetActiveWeatherEvent() != nil)
 			FatalError(Format("StormwatchSmoke FAIL step %d: event not cleared after stop",
-			                  g_iStep));
+			                  i));
 	}
-	// Step 5: crop death -- a Seedling-stage wheat under BLZD must remove itself.
-	if (g_iStep == 5)
-	{
-		var pWheat = CreateObject(AGWH, 50, 30, NO_OWNER);
-		if (!pWheat) FatalError("StormwatchSmoke FAIL step 5: could not spawn wheat");
-		LaunchWeatherEvent(BLZD, 50, 100);
-		pWheat->~Grow();
-		if (FindObject(AGWH))
-			FatalError("StormwatchSmoke FAIL step 5: seedling wheat did not die under BLZD");
-		StopWeatherEvent();
-	}
-	// Step 6: pass + end.
-	if (g_iStep == 6)
-	{
-		Log("StormwatchSmoke PASS");
-		GameOver();
-		return -1;  // kill the effect
-	}
-	++g_iStep;
-	return 1;
+
+	/* Step 5: crop death -- a Seedling-stage wheat under BLZD must remove itself. */
+	var pWheat = CreateObject(AGWH, 50, 30, NO_OWNER);
+	if (!pWheat) FatalError("StormwatchSmoke FAIL step 5: could not spawn wheat");
+	/* Construction() calls SetAction("Seedling") but the engine forces
+	   ActIdle because Con<FullCon at construction time.  Re-set the
+	   action now that the object is fully constructed. */
+	pWheat->SetAction("Seedling");
+	LaunchWeatherEvent(BLZD, 50, 100);
+	pWheat->~Grow();
+	if (FindObject(AGWH))
+		FatalError("StormwatchSmoke FAIL step 5: seedling wheat did not die under BLZD");
+	StopWeatherEvent();
+
+	Log("StormwatchSmoke PASS");
+	GameOver();
+	return true;
 }
