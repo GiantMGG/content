@@ -136,15 +136,17 @@ public func WLFA_FindPrey(object creature, int range)
 
 // Bite a prey adjacent to the creature. Returns true if an attack landed.
 // IntAttackDelay (70 ticks) gates re-attack (Shark.c4d:161-176 pattern).
-public func WLFA_Attack(object creature, object prey, int damage)
+// The attacker is the calling object (this), so derived defs can override
+// the attack (object call dispatch): e.g. the scorpion's venom sting.
+public func WLFA_Attack(object prey, int damage)
 {
-	if (!creature || !prey) return false;
-	if (GetEffect("IntAttackDelay", creature)) return false;
+	if (!prey) return false;
+	if (GetEffect("IntAttackDelay", this)) return false;
 	if (!damage) damage = 8;
 	Punch(prey, damage);
-	Fling(prey, -1 + 2 * GetDir(creature), -2);
+	Fling(prey, -1 + 2 * GetDir(this), -2);
 	Sound("Munch1");
-	AddEffect("IntAttackDelay", creature, 1, 70, creature);
+	AddEffect("IntAttackDelay", this, 1, 70, this);
 	return true;
 }
 
@@ -167,9 +169,9 @@ func FxWLF_HuntPreyTimer(object target, int effect, int time)
 	if (!prey) return;
 	var iFromSide = +1; if (GetX(prey) < GetX(target)) iFromSide = -1;
 	SetCommand(target, "MoveTo", nil, GetX(prey) + 15 * iFromSide, GetY(prey));
-	// Adjacent attack
+	// Adjacent attack (object call so creature-specific overrides apply)
 	if (ObjectDistance(prey, target) <= 12)
-		WLFA_Attack(target, prey, 8);
+		target->WLFA_Attack(prey, 8);
 }
 
 /* ===== Behaviour: WLF_PackFlank ===== */
@@ -320,7 +322,7 @@ func FxWLF_TerritorialTimer(object target, int effect, int time)
 		target->SetAction("Run");
 		SetCommand(target, "MoveTo", intruder);
 		if (ObjectDistance(intruder, target) <= 12)
-			WLFA_Attack(target, intruder, 12);
+			target->WLFA_Attack(intruder, 12);
 	}
 	else
 	{

@@ -13,4 +13,3 @@ Mass=12
 Picture=0,0,64,64
 Collectible=1
 Rebuy=1
-Components=SNDS=2

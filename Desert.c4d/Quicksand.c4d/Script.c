@@ -6,8 +6,9 @@
 public func Construction()
 {
 	// Stamp a small Sand patch so the hazard is visible in terrain.
-	InsertMaterial(Material("Sand"), GetX() - 10, GetY() - 3);
-	InsertMaterial(Material("Sand"), GetX() + 9, GetY() - 3);
+	// InsertMaterial is object-relative in object context.
+	InsertMaterial(Material("Sand"), -10, -3);
+	InsertMaterial(Material("Sand"), 9, -3);
 	return 1;
 }
 
@@ -36,8 +37,12 @@ func FxQuicksandSinkStart(object target, int effect, bool temp)
 
 func FxQuicksandSinkTimer(object target, int effect, int time)
 {
-	// Off the patch? Effect ends.
-	if (!FindObject2(Find_ID(QKSD), Find_AtRect(-12, -5, 24, 10)))
+	// Off the patch? Effect ends. Find_AtRect is caller-relative, and the
+	// effect timer's caller is the quicksand (AddEffect command target),
+	// so re-centre the rect on the victim: subtract the quicksand's own
+	// position from the victim's before adding the half-extents.
+	if (!FindObject2(Find_ID(QKSD),
+		Find_AtRect(GetX(target) - GetX() - 12, GetY(target) - GetY() - 5, 24, 10)))
 		return FX_Execute_Kill;
 	// Jumping struggles free: 2px up per tick.
 	if (GetAction(target) == "Jump")

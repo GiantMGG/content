@@ -4,11 +4,8 @@
 
 #strict 3
 
-local grow_stage;  // 0=Seedling, 1=Growing, 2=Ready
-
 protected func Construction()
 {
-	grow_stage = 0;
 	SetAction("Seedling");
 	return 1;
 }
@@ -16,15 +13,30 @@ protected func Construction()
 public func IsDatePalm() { return true; }
 public func IsRipe() { return GetAction() == "Ready"; }
 
-/* TimerCall: advances Seedling -> Growing -> Ready once each. */
+/* TimerCall: advances Seedling -> Growing -> Ready once each.
+   Palms near an oasis are growth-boosted (spec §5): one Grow()
+   call advances two stages. */
 public func Grow()
 {
 	var evt = GetActiveWeatherEvent();
 	if (evt == SNDT) return 1;  // sandstorm pauses growth
 	if (evt == DRGT && GetAction() == "Seedling") return 1;  // no germination
 
-	if (GetAction() == "Seedling") { grow_stage = 1; SetAction("Growing"); Sound("Dig?"); return 1; }
-	if (GetAction() == "Growing")  { grow_stage = 2; SetAction("Ready");   Sound("Chop?"); return 1; }
+	// Growth boost query: an oasis within 100px doubles the pace.
+	var boosted = FindObject2(Find_ID(OASS), Find_Distance(100));
+
+	if (GetAction() == "Seedling")
+	{
+		SetAction("Growing");
+		Sound("Dig?");
+		if (!boosted) return 1;
+	}
+	if (GetAction() == "Growing")
+	{
+		SetAction("Ready");
+		Sound("Chop?");
+		return 1;
+	}
 	return 1;
 }
 

@@ -24,7 +24,11 @@ public func Execute()
 	// Ramp the wind toward gale strength.
 	SetWind(BoundBy(baseline_wind + 40 + intensity / 2, -100, 100));
 	// Stream FlySand PXS across the landscape (visual only).
-	CastPXS("FlySand", 8 + intensity / 8, 25, Random(LandscapeWidth()), Random(20));
+	// CastPXS is object-relative and the event object sits at
+	// (LandscapeWidth()/2, 0), so subtract the event object's own
+	// position to make the random x cover the whole map.
+	CastPXS("FlySand", 8 + intensity / 8, 25,
+		Random(LandscapeWidth()) - GetX(), Random(20) - GetY());
 }
 
 public func Stop()

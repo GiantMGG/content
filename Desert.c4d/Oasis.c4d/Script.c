@@ -12,12 +12,14 @@ public func Construction()
 
 public func Fill()
 {
-	// Probe: is the basin already full of Water?
-	if (GetMaterial(GetX() - 2, GetY() - 2) == Material("Water")
-	 && GetMaterial(GetX() + 2, GetY() - 2) == Material("Water"))
+	// Probe: is the basin already full of Water? (GetMaterial is
+	// object-relative in object context -- the offsets are oasis-relative,
+	// i.e. inside the basin carved by Construction.)
+	if (GetMaterial(-2, -2) == Material("Water")
+	 && GetMaterial(2, -2) == Material("Water"))
 		return 0;
-	// Cast Water PXS into the basin.
-	CastPXS("Water", 20, 16, GetX(), GetY() - 2);
+	// Cast Water PXS into the basin (CastPXS likewise object-relative).
+	CastPXS("Water", 20, 16, 0, -2);
 	// PXS cast this tick (smoke-assertable).
 	return 20;
 }
