@@ -1,0 +1,15 @@
+[DefCore]
+id=WEBB
+Version=1
+Name=Web
+Category=C4D_StaticBack
+Width=20
+Height=20
+Offset=-10,-10
+Value=1
+Mass=5
+Components=SSIL=1
+Picture=0,0,64,64
+ContactCalls=1
+Timer=5
+TimerCall=WebTick

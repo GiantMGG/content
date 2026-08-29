@@ -1,0 +1,2 @@
+[DescUS]
+1=A bear den. Contains loot.

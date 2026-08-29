@@ -1,0 +1,13 @@
+[DefCore]
+id=BDEN
+Version=1
+Name=Bear Den
+Category=C4D_StaticBack
+Width=40
+Height=30
+Offset=-20,-15
+Value=1
+Mass=100
+Components=BPLT=1;BCLW=1;MBIT=2
+Picture=0,0,64,64
+Placement=1

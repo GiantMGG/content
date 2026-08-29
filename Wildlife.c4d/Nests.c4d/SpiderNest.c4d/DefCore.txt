@@ -1,0 +1,15 @@
+[DefCore]
+id=SPNE
+Version=1
+Name=Spider Nest
+Category=C4D_StaticBack
+Width=30
+Height=25
+Offset=-15,-12
+Value=1
+Mass=80
+Components=SSIL=2;SFNG=1
+Picture=0,0,64,64
+Placement=1
+Timer=210
+TimerCall=NestTick
