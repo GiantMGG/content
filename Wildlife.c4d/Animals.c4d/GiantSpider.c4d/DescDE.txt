@@ -1,0 +1,2 @@
+[DescDE]
+1=Eine Hoehlenspinne, die Clonks in Netze verwickelt.

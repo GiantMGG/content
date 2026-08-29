@@ -1,0 +1,14 @@
+[DefCore]
+id=DSPR
+Version=1
+Name=Dead Spider
+Category=C4D_Object
+Width=24
+Height=18
+Offset=-12,-9
+Value=12
+Mass=15
+Components=SSIL=1;SFNG=1
+Picture=0,0,64,64
+Float=1
+StretchGrowth=1

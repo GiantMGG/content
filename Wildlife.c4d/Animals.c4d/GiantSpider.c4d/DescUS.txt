@@ -1,0 +1,2 @@
+[DescUS]
+1=A cave spider that snares Clonks in webs.

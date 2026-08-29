@@ -1,0 +1,2 @@
+[DescDE]
+1=Ein Rudeljaeger, der nachts die Siedlung bedraengt.

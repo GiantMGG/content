@@ -1,0 +1,2 @@
+[DescUS]
+1=A pack hunter that harasses the settlement at night.

@@ -1,0 +1,15 @@
+[DefCore]
+id=DWLF
+Version=1
+Name=Dead Wolf
+Category=C4D_Object
+Width=24
+Height=18
+Offset=-12,-9
+Value=10
+Mass=20
+Components=WPLT=1
+Picture=0,0,64,64
+Collectible=0
+Float=1
+StretchGrowth=1

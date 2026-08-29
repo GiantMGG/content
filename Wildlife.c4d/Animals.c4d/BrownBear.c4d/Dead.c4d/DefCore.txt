@@ -1,0 +1,14 @@
+[DefCore]
+id=DWBR
+Version=1
+Name=Dead Bear
+Category=C4D_Object
+Width=45
+Height=25
+Offset=-23,-13
+Value=20
+Mass=100
+Components=BPLT=1;BCLW=1
+Picture=0,0,64,64
+Float=1
+StretchGrowth=1

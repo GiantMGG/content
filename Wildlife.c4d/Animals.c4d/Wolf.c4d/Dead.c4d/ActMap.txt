@@ -1,0 +1,8 @@
+[Action]
+Name=Dead
+Procedure=NONE
+Directions=1
+Length=1
+Delay=0
+NextAction=Dead
+FacetBase=1

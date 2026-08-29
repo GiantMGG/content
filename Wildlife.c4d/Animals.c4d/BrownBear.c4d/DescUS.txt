@@ -1,0 +1,2 @@
+[DescUS]
+1=A territorial mini-boss, leashed to its den.
