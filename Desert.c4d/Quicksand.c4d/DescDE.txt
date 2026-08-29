@@ -1,0 +1,2 @@
+[Desc]
+1=Ein verruechticher Sandfleck: Fussgaenger sinken langsam und muessen springen. Fahrzeuge und PXS sind unbeeinflusst.

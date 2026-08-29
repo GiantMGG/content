@@ -1,0 +1,2 @@
+[Desc]
+1=A treacherous sand patch: walkers sink slowly and must jump to escape. Vehicles and PXS are unaffected.

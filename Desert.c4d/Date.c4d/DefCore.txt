@@ -1,0 +1,17 @@
+[DefCore]
+id=DATE
+Version=1
+Name=Date
+Category=C4D_Object
+Width=8
+Height=8
+Offset=-4,-4
+Vertices=1
+VertexY=1
+Value=4
+Mass=5
+Picture=0,0,64,64
+Collectible=1
+Edible=1
+Float=1
+Rebuy=1

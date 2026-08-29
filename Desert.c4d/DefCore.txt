@@ -1,0 +1,5 @@
+[DefCore]
+id=DERT
+Version=1
+Name=Desert
+Category=C4D_StaticBack

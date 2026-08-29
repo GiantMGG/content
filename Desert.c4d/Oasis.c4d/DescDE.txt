@@ -1,0 +1,2 @@
+[Desc]
+1=Ein eigenstaendiger Wasserpool-Generator: gruendet ein flaches Becken und fuellt es progressiv mit Wasser-PXS.

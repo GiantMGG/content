@@ -1,0 +1,17 @@
+[DefCore]
+id=QKSD
+Version=1
+Name=Quicksand
+Category=C4D_StaticBack
+Width=20
+Height=6
+Offset=-10,-6
+Vertices=1
+VertexY=1
+Value=0
+Mass=0
+Picture=0,0,64,64
+Timer=4
+TimerCall=Sink
+Collectible=0
+Float=1

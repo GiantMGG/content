@@ -1,0 +1,17 @@
+[DefCore]
+id=OASS
+Version=1
+Name=Oasis
+Category=C4D_StaticBack|C4D_SelectVegetation
+Width=24
+Height=8
+Offset=-12,-8
+Vertices=1
+VertexY=1
+Value=10
+Mass=30
+Picture=0,0,64,64
+Timer=35
+TimerCall=Fill
+Collectible=0
+Float=1

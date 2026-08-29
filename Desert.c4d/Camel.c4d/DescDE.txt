@@ -1,0 +1,2 @@
+[Desc]
+1=Ein passives Wuestenherdentier. Wandert, weidet, traegt kleine Lasten. Besitzbar.

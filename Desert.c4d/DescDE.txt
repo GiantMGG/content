@@ -1,0 +1,2 @@
+[Desc]
+1=Ein eigenstaendiges Wuesten-Biomen-Paket: Sandsturm-Wetterereignis, Dattelpalmen mit erntbaren Datteln, Skorpione und Kamele, Oasen, Treibsand und Sandstein-Steinbruch. Muss zusammen mit Objects.c4d (ANIM-Basis) und Wildlife.c4d (WLFA-Framework) geladen werden.

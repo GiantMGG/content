@@ -1,0 +1,2 @@
+[Desc]
+1=Eine kleine Struktur, die Sandsteinbloecke aus einem Sandstein-Flz darunter gewinnt.

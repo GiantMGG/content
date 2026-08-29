@@ -1,0 +1,2 @@
+[Desc]
+1=A quarried block of tan sandstone. Building component.

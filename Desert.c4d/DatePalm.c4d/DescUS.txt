@@ -1,0 +1,2 @@
+[Desc]
+1=A three-stage desert crop. Grows through Seedling, Growing and Ready stages; harvest the ripe palm for two sweet dates.

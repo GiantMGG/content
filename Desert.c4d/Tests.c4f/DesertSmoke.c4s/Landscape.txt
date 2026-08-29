@@ -1,0 +1,11 @@
+/* Desert map preset -- C4MapCreatorS2 syntax.                   */
+/* Sand dunes over a Sandstone basement, with Rock outcrops for  */
+/* quarry-adjacent building.                                     */
+
+map Desert {
+  // Dune belt: rolling Sand over a Sandstone basement.
+  overlay Dunes { algo=bozo; a=8; b=12; mat=Sand; tex=Smooth; turbulence=80; sub=0; };
+  overlay Basement { algo=solid; y=30px; mat=Sandstone; tex=Ridge; sub=0; };
+  // Scattered Rock outcrops for quarry-adjacent building.
+  overlay Outcrops { algo=bozo; a=4; b=6; mat=Rock; tex=Rough; turbulence=120; sub=0; };
+};

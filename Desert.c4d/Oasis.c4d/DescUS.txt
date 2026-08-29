@@ -1,0 +1,2 @@
+[Desc]
+1=A self-contained water-pool generator: carves a shallow basin on construction and progressively fills it with Water PXS.

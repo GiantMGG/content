@@ -1,0 +1,16 @@
+[DefCore]
+id=SNDS
+Version=1
+Name=Sandstone block
+Category=C4D_Object|C4D_SelectMaterial|C4D_SelectHomebase|C4D_SelectInEarth
+Width=8
+Height=8
+Offset=-4,-4
+Vertices=1
+VertexY=1
+Value=2
+Mass=12
+Picture=0,0,64,64
+Collectible=1
+Rebuy=1
+Components=SNDS=2

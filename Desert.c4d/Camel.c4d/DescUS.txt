@@ -1,0 +1,2 @@
+[Desc]
+1=A passive desert herd animal. Wanders, grazes, carries a small load. Possessible.

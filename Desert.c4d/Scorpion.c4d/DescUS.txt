@@ -1,0 +1,2 @@
+[Desc]
+1=A venomous desert predator that hunts prey within 300px. Possessible.

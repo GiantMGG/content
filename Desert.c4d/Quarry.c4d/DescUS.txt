@@ -1,0 +1,2 @@
+[Desc]
+1=A small structure that extracts Sandstone blocks from a Sandstone vein beneath it.

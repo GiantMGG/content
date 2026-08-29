@@ -1,0 +1,2 @@
+[Desc]
+1=A self-contained desert biome pack: sandstorm weather event, date palm crop with harvestable dates, scorpions and camels, oases, quicksand hazards, and sandstone quarrying. Hard co-load: requires Objects.c4d (ANIM base) and Wildlife.c4d (WLFA framework) in [Definitions].
