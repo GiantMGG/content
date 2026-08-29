@@ -1,0 +1,2 @@
+[DescUS]
+1=Night Director: spawns predators near the settlement at night.

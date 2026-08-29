@@ -1,0 +1,2 @@
+[DescDE]
+1=Nacht-Direktor: Spawnt nachts Raubtiere nahe der Siedlung.

@@ -1,0 +1,12 @@
+[DefCore]
+id=WLSP
+Version=1
+Name=Wildlife Spawner
+Category=C4D_Rule
+Width=10
+Height=10
+Offset=-5,-5
+Value=1
+Picture=0,0,64,64
+Timer=70
+TimerCall=WLSP_Tick

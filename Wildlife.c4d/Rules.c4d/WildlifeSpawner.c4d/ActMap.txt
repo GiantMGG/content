@@ -1,0 +1,8 @@
+[Action]
+Name=Idle
+Procedure=NONE
+Directions=1
+Length=1
+Delay=0
+NextAction=Idle
+FacetBase=1
