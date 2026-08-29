@@ -9,9 +9,11 @@ public func IsPossessible() { return true; }
 
 protected func Initialize()
 {
-	WLFA_AddBehavior(this, "HuntPrey",  { Range: 500, Interval: 35 });
-	WLFA_AddBehavior(this, "PackFlank", { PackID: WOLF, Interval: 35 });
-	WLFA_SetLootTable(this, { items: [WPLT, 100, MBIT, 40] });
+	// opts arrays: [Interval, ...behaviour-fields]. See WLFA.
+	WLFA_AddBehavior(this, "HuntPrey",  [35, 500]);
+	WLFA_AddBehavior(this, "PackFlank", [35, WOLF]);
+	// Loot table: flat [id, chance, ...].
+	WLFA_SetLootTable(this, [WPLT, 100, MBIT, 40]);
 	return Birth();
 }
 
@@ -23,7 +25,13 @@ protected func Activity()
 
 protected func Death()
 {
+	// Local(0) is the WLFA_IsAlpha flag set by WLF_PackFlank. It survives
+	// AssignDeath's effect clearing, so we can still tell whether this wolf
+	// was the alpha here. Scatter the survivors BEFORE ChangeDef (after
+	// ChangeDef the script scope is DWLF, which doesn't #include WLFA).
+	var wasAlpha = Local(0);
 	WLFA_DropLoot(this, WLFA_GetLootTable(this));
+	if (wasAlpha) WLFA_ScatterPack(WOLF);
 	ChangeDef(DWLF);
 	SetAction("Dead");
 	return true;

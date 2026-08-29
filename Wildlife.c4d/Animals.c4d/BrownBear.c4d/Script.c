@@ -9,9 +9,10 @@ public func IsPossessible() { return true; }
 
 protected func Initialize()
 {
-	WLFA_AddBehavior(this, "Territorial",
-		{ DenID: BDEN, TerritoryRadius: 350, FleeHP: 30, HealHP: 60, Interval: 35 });
-	WLFA_SetLootTable(this, { items: [BPLT, 100, BCLW, 100, MBIT, 60] });
+	// opts: [Interval, DenID, TerritoryRadius, FleeHP, HealHP]. See WLFA.
+	WLFA_AddBehavior(this, "Territorial", [35, BDEN, 350, 30, 60]);
+	// Loot table: flat [id, chance, ...].
+	WLFA_SetLootTable(this, [BPLT, 100, BCLW, 100, MBIT, 60]);
 	return Birth();
 }
 

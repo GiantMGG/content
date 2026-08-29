@@ -13,7 +13,7 @@ protected func Initialize() { SetAction("Idle"); return true; }
 // them -- they must move into the web's AtRect (the timer catches this).
 public func WebTick()
 {
-	var contactor = 0;
+	var contactor;
 	while (contactor = FindObject2(Find_OCF(OCF_CrewMember), Find_NoContainer(),
 	                               Find_AtRect(-10, -10, 20, 20), Find_Exclude(contactor)))
 	{

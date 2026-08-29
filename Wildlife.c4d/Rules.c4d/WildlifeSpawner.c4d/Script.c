@@ -19,6 +19,13 @@ public func SetWealthScale(int n) { wealthScale = n; return true; }
 public func SetMaxPerNight(int n) { maxPerNight = n; return true; }
 public func SetPatrolRadius(int n) { patrolRadius = n; return true; }
 
+/* ===== WLSP reserved object-local indices ===== */
+/* The engine has no GetLocal() and SetLocal() takes a NUMERIC index, so    */
+/* WLSP uses a documented reserved range on the rule object's Local[] list: */
+/*   Local(0) = WLSP_NightActive          (0/1)                             */
+/*   Local(1) = WLSP_SpawnedThisNight     (int)                             */
+/*   Local(2) = WLSP_ForcePhase           (-1 auto / 0 day / 1 night)       */
+
 protected func Initialize()
 {
 	SetAction("Idle");
@@ -26,15 +33,15 @@ protected func Initialize()
 	maxPerNight = 8;
 	patrolRadius = 500;
 	// Track whether we have spawned for the current night.
-	SetLocal("WLSP_NightActive", 0);
-	SetLocal("WLSP_SpawnedThisNight", 0);
-	SetLocal("WLSP_ForcePhase", -1); // -1 = auto (read IsNight)
+	SetLocal(0, 0); // WLSP_NightActive
+	SetLocal(1, 0); // WLSP_SpawnedThisNight
+	SetLocal(2, -1); // WLSP_ForcePhase: -1 = auto (read IsNight)
 	return true;
 }
 
 /* ===== Test hooks for deterministic smoke tests ===== */
 /* WLSP_SetForcePhase(0) = force day, 1 = force night, -1 = auto. */
-public func WLSP_SetForcePhase(int phase) { SetLocal("WLSP_ForcePhase", phase); return true; }
+public func WLSP_SetForcePhase(int phase) { SetLocal(2, phase); return true; }
 
 /* ===== Global API ===== */
 
@@ -67,10 +74,10 @@ public func WLSP_Tick()
 	if (isNight)
 	{
 		// Mark night active; spawn up to the night's target.
-		if (!GetLocal("WLSP_NightActive"))
+		if (!Local(0)) // WLSP_NightActive
 		{
-			SetLocal("WLSP_NightActive", 1);
-			SetLocal("WLSP_SpawnedThisNight", 0);
+			SetLocal(0, 1); // WLSP_NightActive
+			SetLocal(1, 0); // WLSP_SpawnedThisNight
 		}
 		TrySpawnOne();
 		return true;
@@ -78,10 +85,10 @@ public func WLSP_Tick()
 
 	// Day path: retreat any live leashed predators without a den, then
 	// clear the night-active flag.
-	if (GetLocal("WLSP_NightActive"))
+	if (Local(0)) // WLSP_NightActive
 	{
-		SetLocal("WLSP_NightActive", 0);
-		SetLocal("WLSP_SpawnedThisNight", 0);
+		SetLocal(0, 0); // WLSP_NightActive
+		SetLocal(1, 0); // WLSP_SpawnedThisNight
 		RetreatAllPredators();
 	}
 	return true;
@@ -91,7 +98,7 @@ public func WLSP_Tick()
 
 public func WLSP_IsNightNow()
 {
-	var phase = GetLocal("WLSP_ForcePhase");
+	var phase = Local(2); // WLSP_ForcePhase
 	if (phase == 0) return false; // forced day
 	if (phase == 1) return true;  // forced night
 	return IsNight();             // auto
@@ -102,7 +109,7 @@ public func WLSP_IsNightNow()
 public func TrySpawnOne()
 {
 	var target = NightTargetCount();
-	var spawned = GetLocal("WLSP_SpawnedThisNight");
+	var spawned = Local(1); // WLSP_SpawnedThisNight
 	// Top up rather than double-spawn: target counts already-alive predators.
 	var alive = GetWildlifeThreat();
 	if (alive >= target) return false;
@@ -118,13 +125,13 @@ public func TrySpawnOne()
 	{
 		var spider = CreateObject(SPDR, GetX(nest), GetY(nest) - 10, NO_OWNER);
 		if (spider) spider->~Birth();
-		SetLocal("WLSP_SpawnedThisNight", spawned + 1);
+		SetLocal(1, spawned + 1); // WLSP_SpawnedThisNight
 		return true;
 	}
 
 	var predator = CreateObject(idToSpawn, spot[0], spot[1], NO_OWNER);
 	if (predator) predator->~Birth();
-	SetLocal("WLSP_SpawnedThisNight", spawned + 1);
+	SetLocal(1, spawned + 1); // WLSP_SpawnedThisNight
 
 	// Attach a retreat leash so dawn despawns it.
 	if (!GetEffect("WLF_RetreatLeash", predator))
@@ -186,12 +193,13 @@ public func RetreatAllPredators()
 	var id;
 	for (var id in ids)
 	{
-		var p = 0;
-		while (p = FindObject2(Find_ID(id), Find_NoContainer(), p + 1))
+		// Bears are den-leashed; don't despawn them at dawn.
+		if (id == WBRS) continue;
+		var pack = FindObjects(Find_ID(id), Find_NoContainer());
+		var p;
+		for (var p in pack)
 		{
 			if (!GetAlive(p)) continue;
-			// Bears are den-leashed; don't despawn them at dawn.
-			if (id == WBRS) continue;
 			if (!GetEffect("WLF_RetreatLeash", p))
 				AddEffect("WLF_RetreatLeash", p, 1, 35, p);
 		}

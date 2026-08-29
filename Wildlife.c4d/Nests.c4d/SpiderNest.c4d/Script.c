@@ -8,7 +8,8 @@
 protected func Initialize()
 {
 	SetAction("Idle");
-	WLFA_AddBehavior(this, "NestSpawner", { SpawnID: SPDR, Cap: 6, Interval: 210 });
+	// opts: [Interval, SpawnID, Cap]. See WLFA.
+	WLFA_AddBehavior(this, "NestSpawner", [210, SPDR, 6]);
 	return true;
 }
 

@@ -9,9 +9,11 @@ public func IsPossessible() { return true; }
 
 protected func Initialize()
 {
-	WLFA_AddBehavior(this, "HuntPrey", { Range: 300, Interval: 35 });
-	WLFA_AddBehavior(this, "WebTrap",  { WebID: WEBB, Interval: 35 });
-	WLFA_SetLootTable(this, { items: [SSIL, 100, SFNG, 30] });
+	// opts arrays: [Interval, ...behaviour-fields]. See WLFA.
+	WLFA_AddBehavior(this, "HuntPrey", [35, 300]);
+	WLFA_AddBehavior(this, "WebTrap",  [35, WEBB]);
+	// Loot table: flat [id, chance, ...].
+	WLFA_SetLootTable(this, [SSIL, 100, SFNG, 30]);
 	return Birth();
 }
 
