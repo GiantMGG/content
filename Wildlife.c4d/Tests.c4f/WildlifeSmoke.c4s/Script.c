@@ -51,6 +51,30 @@ func RunSmokeSteps()
 	if (!GetEffect("WLF_Territorial", bear))
 		FatalError("WildlifeSmoke FAIL step 2: bear missing WLF_Territorial effect");
 
+	/* Step 2a: bear territorial -- a Clonk intruder INSIDE the territory
+	   radius triggers aggression (bear issues MoveTo toward the intruder).
+	   This exercises F1's Find_Distance fix: the search must be centred on
+	   the den, not offset by the bear's position. */
+	DoEnergy(1000, bear); // ensure bear is above fleeHP so it aggros
+	var intruder = CreateObject(CLNK, 205, 100, NO_OWNER);
+	if (!intruder) FatalError("WildlifeSmoke FAIL step 2a: could not spawn intruder");
+	SetCommand(bear, "None");
+	WLFA_StepBehaviours(bear);
+	if (!SEqual(GetCommand(bear), "MoveTo"))
+		FatalError(Format("WildlifeSmoke FAIL step 2a: bear did not aggro intruder (cmd=%s)", GetCommand(bear)));
+	RemoveObject(intruder);
+
+	/* Step 2b: bear territorial -- a Clonk FAR outside the territory radius
+	   does NOT trigger aggression. The bear is already within radius of the
+	   den, so the else-branch issues no command and the bear stays idle. */
+	var farClonk = CreateObject(CLNK, 900, 100, NO_OWNER);
+	if (!farClonk) FatalError("WildlifeSmoke FAIL step 2b: could not spawn far clonk");
+	SetCommand(bear, "None");
+	WLFA_StepBehaviours(bear);
+	if (SEqual(GetCommand(bear), "MoveTo"))
+		FatalError(Format("WildlifeSmoke FAIL step 2b: bear aggroed far clonk (cmd=%s)", GetCommand(bear)));
+	RemoveObject(farClonk);
+
 	/* Step 3: assert the spider has the WLF_WebTrap effect. */
 	if (!GetEffect("WLF_WebTrap", spider))
 		FatalError("WildlifeSmoke FAIL step 3: spider missing WLF_WebTrap effect");
@@ -66,13 +90,21 @@ func RunSmokeSteps()
 	if (SEqual(GetCommand(wolf1), "None"))
 		FatalError("WildlifeSmoke FAIL step 4: wolf did not issue a hunt command");
 
-	/* Step 5: spider lays a web via the behaviour step; assert WEBB exists. */
+	/* Step 5: spider lays a web via the behaviour step; assert WEBB exists.
+	   Stepping multiple times must NOT stack webs on the same tile -- this
+	   exercises F3's Find_AtPoint(0,0) fix (the "don't stack webs" guard). */
 	WLFA_StepBehaviours(spider);
 	// The web is only laid if prey is near; spawn prey near the spider.
 	var prey2 = CreateObject(WIPF, 300, 100, NO_OWNER);
+	if (!prey2) FatalError("WildlifeSmoke FAIL step 5: could not spawn WIPF prey");
 	WLFA_StepBehaviours(spider);
 	if (ObjectCount(WEBB) < 1)
 		FatalError(Format("WildlifeSmoke FAIL step 5: expected >=1 WEBB, got %d", ObjectCount(WEBB)));
+	// Step two more times; the "don't stack webs" guard must prevent extras.
+	WLFA_StepBehaviours(spider);
+	WLFA_StepBehaviours(spider);
+	if (ObjectCount(WEBB) != 1)
+		FatalError(Format("WildlifeSmoke FAIL step 5: expected exactly 1 WEBB (no stacking), got %d", ObjectCount(WEBB)));
 
 	/* Step 6: a Clonk contacting a web gains the Webbed slow. */
 	var clonk = CreateObject(CLNK, 300, 100, NO_OWNER);

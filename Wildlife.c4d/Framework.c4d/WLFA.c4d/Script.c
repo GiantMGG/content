@@ -311,8 +311,10 @@ func FxWLF_TerritorialTimer(object target, int effect, int time)
 		RemoveEffect("WLF_Healing", target);
 
 	// Aggression: crew member within territory radius of the den.
+	// Find_Distance is caller-relative (adds the bear's GetX/Y), so passing
+	// (GetX(den) - GetX(), GetY(den) - GetY()) centres the search on the den.
 	var intruder = FindObject2(Find_OCF(OCF_CrewMember),
-		Find_AtRect(GetX(den) - radius, GetY(den) - radius, radius * 2, radius * 2));
+		Find_Distance(radius, GetX(den) - GetX(), GetY(den) - GetY()));
 	if (intruder)
 	{
 		target->SetAction("Run");
@@ -350,13 +352,22 @@ func FxWLF_WebTrapTimer(object target, int effect, int time)
 	// Only lay a web every 5 ticks of the behaviour (throttle).
 	if (time % 5 != 0) return;
 	// Don't stack webs on the same tile.
-	if (FindObject2(Find_ID(webID), Find_AtPoint(GetX(target), GetY(target)))) return;
+	// Find_Distance is caller-relative (adds the spider's GetX/Y), so (0, 0)
+	// centres the search on the spider. A small radius is used because the
+	// engine snaps a freshly CreateObject'd StaticBack so its shape bottom
+	// sits at the requested y -- i.e. the web lands ~10px above the spider.
+	// An exact Find_AtPoint(0, 0) would miss it (the shape's bottom edge is
+	// exclusive), so a 15px radius catches the just-laid web reliably.
+	if (FindObject2(Find_ID(webID), Find_Distance(15, 0, 0))) return;
 	// Prefer webbed prey; fall back to FindPrey.
 	var prey = FindObject2(Find_OCF(OCF_Prey), Find_Func("IsWebbed"), Find_Distance(200));
 	if (!prey) prey = WLFA_FindPrey(target, 300);
 	if (prey)
 	{
-		var web = CreateObject(webID, GetX(target), GetY(target), NO_OWNER);
+		// CreateObject's x/y are offsets from the calling object (the spider),
+		// so (0, 0) places the web at the spider's own position -- matching
+		// the Find_Distance(15, 0, 0) guard above.
+		var web = CreateObject(webID, 0, 0, NO_OWNER);
 		if (web) web->SetLocal(0, target); // local 0 = owner spider
 	}
 }

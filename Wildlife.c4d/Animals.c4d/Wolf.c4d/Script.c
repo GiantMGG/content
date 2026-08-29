@@ -37,14 +37,5 @@ protected func Death()
 	return true;
 }
 
-/* Alpha death scatters the pack. Called by the engine via Kill/Death. */
-protected func Destruction()
-{
-	// If this wolf was the alpha, scatter the survivors.
-	if (GetEffect("WLFA_IsAlpha", this))
-		WLFA_ScatterPack(WOLF);
-	return true;
-}
-
 /* Reproduction cap -- cooperates with REPR. */
 private func MaxAnimalCount() { return 4; }

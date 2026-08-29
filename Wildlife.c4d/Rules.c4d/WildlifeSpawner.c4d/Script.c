@@ -174,7 +174,10 @@ public func PickPerimeterSpot()
 		y = y - 10;
 		if (y < 0) continue;
 		// Reject if inside/near a structure.
-		if (FindObject2(Find_Category(C4D_Structure), Find_AtRect(x - 20, y - 20, 40, 40)))
+		// Find_AtRect is caller-relative (adds the rule's GetX/Y), so we
+		// subtract the rule's position to centre the rect on (x, y).
+		if (FindObject2(Find_Category(C4D_Structure),
+		                 Find_AtRect(x - 20 - GetX(), y - 20 - GetY(), 40, 40)))
 			continue;
 		// Reject liquid surface.
 		if (GBackLiquid(x, y + 12)) continue;
