@@ -1,6 +1,6 @@
 /*-- ObjectsAppend master rule (OAPP) --*/
 
-#strict
+#strict 3
 
 /* Hardcoded child-rule ID order. Deterministic menu order without depending
    on section link order (spec "Module discovery contract").
@@ -8,13 +8,12 @@
    SetCommand (line connection is driven by the Linekit's Activate via
    CreateLine/ConnectLine, not a clonk command), so the OALine family is a
    v2 placeholder and is not aggregated here. */
-static const C4ID OA_Children[] = {OAEN, OAGR, OACH, OABD};
 
 /* Singleton guard: if another OAPP already exists, remove ourselves.
    Spec Edge case #7. */
 protected func Construction()
 {
-	var other = FindObject(OAPP, 0, 0, 0, 0, 0, 0, 0, NoContainer(), this());
+	var other = FindObject(OAPP, 0, 0, 0, 0, 0, nil, nil, NoContainer(), this());
 	if (other) { RemoveObject(); return; }
 	return true;
 }
@@ -25,11 +24,12 @@ public func GetContextMenuItems(object pTarget, object pCaller)
 {
 	if (!pTarget || !pCaller) return [];
 
+	var children = [OAEN, OAGR, OACH, OABD];
 	var out = [];
 	var i;
-	for (i = 0; i < GetLength(OA_Children); i++)
+	for (i = 0; i < GetLength(children); i++)
 	{
-		var idChild = OA_Children[i];
+		var idChild = children[i];
 		var pChild = FindObject(idChild);
 		if (!pChild) continue;                          /* cherry-pick: missing child -> skip */
 		var items = pChild->~OA_GetItems(pTarget, pCaller);

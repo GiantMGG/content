@@ -1,6 +1,6 @@
 /*-- OA_Picker: shared picker include library for ObjectsAppend --*/
 
-#strict
+#strict 3
 
 /* ---- Reach defaults (one-line tuning; see spec Edge case #10) ---- */
 
@@ -30,7 +30,7 @@ public func OA_AllCap()   { return 8;  }
 */
 
 public func OA_OpenPicker(object pCaller, string caption, string cmd,
-                          array candidates, string infoFn, proplist opts, object pRule)
+                          array candidates, string infoFn, map opts, object pRule)
 {
 	if (!pCaller || !candidates) return false;
 	var n = GetLength(candidates);
@@ -40,7 +40,7 @@ public func OA_OpenPicker(object pCaller, string caption, string cmd,
 	if (n == 1)
 	{
 		var tgt = candidates[0];
-		if (!tgt || tgt->GetStatus() != C4OS_NORMAL) return false;
+		if (!tgt || tgt->GetObjectStatus() != C4OS_NORMAL) return false;
 		SetCommand(pCaller, cmd, tgt);
 		return true;
 	}
@@ -162,7 +162,7 @@ public func OA_SortByDistance(array candidates, object pCaller)
    child rule that inherited this function via #include OAPK. */
 public func OA_Fire(object pTgt, string cmd, object pCaller)
 {
-	if (!pTgt || pTgt->GetStatus() != C4OS_NORMAL)
+	if (!pTgt || pTgt->GetObjectStatus() != C4OS_NORMAL)
 	{
 		if (pCaller) pCaller->CloseMenu();
 		return false;
@@ -185,7 +185,7 @@ public func OA_FireAll(object pCaller)
 	for (i = 0; i < GetLength(sorted) && fired < cap; i++)
 	{
 		var tgt = sorted[i];
-		if (!tgt || tgt->GetStatus() != C4OS_NORMAL) continue;
+		if (!tgt || tgt->GetObjectStatus() != C4OS_NORMAL) continue;
 		SetCommand(pCaller, cmd, tgt);
 		fired++;
 	}

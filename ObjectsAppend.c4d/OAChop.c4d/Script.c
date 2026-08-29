@@ -1,14 +1,13 @@
 /*-- OAChop: choppable target context item (OACH) --*/
 
-#strict
+#strict 3
 #include OAPK
 
 private func OA_Candidates(object pCaller)
 {
 	return FindObjects(
 		pCaller->Find_Distance(OA_Reach("Chop")),
-		Find_Exclude(Find_Category(C4D_Rule)),
-		Find_Exclude(Find_Category(C4D_StaticBack)),
+		Find_Not(Find_Category(C4D_Rule)),
 		Find_NoContainer(),
 		Find_Layer(pCaller->GetObjectLayer()),
 		Find_OCF(OCF_Chop),
