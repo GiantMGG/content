@@ -80,10 +80,13 @@ protected func RejectCollect(id def, object obj)
 
 public func Collected(object pClonk)
 {
-	// Count any feed-type just put in.
-	var p; var i = 0;
-	while (p = Contents(i++))
+	// Count any feed-type just put in.  Iterate backwards because
+	// RemoveObject shifts indices — a forward `Contents(i++)` loop
+	// would skip every other feed item.
+	var i = ContentsCount();
+	while (i-- > 0)
 	{
+		var p = Contents(i);
 		var id = GetID(p);
 		if (id == MEAT || id == FISH || id == DFSH || id == CFSH)
 		{
