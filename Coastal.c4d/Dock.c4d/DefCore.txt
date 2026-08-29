@@ -1,0 +1,17 @@
+[DefCore]
+id=DKST
+Version=1
+Name=Dock
+Category=C4D_Structure
+Width=20
+Height=20
+Offset=-10,-10
+Vertices=1
+VertexX=0
+VertexY=0
+Value=0
+Mass=50
+Picture=0,0,64,64
+Rebuy=1
+TimerCall=Timer
+Timer=70

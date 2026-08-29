@@ -1,0 +1,16 @@
+[DefCore]
+id=LHGT
+Version=1
+Name=Lighthouse
+Category=C4D_Structure
+Width=20
+Height=40
+Offset=-10,-20
+Vertices=1
+VertexX=0
+VertexY=0
+Value=20
+Mass=80
+Components=WOOD=4;ROCK=2
+Picture=0,0,64,64
+Rebuy=1

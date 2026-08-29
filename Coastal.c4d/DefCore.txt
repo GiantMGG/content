@@ -1,0 +1,5 @@
+[DefCore]
+id=CSTL
+Version=1
+Name=Coastal
+Category=C4D_StaticBack

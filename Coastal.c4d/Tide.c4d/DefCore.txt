@@ -1,0 +1,6 @@
+[DefCore]
+id=TIDE
+Version=1
+Category=65536
+TimerCall=Execute
+Timer=10

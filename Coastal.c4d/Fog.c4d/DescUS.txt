@@ -1,0 +1,2 @@
+[Desc]
+1=Fog: hampers shipping without a lighthouse.

@@ -1,0 +1,11 @@
+[DefCore]
+id=TFLT
+Version=1
+Name=TidalFlats
+Category=C4D_StaticBack
+Width=20
+Height=10
+Offset=-10,-5
+Picture=0,0,64,64
+TimerCall=Timer
+Timer=70

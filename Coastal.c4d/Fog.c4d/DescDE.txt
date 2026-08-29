@@ -1,0 +1,2 @@
+[Desc]
+1=Nebel: behindert die Schifffahrt ohne Leuchtturm.

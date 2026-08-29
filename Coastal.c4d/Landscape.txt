@@ -1,0 +1,26 @@
+/* Coastal map preset -- C4MapCreatorS2 syntax. */
+/* The algo=script overlays invoke ScriptAlgoCoast/Channel/Flats defined as */
+/* global funcs in CoastalMapLib.c4d (CMLB). Texture names (Liquid, Rough, */
+/* Smooth) and materials (Water, Rock, Sand) are from Material.c4g.        */
+
+overlay Mat { algo=boxes; a=4; b=20; zoomX=60; turbulence=1000; };
+
+map Coastal {
+  // Deep water base across the lower half.
+  overlay { algo=solid; y=18px; mat=Water; tex=Liquid; sub=0; };
+
+  // Pixel-procedural irregular coastline (calls ScriptAlgoCoast).
+  overlay Coast { algo=script; mat=Water; tex=Liquid; };
+
+  // Offshore islets (bozo Rock).
+  overlay Islets { algo=bozo; a=8; b=12; mat=Rock; tex=Rough; turbulence=100; sub=0; };
+
+  // Beach band (border Sand) hugging the coastline.
+  overlay Beach { algo=border; a=2; b=2; mat=Sand; tex=Smooth; turbulence=50; sub=0; };
+
+  // Tidal-flat Sand band pinned to the low-tide line (calls ScriptAlgoFlats).
+  overlay Flats { algo=script; mat=Sand; tex=Smooth; };
+
+  // Deep-water shipping channel carved from the edge into the harbor bay.
+  overlay Channel { algo=script; mat=Water; tex=Liquid; };
+};

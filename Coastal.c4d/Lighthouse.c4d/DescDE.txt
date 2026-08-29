@@ -1,0 +1,2 @@
+[Desc]
+1=Leuchtturm: warnt Schiffe vor Nebel.
