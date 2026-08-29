@@ -1,0 +1,15 @@
+[Action]
+Name=Dead
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,16,12
+NextAction=Dead
+
+[Action]
+Name=Decay
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,16,12
+NextAction=Decay

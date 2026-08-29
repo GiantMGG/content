@@ -1,0 +1,1 @@
+An oyster that slowly grows a pearl only while submerged. At 100 progress a clonk harvests the IPRL pearl.

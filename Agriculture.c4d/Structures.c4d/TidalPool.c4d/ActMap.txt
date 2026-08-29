@@ -1,0 +1,15 @@
+[Action]
+Name=Exposed
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,40,24
+NextAction=Exposed
+
+[Action]
+Name=Flooded
+Directions=1
+Length=1
+Delay=10
+Facet=40,0,40,24
+NextAction=Flooded

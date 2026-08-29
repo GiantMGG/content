@@ -1,0 +1,15 @@
+[Action]
+Name=Closed
+Directions=1
+Length=1
+Delay=10
+Facet=0,0,16,16
+NextAction=Closed
+
+[Action]
+Name=Open
+Directions=1
+Length=1
+Delay=10
+Facet=16,0,16,16
+NextAction=Open

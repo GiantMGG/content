@@ -1,0 +1,1 @@
+A lobster trap that catches up to 4 LBST within 15 px.

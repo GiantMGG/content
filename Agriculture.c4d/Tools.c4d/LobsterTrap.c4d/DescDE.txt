@@ -1,0 +1,1 @@
+Eine Hummerreuse, die bis zu 4 LBST im Umkreis von 15 px faengt.
