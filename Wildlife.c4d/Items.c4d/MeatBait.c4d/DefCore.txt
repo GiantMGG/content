@@ -1,0 +1,14 @@
+[DefCore]
+id=MBIT
+Version=1
+Name=Meat Bait
+Category=C4D_Object
+Width=9
+Height=7
+Offset=-4,-3
+Value=5
+Mass=2
+Picture=0,0,64,64
+Collectible=1
+Rotate=1
+Float=1

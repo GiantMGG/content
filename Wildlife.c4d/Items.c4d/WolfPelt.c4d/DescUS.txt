@@ -1,0 +1,2 @@
+[DescUS]
+1=A wolf pelt. Sells well at market.

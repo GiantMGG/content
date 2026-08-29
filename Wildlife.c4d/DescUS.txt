@@ -1,0 +1,2 @@
+[DescUS]
+1=Feral wildlife: wolves, bears, and giant spiders.

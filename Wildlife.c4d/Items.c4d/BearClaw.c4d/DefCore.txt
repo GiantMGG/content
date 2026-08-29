@@ -1,0 +1,14 @@
+[DefCore]
+id=BCLW
+Version=1
+Name=Bear Claw
+Category=C4D_Object
+Width=10
+Height=8
+Offset=-5,-4
+Value=40
+Mass=3
+Picture=0,0,64,64
+Collectible=1
+Rotate=1
+Float=1

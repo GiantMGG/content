@@ -1,0 +1,14 @@
+[DefCore]
+id=SSIL
+Version=1
+Name=Spider Silk
+Category=C4D_Object
+Width=8
+Height=8
+Offset=-4,-4
+Value=12
+Mass=2
+Picture=0,0,64,64
+Collectible=1
+Rotate=1
+Float=1

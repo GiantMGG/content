@@ -1,0 +1,2 @@
+[DescUS]
+1=Spider silk. A tough fibre.

@@ -1,0 +1,14 @@
+[DefCore]
+id=SFNG
+Version=1
+Name=Spider Fang
+Category=C4D_Object
+Width=6
+Height=6
+Offset=-3,-3
+Value=18
+Mass=1
+Picture=0,0,64,64
+Collectible=1
+Rotate=1
+Float=1

@@ -1,0 +1,5 @@
+[DefCore]
+id=WLF1
+Version=1
+Name=Wildlife
+Category=C4D_DefDefinition
