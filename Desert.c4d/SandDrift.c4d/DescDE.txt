@@ -1,0 +1,2 @@
+[Desc]
+1=Ein windgetriebener Sanddrift-Direktor: verschiebt freie Sandoberflaechen windabwaerts, verstaerkt sich im Sandsturm und begraebt Fussgaenger im Ablagerungspfad.

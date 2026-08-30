@@ -12,6 +12,7 @@ Dig2ObjectRequest=1
 Blast2PXSRatio=10
 MaxAirSpeed=100
 MaxSlide=1
+Saltation=30
 Corrode=30
 Soil=1
 Placement=30

@@ -13,6 +13,7 @@ Blast2PXSRatio=10
 Instable=1
 MaxAirSpeed=20
 MaxSlide=1
+Saltation=30
 WindDrift=100
 Corrode=30
 Soil=1

@@ -1,0 +1,2 @@
+[Desc]
+1=A wind-driven sand drift director: migrates open-sky sand surfaces downwind, ramps under a sandstorm, and buries walkers in its deposition path.

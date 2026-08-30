@@ -1,0 +1,17 @@
+[DefCore]
+id=SDRF
+Version=1
+Name=SandDrift
+Category=C4D_StaticBack
+Width=10
+Height=10
+Offset=-5,-5
+Vertices=1
+VertexY=1
+Value=0
+Mass=0
+Picture=0,0,64,64
+Timer=35
+TimerCall=Drift
+Collectible=0
+Float=1
