@@ -16,3 +16,11 @@ TextureOverlay=Liquid
 PXSGfxSize=6
 PXSGfx=Lava
 PXSGfxRt=0,0,32,32,-16,-16
+
+[Reaction]
+Type=React
+TargetSpec=Water
+CheckSlide=0
+LSProduct=Rock
+PXSProduct=Steam
+Rate=100

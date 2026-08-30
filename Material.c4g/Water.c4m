@@ -15,3 +15,11 @@ BelowTempConvert=-10
 BelowTempConvertTo=Ice
 Placement=10
 TextureOverlay=Liquid
+
+[Reaction]
+Type=React
+TargetSpec=Lava
+CheckSlide=0
+LSProduct=Rock
+PXSProduct=Steam
+Rate=100
