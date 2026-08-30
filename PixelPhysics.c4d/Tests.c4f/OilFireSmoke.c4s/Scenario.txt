@@ -19,9 +19,11 @@ Material=Earth
 Sky=Clouds2
 
 [Weather]
-Climate=50
+Climate=50,0
+StartSeason=50,0
 YearSpeed=20
 Rain=0
+Wind=30,0
 
 [Disasters]
 Meteorite=0
