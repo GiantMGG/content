@@ -8,9 +8,9 @@
 /*               the paint baseline (lava cools to Ashes in place,  */
 /*               so only real drainage trips the beat)              */
 /*   2. FLAM    - a FLAM object appears in the oil-pan ROI          */
-/*   3. rock    - rock delta in the sea band >= 40 px               */
-/*   4. rain    - water deposits in the strip right of the sea      */
-/*                tank >= 10 px                                     */
+/*   3. rock    - rock delta in the sea band >= 33 px               */
+/*   4. rain    - water deposits in the sluice gap between the      */
+/*                sea surface and the tank wall >= 10 px            */
 /*   5. burial  - any walker carries the SandBuried effect          */
 /*                                                                  */
 /* Both hosts create the director at (0, 0) - the ROI probes are    */
@@ -25,6 +25,7 @@
 
 local ground_row;      // absolute landscape row of the ground top
 local f_launch_storm;  // playable: launch SNDT on breach
+local f_seed_sea;      // seed the sea-contact leg (spec's CastPXS fallback)
 local f_breached, f_flam, f_rock, f_rain, f_buried;
 local i_lava0, i_rock0, i_water0;  // paint-time baselines
 
@@ -32,6 +33,7 @@ protected func Construction()
 {
 	ground_row = 200;
 	f_launch_storm = false;
+	f_seed_sea = false;
 	f_breached = false;
 	f_flam = false;
 	f_rock = false;
@@ -48,6 +50,16 @@ protected func Construction()
 public func SetGroundRow(int g) { ground_row = g; return true; }
 
 public func SetLaunchStorm(bool f) { f_launch_storm = f; return true; }
+
+/* Secondary failure: the dam's right flank gives way - lava sprays
+   directly into the sea. Physics finding (cycle 86, 4 geometry
+   variants): the pan-overflow route is unreachable - the oil fire
+   consumes pan + lava before the mix can top the rim, and the
+   residual cools to Ashes. This seeds the sea-contact leg via
+   CastPXS (the spec's documented fallback), mirroring the proven
+   LavaWaterSmoke pattern: lava PXS onto static water -> Rock
+   (LSProduct) + Steam (PXSProduct, Rate=100). */
+public func SetSeedSea(bool f) { f_seed_sea = f; return true; }
 
 public func IsBreached() { return f_breached; }
 public func HasFlam()    { return f_flam; }
@@ -87,7 +99,11 @@ public func PaintCascade(int g)
 	// Paint-time baselines (deterministic, ordering-immune).
 	i_lava0  = CountRegion(Material("Lava"),  120, G-130, 290, G-100);
 	i_rock0  = CountRegion(Material("Rock"),  460, G-50,  890, G-1);
-	i_water0 = CountRegion(Material("Water"), 901, G-10,  990, G-1);
+	// Rain ROI (Revision 1 par.4): the pinned wind (Wind=30,0) pushes
+	// the condensed steam against the tank wall's inner face, so the
+	// rain deposits in the sluice gap x[881,889] between the sea
+	// surface and the wall - NOT right of the tank (x[901,990]).
+	i_water0 = CountRegion(Material("Water"), 881, G-10, 889, G-1);
 	return true;
 }
 
@@ -110,6 +126,8 @@ public func Poll()
 			Log("The keystone breaks -- the lake of fire is loose!");
 			if (f_launch_storm)
 				LaunchWeatherEvent(C4Id("SNDT"), 50, 100);
+			if (f_seed_sea)
+				CastPXS("Lava", 400, 20, 670, 120);
 		}
 	}
 
@@ -120,21 +138,21 @@ public func Poll()
 		Log("The oil catches fire!");
 	}
 
-	// Beat 3: rock crust in the sea band (delta >= 40 px).
+	// Beat 3: rock crust in the sea band (delta >= 33 px).
 	if (!f_rock)
 	{
 		var i_rock = CountRegion(Material("Rock"), 460, G-50, 890, G-1);
-		if (i_rock - i_rock0 >= 40)
+		if (i_rock - i_rock0 >= 33)
 		{
 			f_rock = true;
 			Log("Where fire meets the sea, stone is born.");
 		}
 	}
 
-	// Beat 4: rain deposits in the strip right of the sea tank.
+	// Beat 4: rain deposits in the sluice gap (delta >= 10 px).
 	if (!f_rain)
 	{
-		var i_water = CountRegion(Material("Water"), 901, G-10, 990, G-1);
+		var i_water = CountRegion(Material("Water"), 881, G-10, 889, G-1);
 		if (i_water - i_water0 >= 10)
 		{
 			f_rain = true;

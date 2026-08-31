@@ -18,6 +18,7 @@ protected func Initialize()
 	var dir = CreateObject(CDIR, 0, 0, NO_OWNER);
 	dir->SetGroundRow(300);
 	dir->SetLaunchStorm(true);
+	dir->SetSeedSea(true);
 	dir->PaintCascade(300);
 
 	// Beach victims at the reservoir wall base, in the dune's

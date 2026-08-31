@@ -31,6 +31,7 @@ protected func Initialize()
 	g_pDir = CreateObject(CDIR, 0, 0, NO_OWNER);
 	g_pDir->SetGroundRow(200);
 	g_pDir->SetLaunchStorm(false);
+	g_pDir->SetSeedSea(true);
 	g_pDir->PaintCascade(200);
 
 	// Paint-baseline asserts: every apparatus ROI is filled.
@@ -53,7 +54,7 @@ protected func Initialize()
 
 	// Smoke-side baselines for the calibration logs.
 	g_iRockSea0    = CountMatRegion(Material("Rock"),  460, 150, 890, 199);
-	g_iWaterStrip0 = CountMatRegion(Material("Water"), 901, 190, 990, 199);
+	g_iWaterStrip0 = CountMatRegion(Material("Water"), 881, 190, 889, 199);
 
 	g_iStep = 0;
 	g_fCalibrate = 0;
@@ -88,14 +89,14 @@ global func FxRunTestTimer(object target, int effect, int timer)
 			Log(Format("[CAL] step %d rock %d rain %d pxs %d",
 			           g_iStep,
 			           CountMatRegion(Material("Rock"), 460, 150, 890, 199) - g_iRockSea0,
-			           CountMatRegion(Material("Water"), 901, 190, 990, 199) - g_iWaterStrip0,
+			           CountMatRegion(Material("Water"), 881, 190, 889, 199) - g_iWaterStrip0,
 			           GetPXSCount()));
 	}
 
 	if (g_iStep >= 9)
 	{
 		var i_rock = CountMatRegion(Material("Rock"), 460, 150, 890, 199) - g_iRockSea0;
-		var i_water = CountMatRegion(Material("Water"), 901, 190, 990, 199) - g_iWaterStrip0;
+		var i_water = CountMatRegion(Material("Water"), 881, 190, 889, 199) - g_iWaterStrip0;
 		if (!g_pDir->IsBreached())
 			FatalError("CascadeSmoke FAIL: breach never detected");
 		if (!g_pDir->HasFlam())
