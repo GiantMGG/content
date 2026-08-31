@@ -8,6 +8,7 @@ Instable=1
 MaxAirSpeed=25
 MaxSlide=10000
 WindDrift=30
+SplashRate=6
 Corrode=100
 Extinguisher=1
 TempConvStrength=3
