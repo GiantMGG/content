@@ -107,8 +107,8 @@ func FxSandBuriedStart(object target, int effect, bool temp)
 
 func FxSandBuriedTimer(object target, int effect, int time)
 {
-	// Buried while the victim's feet are inside static Sand; clear once
-	// it jumps out or is dug free (feet cell no longer Sand).
+	// Buried while the victim's center cell is inside static Sand; clear
+	// once it jumps out or is dug free (center cell no longer Sand).
 	if (GetMaterial(GetX(target) - GetX(), GetY(target) - GetY()) == Material("Sand"))
 		return FX_OK;
 	return FX_Execute_Kill;

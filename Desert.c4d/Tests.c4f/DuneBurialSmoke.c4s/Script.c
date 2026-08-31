@@ -126,20 +126,6 @@ func RunSmokeSteps()
 	return true;
 }
 
-/* Topmost open-sky Sand pixel of column x, else -1 (SDRF logic). */
-global func SandSurfaceScan(int x)
-{
-	var y;
-	for (y = 0; y < LandscapeHeight(); y++)
-	{
-		var mat = GetMaterial(x, y);
-		if (mat == -1) continue;
-		if (mat == Material("Sand")) return y;
-		return -1;
-	}
-	return -1;
-}
-
 /* Static Sand cells in the rectangle [x1,x2] x [y1,y2]. */
 global func CountSandRegion(int x1, int x2, int y1, int y2)
 {
