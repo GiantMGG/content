@@ -1,0 +1,12 @@
+[DefCore]
+id=CDIR
+Version=1
+Name=CascadeDirector
+Category=C4D_StaticBack|C4D_Rule
+MaxUserSelect=1
+Width=1
+Height=1
+Value=1
+Picture=0,0,64,64
+Timer=35
+TimerCall=Poll
