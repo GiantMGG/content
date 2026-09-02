@@ -40,6 +40,20 @@ private func SandSurfaceY(int x)
 	return -1;
 }
 
+/* Topmost open-sky solid-ground pixel of column x, else -1. */
+private func GroundSurfaceY(int x)
+{
+	var y;
+	for (y = 0; y < LandscapeHeight(); y++)
+	{
+		var mat = GetMaterial(x - GetX(), y - GetY());
+		if (mat == -1) continue;                             // sky
+		if (GBackSolid(x - GetX(), y - GetY())) return y;    // solid top: deposit base
+		return -1;                                           // liquid/tunnel top: never deposits
+	}
+	return -1;
+}
+
 /* TimerCall: one drift tick. Returns pixels moved. */
 public func Drift()
 {
@@ -61,7 +75,7 @@ public func Drift()
 		var ys = SandSurfaceY(scan_x);
 		if (ys < 0) continue;
 		var xd = BoundBy(scan_x + dir * 6, 0, LandscapeWidth() - 1);
-		var yd = SandSurfaceY(xd);
+		var yd = GroundSurfaceY(xd);
 		if (yd < 0) continue;
 		// Extract one surface pixel windward, insert it one above the
 		// downwind surface (deposition stacks, cf. U2).
@@ -83,7 +97,7 @@ public func Drift()
 private func CheckBurial(int xd, int yd)
 {
 	var victim;
-	for (var victim in FindObjects(Find_AtRect(xd - 2 - GetX(), yd - 3 - GetY(), 4, 5), Find_NoContainer()))
+	for (var victim in FindObjects(Find_AtRect(xd - 2 - GetX(), yd - 14 - GetY(), 4, 17), Find_NoContainer()))
 	{
 		if (!GetPhysical("Walk", 0, victim)) continue;   // mass-gate: walkers only
 		if (GetEffect("SandBuried", victim)) continue;   // no double effect
