@@ -7,10 +7,12 @@ static const FillMatName = "Lava";
 static const FamBName = "Ashes";
 static const DRAIN_MIN = 20;
 static const FALL_MIN = 50;
-static const FinalStep = 9;
+static const DigDelay = 35;   // tick at which the slot is dug
 
 static g_iStep;
 static g_fCalibrate;
+static g_fDug;
+static g_iDigStep;
 static g_iBaseline;
 static g_matFill;
 static g_matFamB;
@@ -40,8 +42,12 @@ global func FxRunTestStart(target, effect, temp) { return 1; }
 global func FxRunTestTimer(object target, int effect, int timer)
 {
 	++g_iStep;
-	if (g_iStep == 1)
+	if (!g_fDug && timer >= DigDelay)
+	{
 		DigFreeRect(190, 150, 8, 10);
+		g_fDug = 1;
+		g_iDigStep = g_iStep;
+	}
 	else
 	{
 		if (GetPXSCount() > 10000)
@@ -49,21 +55,25 @@ global func FxRunTestTimer(object target, int effect, int timer)
 		if (GetMaterialCount(Material("Steam")) != 0)
 			FatalError(Format("LavaWallRepro FAIL step %d: static steam appeared (%d)", g_iStep, GetMaterialCount(Material("Steam"))));
 	}
-	if (g_fCalibrate)
-		Log(Format("[CAL] step %d tank %d fall %d famB %d pxs %d", g_iStep,
-			CountFamilyTank(), CountFamilyFall(), CountFamBTank(), GetPXSCount()));
-	if (!g_fCalibrate && g_iStep >= FinalStep)
+	var do_assert = !g_fCalibrate && g_fDug && g_iStep >= g_iDigStep + 8;
+	if (g_fCalibrate || do_assert)
 	{
 		var tank = CountFamilyTank();
 		var fall = CountFamilyFall();
 		var drain = 100 - tank * 100 / g_iBaseline;
-		if (drain < DRAIN_MIN)
-			FatalError(Format("LavaWallRepro FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
-		if (fall < FALL_MIN)
-			FatalError(Format("LavaWallRepro FAIL: fall-zone family %d < %d", fall, FALL_MIN));
-		Log("LavaWallRepro PASS");
-		GameOver();
-		return -1;
+		if (g_fCalibrate)
+			Log(Format("[CAL] step %d tank %d fall %d famB %d pxs %d drain %d dug %d", g_iStep,
+				tank, fall, CountFamBTank(), GetPXSCount(), drain, g_fDug * g_iDigStep));
+		if (do_assert)
+		{
+			if (drain < DRAIN_MIN)
+				FatalError(Format("LavaWallRepro FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
+			if (fall < FALL_MIN)
+				FatalError(Format("LavaWallRepro FAIL: fall-zone family %d < %d", fall, FALL_MIN));
+			Log("LavaWallRepro PASS");
+			GameOver();
+			return -1;
+		}
 	}
 	return 1;
 }
