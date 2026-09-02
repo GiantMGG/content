@@ -10,6 +10,7 @@ Dig2Object=SAND
 Dig2ObjectRatio=200
 Dig2ObjectRequest=1
 Blast2PXSRatio=10
+Instable=1
 MaxAirSpeed=100
 MaxSlide=1
 Saltation=30
