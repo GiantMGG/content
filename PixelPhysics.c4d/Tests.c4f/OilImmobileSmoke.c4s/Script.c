@@ -1,4 +1,4 @@
-/*-- OilImmobileRepro.c4s — cycle-90 symptom-1 repro (spec §4.0-4.1). --*/
+/*-- OilImmobileSmoke.c4s — cycle-90 symptom-1 repro (spec §4.0-4.1). --*/
 /* Basin: painted fill over a diggable Sandstone floor; step 1     */
 /* digs the player-analogue slot; step 9 asserts the drain.        */
 #strict 2
@@ -30,7 +30,7 @@ protected func Initialize()
 		g_matFamB = -1;
 	g_iBaseline = CountFamilyTank();
 	if (g_iBaseline < 8000)
-		FatalError(Format("OilImmobileRepro FAIL: fill short (%d)", g_iBaseline));
+		FatalError(Format("OilImmobileSmoke FAIL: fill short (%d)", g_iBaseline));
 	g_iStep = 0;
 	g_fCalibrate = 0;
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
@@ -51,9 +51,9 @@ global func FxRunTestTimer(object target, int effect, int timer)
 	else
 	{
 		if (GetPXSCount() > 10000)
-			FatalError(Format("OilImmobileRepro FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
+			FatalError(Format("OilImmobileSmoke FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
 		if (GetMaterialCount(Material("Steam")) != 0)
-			FatalError(Format("OilImmobileRepro FAIL step %d: static steam appeared (%d)", g_iStep, GetMaterialCount(Material("Steam"))));
+			FatalError(Format("OilImmobileSmoke FAIL step %d: static steam appeared (%d)", g_iStep, GetMaterialCount(Material("Steam"))));
 	}
 	var do_assert = !g_fCalibrate && g_fDug && g_iStep >= g_iDigStep + 8;
 	if (g_fCalibrate || do_assert)
@@ -67,10 +67,10 @@ global func FxRunTestTimer(object target, int effect, int timer)
 		if (do_assert)
 		{
 			if (drain < DRAIN_MIN)
-				FatalError(Format("OilImmobileRepro FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
+				FatalError(Format("OilImmobileSmoke FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
 			if (fall < FALL_MIN)
-				FatalError(Format("OilImmobileRepro FAIL: fall-zone family %d < %d", fall, FALL_MIN));
-			Log("OilImmobileRepro PASS");
+				FatalError(Format("OilImmobileSmoke FAIL: fall-zone family %d < %d", fall, FALL_MIN));
+			Log("OilImmobileSmoke PASS");
 			GameOver();
 			return -1;
 		}

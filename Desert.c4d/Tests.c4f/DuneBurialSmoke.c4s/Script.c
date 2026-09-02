@@ -103,6 +103,22 @@ func RunSmokeSteps()
 	if (GetPhysical("Walk", 0, victim) != walk_base)
 		FatalError("DuneBurialSmoke FAIL step 4: Walk physical not restored after escape");
 
+	/* Step 4b: off-slab deposit -- the GroundSurfaceY generalization  */
+	/* (cycle-91 change 2). Wind 60 extracts slab sand (x[100,400])    */
+	/* and deposits it 6 px downwind; past the slab edge               */
+	/* GroundSurfaceY(x>400)=200 (bare-earth top) so deposits rest at  */
+	/* row 199. Under the MUT-2 revert (deposit probe = SandSurfaceY)  */
+	/* off-slab columns probe -1 and the front never crosses.          */
+	var offslab_calls = 0;
+	while (CountSandRegion(401, 430, 196, 199) == 0 && offslab_calls < 800)
+	{
+		sdrf->Drift();
+		++offslab_calls;
+	}
+	if (CountSandRegion(401, 430, 196, 199) == 0)
+		FatalError("DuneBurialSmoke FAIL step 4b: dune front never crossed the slab edge (GroundSurfaceY off-slab deposit missing)");
+	Log(Format("DuneBurialSmoke step 4b: off-slab deposit after %d Drift() calls", offslab_calls));
+
 	/* Step 5: saltation setup -- pin gale wind, cast a thin grain   */
 	/* layer onto the platform's upwind end, baseline the downwind   */
 	/* probe region, and remove the director so the frame phase      */

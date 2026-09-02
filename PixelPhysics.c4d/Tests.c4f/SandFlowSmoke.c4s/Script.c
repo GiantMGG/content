@@ -1,18 +1,16 @@
-/*-- PaintGapRepro.c4s — cycle-90 symptom-1 repro (spec §4.0-4.1). --*/
+/*-- SandFlowSmoke.c4s — cycle-90 symptom-1 repro (spec §4.0-4.1). --*/
 /* Basin: painted fill over a diggable Sandstone floor; step 1     */
 /* digs the player-analogue slot; step 9 asserts the drain.        */
 #strict 2
 
-static const FillMatName = "Water";
+static const FillMatName = "Sand";
 static const FamBName = "";
-static const DRAIN_MIN = 20;
+static const DRAIN_MIN = 7;
 static const FALL_MIN = 50;
-static const DigDelay = 35;   // tick at which the slot is dug
+static const FinalStep = 9;
 
 static g_iStep;
 static g_fCalibrate;
-static g_fDug;
-static g_iDigStep;
 static g_iBaseline;
 static g_matFill;
 static g_matFamB;
@@ -30,7 +28,7 @@ protected func Initialize()
 		g_matFamB = -1;
 	g_iBaseline = CountFamilyTank();
 	if (g_iBaseline < 8000)
-		FatalError(Format("PaintGapRepro FAIL: fill short (%d)", g_iBaseline));
+		FatalError(Format("SandFlowSmoke FAIL: fill short (%d)", g_iBaseline));
 	g_iStep = 0;
 	g_fCalibrate = 0;
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
@@ -42,38 +40,30 @@ global func FxRunTestStart(target, effect, temp) { return 1; }
 global func FxRunTestTimer(object target, int effect, int timer)
 {
 	++g_iStep;
-	if (!g_fDug && timer >= DigDelay)
-	{
+	if (g_iStep == 1)
 		DigFreeRect(190, 150, 8, 10);
-		g_fDug = 1;
-		g_iDigStep = g_iStep;
-	}
 	else
 	{
 		if (GetPXSCount() > 10000)
-			FatalError(Format("PaintGapRepro FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
+			FatalError(Format("SandFlowSmoke FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
 		if (GetMaterialCount(Material("Steam")) != 0)
-			FatalError(Format("PaintGapRepro FAIL step %d: static steam appeared (%d)", g_iStep, GetMaterialCount(Material("Steam"))));
+			FatalError(Format("SandFlowSmoke FAIL step %d: static steam appeared (%d)", g_iStep, GetMaterialCount(Material("Steam"))));
 	}
-	var do_assert = !g_fCalibrate && g_fDug && g_iStep >= g_iDigStep + 8;
-	if (g_fCalibrate || do_assert)
+	if (g_fCalibrate)
+		Log(Format("[CAL] step %d tank %d fall %d famB %d pxs %d", g_iStep,
+			CountFamilyTank(), CountFamilyFall(), CountFamBTank(), GetPXSCount()));
+	if (!g_fCalibrate && g_iStep >= FinalStep)
 	{
 		var tank = CountFamilyTank();
 		var fall = CountFamilyFall();
 		var drain = 100 - tank * 100 / g_iBaseline;
-		if (g_fCalibrate)
-			Log(Format("[CAL] step %d tank %d fall %d famB %d pxs %d drain %d dug %d", g_iStep,
-				tank, fall, CountFamBTank(), GetPXSCount(), drain, g_fDug * g_iDigStep));
-		if (do_assert)
-		{
-			if (drain < DRAIN_MIN)
-				FatalError(Format("PaintGapRepro FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
-			if (fall < FALL_MIN)
-				FatalError(Format("PaintGapRepro FAIL: fall-zone family %d < %d", fall, FALL_MIN));
-			Log("PaintGapRepro PASS");
-			GameOver();
-			return -1;
-		}
+		if (drain < DRAIN_MIN)
+			FatalError(Format("SandFlowSmoke FAIL: tank drain %d pct < %d (painted %s frozen)", drain, DRAIN_MIN, FillMatName));
+		if (fall < FALL_MIN)
+			FatalError(Format("SandFlowSmoke FAIL: fall-zone family %d < %d", fall, FALL_MIN));
+		Log("SandFlowSmoke PASS");
+		GameOver();
+		return -1;
 	}
 	return 1;
 }

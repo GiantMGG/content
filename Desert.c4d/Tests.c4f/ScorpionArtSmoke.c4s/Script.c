@@ -1,6 +1,6 @@
 /*-- ScorpionArtSmoke.c4s — cycle-93 art wiring pin (spec             --*/
 /* hostile-object-bugfix). Synchronous RunSmokeSteps() pattern        --*/
-/* (DesertSmoke/ScorpionStagingRepro norm).                           --*/
+/* (DesertSmoke/ScorpionStagingSmoke norm).                           --*/
 #strict 3
 
 protected func Initialize()

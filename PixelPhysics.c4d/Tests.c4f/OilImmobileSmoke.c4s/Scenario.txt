@@ -1,23 +1,19 @@
 [Head]
-Title=FeuerstaudammMirrorRepro
-Version=4,9,9,9
-Difficulty=30
+Title=OilImmobileSmoke
+Version=1
 MaxPlayer=0
-Origin=Missions.c4f\Tests.c4f\FeuerstaudammMirrorRepro.c4s
+Origin=PixelPhysics.c4d\Tests.c4f\OilImmobileSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d
-Definition2=Wildlife.c4d
-Definition3=Desert.c4d
-Definition4=PixelPhysics.c4d
+Definition2=PixelPhysics.c4d
 
 [Game]
 StructNeedEnergy=0
-Rules=CNMT=1;TACC=1
 
 [Landscape]
 MapWidth=100
-MapHeight=60
+MapHeight=40
 MapZoom=10
 Material=Earth
 Sky=Clouds2
@@ -27,10 +23,9 @@ Climate=50,0
 StartSeason=50,0
 YearSpeed=20
 Rain=0
-Wind=20,0
+Wind=30,0
 
 [Disasters]
 Meteorite=0
 Volcano=0
 Earthquake=0
-

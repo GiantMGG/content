@@ -1,8 +1,8 @@
 [Head]
-Title=LateralChannelRepro
+Title=SandFlowSmoke
 Version=1
 MaxPlayer=0
-Origin=PixelPhysics.c4d\Tests.c4f\LateralChannelRepro.c4s
+Origin=PixelPhysics.c4d\Tests.c4f\SandFlowSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d

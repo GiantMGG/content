@@ -1,4 +1,4 @@
-/*-- LateralChannelRepro.c4s — cycle-92 lateral-spread repro        --*/
+/*-- LateralChannelSmoke.c4s — cycle-92 lateral-spread repro        --*/
 /* (spec 2026-09-02-0258-liquid-flow-hotfix, Pin 2). Three Rock      */
 /* basins (water control, oil, lava); per basin a dug lateral        */
 /* channel; metric = family count in the far half of the channel.    */
@@ -47,7 +47,7 @@ global func FxRunTestTimer(object target, int effect, int timer)
 	else
 	{
 		if (GetPXSCount() > 10000)
-			FatalError(Format("LateralChannelRepro FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
+			FatalError(Format("LateralChannelSmoke FAIL step %d: PXS budget exceeded (%d)", g_iStep, GetPXSCount()));
 	}
 	if (g_fCalibrate)
 		Log(Format("[CAL] step %d wFar %d oFar %d lFar %d pxs %d", g_iStep,
@@ -58,7 +58,7 @@ global func FxRunTestTimer(object target, int effect, int timer)
 		AssertFar(100, g_matWater, -1, "Water", FarMinWater);
 		AssertFar(350, g_matOil, -1, "Oil", FarMinOil);
 		AssertFar(600, g_matLava, g_matAshes, "Lava", FarMinLava);
-		Log("LateralChannelRepro PASS");
+		Log("LateralChannelSmoke PASS");
 		GameOver();
 		return -1;
 	}
@@ -94,5 +94,5 @@ global func AssertFar(int b, int mat, int matB, string name, int farMin)
 {
 	var far = CountFar(b, mat, matB);
 	if (far < farMin)
-		FatalError(Format("LateralChannelRepro FAIL: %s far-half %d < %d", name, far, farMin));
+		FatalError(Format("LateralChannelSmoke FAIL: %s far-half %d < %d", name, far, farMin));
 }

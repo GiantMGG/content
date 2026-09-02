@@ -1,4 +1,4 @@
-/*-- FeuerstaudammMirrorRepro.c4s — cycle-90 symptom-6 integration —*/
+/*-- FeuerstaudammMirrorSmoke.c4s — cycle-90 symptom-6 integration —*/
 /* mirror (spec §4.6): 1:1 headless mirror of the shipped           */
 /* Feuerstaudamm.c4s. MaxPlayer=0 (Player1/Crew dropped).           */
 #strict 2
@@ -22,7 +22,7 @@ protected func Initialize()
 	g_iLava0 = MirrorCount(Material("Lava"), 120, 170, 290, 200)
 	         + MirrorCount(Material("Ashes"), 120, 170, 290, 200);
 	if (g_iLava0 < 4500)
-		FatalError(Format("FeuerstaudammMirrorRepro FAIL: lava reservoir short (%d)", g_iLava0));
+		FatalError(Format("FeuerstaudammMirrorSmoke FAIL: lava reservoir short (%d)", g_iLava0));
 	g_iStep = 0;
 	g_fCalibrate = 0;
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
@@ -51,22 +51,22 @@ global func FxRunTestTimer(object target, int effect, int timer)
 	{
 		var dir = FindObject(CDIR);
 		if (!dir)
-			FatalError("FeuerstaudammMirrorRepro FAIL: no CDIR");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: no CDIR");
 		if (!dir->IsBreached())
-			FatalError("FeuerstaudammMirrorRepro FAIL: breach beat never fired");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: breach beat never fired");
 		if (!dir->HasFlam())
-			FatalError("FeuerstaudammMirrorRepro FAIL: FLAM beat never fired");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: FLAM beat never fired");
 		if (!dir->HasRock())
-			FatalError("FeuerstaudammMirrorRepro FAIL: rock beat never fired");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: rock beat never fired");
 		if (!dir->HasRain())
-			FatalError("FeuerstaudammMirrorRepro FAIL: rain beat never fired");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: rain beat never fired");
 		if (!dir->HasBuried())
-			FatalError("FeuerstaudammMirrorRepro FAIL: burial beat never fired");
+			FatalError("FeuerstaudammMirrorSmoke FAIL: burial beat never fired");
 		var lava = MirrorCount(Material("Lava"), 120, 170, 290, 200)
 		         + MirrorCount(Material("Ashes"), 120, 170, 290, 200);
 		if (lava * 100 > g_iLava0 * 25)
-			FatalError(Format("FeuerstaudammMirrorRepro FAIL: reservoir pour %d pct < 25 (frozen reservoir)", 100 - lava * 100 / g_iLava0));
-		Log("FeuerstaudammMirrorRepro PASS");
+			FatalError(Format("FeuerstaudammMirrorSmoke FAIL: reservoir pour %d pct < 25 (frozen reservoir)", 100 - lava * 100 / g_iLava0));
+		Log("FeuerstaudammMirrorSmoke PASS");
 		GameOver();
 		return -1;
 	}

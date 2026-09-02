@@ -1,8 +1,8 @@
 [Head]
-Title=PaintGapRepro
+Title=LavaWallSmoke
 Version=1
 MaxPlayer=0
-Origin=PixelPhysics.c4d\Tests.c4f\PaintGapRepro.c4s
+Origin=PixelPhysics.c4d\Tests.c4f\LavaWallSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d

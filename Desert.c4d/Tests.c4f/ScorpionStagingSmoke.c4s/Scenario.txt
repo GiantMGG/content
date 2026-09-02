@@ -1,8 +1,8 @@
 [Head]
-Title=ScorpionStagingRepro
+Title=ScorpionStagingSmoke
 Version=1
 MaxPlayer=0
-Origin=Desert.c4d\Tests.c4f\ScorpionStagingRepro.c4s
+Origin=Desert.c4d\Tests.c4f\ScorpionStagingSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d
