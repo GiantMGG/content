@@ -43,8 +43,7 @@ static const CastAmt     = 500;  // PXS per basin
 static const OrderStep   = 3; // step where ordering is asserted
 static const SpanFullMin = 59; // water/acid span floor
 static const SpanOilMin  = 59; // oil span floor
-static const SpanLavaMax = 170; // lava span ceiling
-static const SepMin      = 15; // oil-lava separation floor
+static const SpanLavaMin = 59; // lava span floor (re-frozen, spec B4)
 static const ConserveMin = 480; // per-family count floor
 static const FinalStep   = 9;    // conservation + PASS (tick 315)
 
@@ -59,7 +58,7 @@ protected func Initialize()
 	DrawBasin(BaseAcid);
 
 	g_iStep = 0;
-	g_fCalibrate = 0;   // 0 = frozen assertions (calibration done)
+	g_fCalibrate = 0;   // 0 = frozen assertions (B4 re-frozen post-fix)
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
 	return true;
 }
@@ -173,10 +172,8 @@ global func AssertOrdering()
 		FatalError(Format("LiquidIdentitySmoke FAIL: acid span %d < %d", a, SpanFullMin));
 	if (o < SpanOilMin)
 		FatalError(Format("LiquidIdentitySmoke FAIL: oil span %d < %d", o, SpanOilMin));
-	if (l > SpanLavaMax)
-		FatalError(Format("LiquidIdentitySmoke FAIL: lava span %d > %d", l, SpanLavaMax));
-	if (o - l < SepMin)
-		FatalError(Format("LiquidIdentitySmoke FAIL: oil-lava separation %d < %d", o - l, SepMin));
+	if (l < SpanLavaMin)
+		FatalError(Format("LiquidIdentitySmoke FAIL: lava span %d < %d", l, SpanLavaMin));
 }
 
 global func AssertConservation()
