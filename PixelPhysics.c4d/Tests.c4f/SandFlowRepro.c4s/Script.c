@@ -5,7 +5,7 @@
 
 static const FillMatName = "Sand";
 static const FamBName = "";
-static const DRAIN_MIN = 20;
+static const DRAIN_MIN = 7;
 static const FALL_MIN = 50;
 static const FinalStep = 9;
 
