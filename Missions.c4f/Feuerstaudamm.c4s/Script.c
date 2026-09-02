@@ -21,10 +21,12 @@ protected func Initialize()
 	dir->SetSeedSea(true);
 	dir->PaintCascade(300);
 
-	// Beach victims at the reservoir wall base, in the dune's
+	// Beach victims on the dune's leading edge, in the dune's
 	// +x drift path (SDRF budget ramps under the SNDT storm).
-	CreateObject(SCRP, 94, 288, NO_OWNER);
-	CreateObject(SCRP, 97, 275, NO_OWNER);
+	// Stood IN the dune top row so the drift deposits submerge
+	// their position cells (the DuneBurialSmoke-proven pattern).
+	CreateObject(SCRP, 84, 250, NO_OWNER);
+	CreateObject(SCRP, 87, 250, NO_OWNER);
 
 	// Wind-driven surface-sand migration director (self-ticking).
 	CreateObject(SDRF, 60, 245, NO_OWNER);
