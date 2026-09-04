@@ -71,8 +71,8 @@ private func InitializeMagicSpells()
 
 global func EarthMaterials(id Id, int iLevel, int iMaterial)
 {
-  var cnt=0;
-  while(cnt<iLevel) {
+  var cnt=0, iAttempts=0;
+  while(cnt<iLevel && iAttempts++<10000) {
   var randWidth=Random(LandscapeWidth());
   var randHeight=Random(LandscapeHeight());
   if(iMaterial !=-1 && GetMaterial(randWidth,randHeight)==iMaterial) {
