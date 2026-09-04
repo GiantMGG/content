@@ -1,0 +1,4 @@
+#       Static Map Material/Texture Table
+
+OverloadMaterials
+OverloadTextures
