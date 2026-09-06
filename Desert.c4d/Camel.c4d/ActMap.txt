@@ -3,7 +3,7 @@ Name=Walk
 Procedure=WALK
 Directions=2
 FlipDir=1
-Length=1
+Length=2
 Delay=3
 Facet=0,0,36,26
 NextAction=Walk
@@ -27,7 +27,7 @@ Directions=2
 FlipDir=1
 Length=1
 Delay=3
-Facet=0,0,36,26
+Facet=0,26,36,26
 NextAction=Hold
 
 [Action]
@@ -37,7 +37,7 @@ Directions=2
 FlipDir=1
 Length=1
 Delay=3
-Facet=0,0,36,26
+Facet=0,52,36,26
 NextAction=Hold
 
 [Action]
@@ -47,5 +47,5 @@ Directions=2
 FlipDir=1
 Length=1
 Delay=3
-Facet=0,0,36,26
+Facet=0,78,36,26
 NextAction=Swim
