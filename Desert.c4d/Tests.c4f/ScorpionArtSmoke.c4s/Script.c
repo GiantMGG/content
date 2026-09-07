@@ -1,6 +1,7 @@
 /*-- ScorpionArtSmoke.c4s — cycle-93 art wiring pin (spec             --*/
-/* hostile-object-bugfix). Synchronous RunSmokeSteps() pattern        --*/
-/* (DesertSmoke/ScorpionStagingSmoke norm).                           --*/
+/*-- hostile-object-bugfix); cycle-105 36x26 re-pin (spec             --*/
+/*-- scorpion-36x26-scaleup). Synchronous RunSmokeSteps() pattern     --*/
+/*-- (DesertSmoke/ScorpionStagingSmoke norm).                         --*/
 #strict 3
 
 protected func Initialize()
@@ -17,8 +18,8 @@ func RunSmokeSteps()
 		FatalError("ScorpionArtSmoke FAIL step 0: SCRP not spawned");
 	if (GetDefCoreVal("Picture", "DefCore", SCRP, 0) != 0
 	 || GetDefCoreVal("Picture", "DefCore", SCRP, 1) != 0
-	 || GetDefCoreVal("Picture", "DefCore", SCRP, 2) != 20
-	 || GetDefCoreVal("Picture", "DefCore", SCRP, 3) != 12)
+	 || GetDefCoreVal("Picture", "DefCore", SCRP, 2) != 36
+	 || GetDefCoreVal("Picture", "DefCore", SCRP, 3) != 26)
 		FatalError("ScorpionArtSmoke FAIL step 0: Picture mismatch");
 
 	/* Step 1: Walk wiring — Length=2, facet/dirs/delay unchanged. */
@@ -32,9 +33,12 @@ func RunSmokeSteps()
 		FatalError("ScorpionArtSmoke FAIL step 1: Walk Delay != 2");
 	if (GetActMapVal("Facet", "Walk", SCRP, 0) != 0
 	 || GetActMapVal("Facet", "Walk", SCRP, 1) != 0
-	 || GetActMapVal("Facet", "Walk", SCRP, 2) != 20
-	 || GetActMapVal("Facet", "Walk", SCRP, 3) != 12)
+	 || GetActMapVal("Facet", "Walk", SCRP, 2) != 36
+	 || GetActMapVal("Facet", "Walk", SCRP, 3) != 26)
 		FatalError("ScorpionArtSmoke FAIL step 1: Walk Facet mismatch");
+	if (GetActMapVal("Facet", "Walk", SCRP, 4) != -8
+	 || GetActMapVal("Facet", "Walk", SCRP, 5) != -14)
+		FatalError("ScorpionArtSmoke FAIL step 1: Walk Facet tx/ty mismatch");
 
 	/* Step 2: phase round-trip, both dirs. */
 	scorp->SetAction("Walk");
