@@ -12,7 +12,7 @@ VertexY=0
 Value=2
 Mass=10
 Components=AGSH=2
-Picture=0,0,24,40
+Picture=24,0,12,20
 Timer=3540
 TimerCall=Grow
 Collectible=0

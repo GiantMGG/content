@@ -13,7 +13,7 @@ VertexFriction=50,50,50,50
 Value=100
 Mass=800
 Components=WOOD=4;STON=2;ROPE=1
-Picture=0,0,80,48
+Picture=0,0,40,24
 Timer=10
 TimerCall=Timer
 Construction=1
