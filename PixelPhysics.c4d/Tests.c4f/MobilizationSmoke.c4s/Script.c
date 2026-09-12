@@ -40,13 +40,12 @@
 
 #strict 2
 
-// ---- Gate constants (CAL-TUNE draft; frozen after the 3-run ----------
-// ---- calibration, Task 3 of the cycle-118 plan) -----------------------
+// ---- Frozen gate constants (3-run calibration, 2026-09-12) ------------
 static const GATE_WINDOW_MS = 1500;  // 35 ticks x 28 ms budget x 1.53
 static const PXS_CAP        = 10000; // C4PXS.h:40 hard-cap tripwire
-static const MOB_FLOOR      = 300;   // CAL-TUNE: mobile-pxs floor (win >= 3)
-static const EXT_FLOOR      = 60;    // CAL-TUNE: per-window extraction floor (win >= 3)
-static const W_FLOOR        = 12000; // CAL-TUNE: static-water floor (win >= 3)
+static const MOB_FLOOR      = 1160;  // frozen: mobile-pxs floor (win >= 3)
+static const EXT_FLOOR      = 50;    // frozen: per-window extraction floor (win >= 3)
+static const W_FLOOR        = 15500; // frozen: static-water floor (win >= 3)
 
 // ---- Apparatus coordinates (CAL-TUNE; adjust if a zone misbehaves) ----
 static const BREACH_X   = 250; // basin-centre extraction bore
