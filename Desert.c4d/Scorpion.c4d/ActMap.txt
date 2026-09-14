@@ -3,9 +3,9 @@ Name=Walk
 Procedure=WALK
 Directions=2
 FlipDir=1
-Length=2
+Length=6
 Delay=2
-Facet=0,0,36,26,-8,-14
+Facet=0,0,24,14,-2,-2
 NextAction=Walk
 TurnAction=Turn
 InLiquidAction=Swim
@@ -15,9 +15,9 @@ Name=Turn
 Procedure=WALK
 Directions=2
 FlipDir=1
-Length=1
+Length=2
 Delay=2
-Facet=0,0,36,26,-8,-14
+Facet=0,14,24,14,-2,-2
 NextAction=Walk
 
 [Action]
@@ -25,9 +25,9 @@ Name=Jump
 Procedure=FLIGHT
 Directions=2
 FlipDir=1
-Length=1
+Length=2
 Delay=2
-Facet=0,0,36,26,-8,-14
+Facet=0,28,24,14,-2,-2
 NextAction=Hold
 
 [Action]
@@ -35,9 +35,9 @@ Name=Tumble
 Procedure=FLIGHT
 Directions=2
 FlipDir=1
-Length=1
+Length=2
 Delay=2
-Facet=0,0,36,26,-8,-14
+Facet=0,42,24,14,-2,-2
 NextAction=Hold
 
 [Action]
@@ -45,7 +45,7 @@ Name=Swim
 Procedure=SWIM
 Directions=2
 FlipDir=1
-Length=1
+Length=2
 Delay=2
-Facet=0,0,36,26,-8,-14
+Facet=0,56,24,14,-2,-2
 NextAction=Swim
