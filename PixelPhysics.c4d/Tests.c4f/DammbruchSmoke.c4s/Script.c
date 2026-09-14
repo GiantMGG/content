@@ -117,7 +117,9 @@ global func FxRunTestTimer(object target, int effect, int timer)
 	// ---- Per-window standing guards (steps >= 2) ------------------------
 	if (g_iStep >= 2)
 	{
-		// Conservation: the budgeted caster's tripwire (band 0).
+		// Conservation: the budgeted caster's tripwire. CONSERVE_BAND=20
+		// absorbs the legacy InsertMaterial-fail save-back deficit (max
+		// observed transient 7, settle -2); a caster/cap deletion breaks it.
 		var total = GetMaterialCount(Material("Water")) + GetPXSCount();
 		if (Abs(total - g_iWater0) > CONSERVE_BAND)
 			FatalError(Format("DammbruchSmoke FAIL win %d: water %d != %d (caster/deletion)", g_iStep, total, g_iWater0));
