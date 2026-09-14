@@ -6,6 +6,7 @@ Density=25
 Instable=1
 MaxAirSpeed=25
 MaxSlide=10000
+FlowRate=3
 WindDrift=35
 SplashRate=8
 Corrosive=75
