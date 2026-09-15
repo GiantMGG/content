@@ -51,7 +51,7 @@ public func Harvest(object pClonk)
 	{
 		var pSheaf = CreateObject(AGSH, 0, 0, GetOwner());
 		if (pClonk) pClonk->Collect(pSheaf);
-		else pSheaf->Exit(RandomX(-5, 5), -5);
+		else Exit(pSheaf, RandomX(-5, 5), -5);
 	}
 	RemoveObject();
 	return(1);

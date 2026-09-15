@@ -80,7 +80,7 @@ private func Grinding()
 	SetAction("Idle");
 	// Output Flour (FLOU — the existing Knights item)
 	var pFlour = CreateObject(FLOU, 0, 0, GetOwner());
-	if (pFlour) pFlour->Exit(RandomX(-6, 6), -10);
+	if (pFlour) Exit(pFlour, RandomX(-6, 6), -10);
 	Sound("WoodHit*");
 	return(1);
 }

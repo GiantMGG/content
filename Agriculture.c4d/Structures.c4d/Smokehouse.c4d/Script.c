@@ -89,7 +89,7 @@ private func Smoking()
 	Sound("Pshshsh");
 	// Output SmokedFish
 	var pOut = CreateObject(AGSF, 0, 0, GetOwner());
-	if (pOut) pOut->Exit(RandomX(-6, 6), -10);
+	if (pOut) Exit(pOut, RandomX(-6, 6), -10);
 	return(1);
 }
 
