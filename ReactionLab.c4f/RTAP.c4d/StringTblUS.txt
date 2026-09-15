@@ -1,0 +1,3 @@
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed

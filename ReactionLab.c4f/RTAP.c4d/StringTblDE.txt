@@ -1,0 +1,3 @@
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu

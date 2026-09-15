@@ -21,8 +21,16 @@ public func SetTapOffset(int iX, int iY) { tapOffX = iX; tapOffY = iY; return tr
 protected func ControlDigDouble(object pClonk)
 {
 	tapOpen = !tapOpen;
-	SetAction(tapOpen ? "Open" : "Idle");
-	if (pClonk) pClonk->Message(tapOpen ? "$TapOpen$" : "$TapClosed$");
+	if (tapOpen)
+	{
+		SetAction("Open");
+		if (pClonk) pClonk->Message("$TapOpen$");
+	}
+	else
+	{
+		SetAction("Idle");
+		if (pClonk) pClonk->Message("$TapClosed$");
+	}
 	Sound("RTAP_Click");  /* no asset: silent in console; harmless in GUI */
 	return true;
 }
