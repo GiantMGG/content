@@ -1,6 +1,6 @@
 [DefCore]
 id=RTAP
-Version=4,9,11,7
+Version=4,9,11,6
 Name=$TapName$
 Category=C4D_Object
 Width=16
