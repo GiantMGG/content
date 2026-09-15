@@ -1,0 +1,6 @@
+Intro=Eine Lava-Grube! Oeffne den Wasserhahn und loesche sie.
+Instr=Lava-Rest:
+Mastery=Guetschnitt! Die ganze Grube ist zu Stein geworden.
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu

@@ -1,0 +1,6 @@
+Intro=A lava pool! Open the water tap and quench it.
+Instr=Lava remaining:
+Mastery=Quenched! The whole pool turned to stone.
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed

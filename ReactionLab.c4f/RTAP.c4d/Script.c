@@ -11,10 +11,12 @@ local tapMat;    // dispensed material name ("Water","Lava",...)
 local tapAmt;    // PXS per tick while open
 local tapVane;   // 1 = wind vane variant: SetWind(tapWindForce)
 local tapWindForce;
+local tapOffX, tapOffY;   // nozzle offset from the tap origin
 
 public func SetTapMaterial(string szMat)    { tapMat = szMat; return true; }
 public func SetTapAmount(int iAmt)          { tapAmt = iAmt; return true; }
 public func SetTapVane(int iForce)          { tapVane = 1; tapWindForce = iForce; return true; }
+public func SetTapOffset(int iX, int iY) { tapOffX = iX; tapOffY = iY; return true; }
 
 protected func ControlDigDouble(object pClonk)
 {
@@ -29,6 +31,6 @@ func TapTick()
 {
 	if (!tapOpen) return;
 	if (tapVane) { SetWind(tapWindForce); return; }
-	CastPXS(tapMat, tapAmt, 8, 0, -5);
+	CastPXS(tapMat, tapAmt, 8, tapOffX, tapOffY - 5);
 	return;
 }
