@@ -1,0 +1,10 @@
+MsgArrival=Make this valley feed itself. The ledger starts when you do.
+MsgFirstCatch=The lake provides. First Catch complete.
+MsgSowHint=Sow while the traps fish - the wheat clock is slow.
+MsgGoldenRows=Golden rows. First harvest in.
+MsgMillTurns=The wings answer the wind. First flour milled.
+MsgMarketDay=Market Day! The caravan factor pays for surplus.
+MsgLedgerOpen=The Homestead Ledger is open: wet trap, ripe field, turning mill, busy market. Hold all four green through two audits.
+MsgLedgerGreen=Ledger: green. Hold it.
+MsgLedgerRed=Ledger: a leg has gone dark. Tend the homestead.
+MsgWin=The valley feeds itself now. First Light holds.

@@ -1,0 +1,10 @@
+MsgArrival=Macht dieses Tal selbstversorgend. Das Buch beginnt mit Euch.
+MsgFirstCatch=Der See gibt. Erster Fang.
+MsgSowHint=Sät, während die Reusen fischen - der Weizen braucht seine Zeit.
+MsgGoldenRows=Goldene Reihen. Erste Ernte eingebracht.
+MsgMillTurns=Die Flügel antworten dem Wind. Erstes Mehl gemahlen.
+MsgMarketDay=Markttag! Der Karawan-Faktor zahlt für Überschüsse.
+MsgLedgerOpen=Das Siedlungsbuch ist offen: nasse Reuse, reifes Feld, drehende Mühle, lebhafter Markt. Haltet alle vier Beine zwei Prüfungen lang grün.
+MsgLedgerGreen=Buch: grün. Haltet es.
+MsgLedgerRed=Buch: Ein Bein ist dunkel geworden. Kümmert Euch um den Hof.
+MsgWin=Das Tal ernährt sich jetzt selbst. First Light hält.

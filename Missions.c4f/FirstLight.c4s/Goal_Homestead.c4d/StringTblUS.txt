@@ -1,0 +1,3 @@
+HMGL=Homestead Ledger
+MsgGoalDesc=Keep the Homestead Ledger green: a wet trap, a ripe field, a turning mill, a busy market - sustained through two consecutive audits.
+MsgGoalFulfilled=The valley feeds itself. First Light holds.

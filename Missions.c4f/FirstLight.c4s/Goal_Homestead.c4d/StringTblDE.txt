@@ -1,0 +1,3 @@
+HMGL=Siedlungsbuch
+MsgGoalDesc=Haltet das Siedlungsbuch grün: eine nasse Reuse, ein reifes Feld, eine drehende Mühle, ein lebhafter Markt - über zwei aufeinanderfolgende Prüfungen.
+MsgGoalFulfilled=Das Tal ernährt sich selbst. First Light hält.
