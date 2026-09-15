@@ -1,0 +1,6 @@
+Intro=Ein Wasserbecken! Der Lava-Hahn baut dir eine Kruste.
+Instr=Gestein:
+Mastery=Deckel drueber! Die Kruste haelt.
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu

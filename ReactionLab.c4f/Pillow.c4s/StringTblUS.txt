@@ -1,0 +1,6 @@
+Intro=A water basin! The lava tap builds you a crust.
+Instr=Rock grown:
+Mastery=Lid on! The crust holds.
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed
