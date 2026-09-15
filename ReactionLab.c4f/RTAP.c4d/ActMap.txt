@@ -1,0 +1,15 @@
+[Action]
+Name=Idle
+Procedure=NONE
+Length=1
+Delay=1
+Facet=0,0,16,24
+NextAction=Idle
+
+[Action]
+Name=Open
+Procedure=NONE
+Length=1
+Delay=1
+Facet=0,0,16,24
+NextAction=Open
