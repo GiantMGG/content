@@ -41,9 +41,9 @@ protected func Initialize()
 	}
 
 	Log("$MsgArrival$");
-	AddEffect("FxStory", 0, 1, 35, 0, 0);
-	AddEffect("FxAudit", 0, 1, 2100, 0, 0);
-	AddEffect("FxCaravan", 0, 1, 2100, 0, 0);
+	AddEffect("Story", 0, 1, 35, 0, 0);
+	AddEffect("Audit", 0, 1, 2100, 0, 0);
+	AddEffect("Caravan", 0, 1, 2100, 0, 0);
 	return true;
 }
 
@@ -72,6 +72,17 @@ global func CarveHomesteadPond(int iPx, int iPyHint)
 global func FishStock()
 {
 	return ObjectCount(FISH) + ObjectCount(DFSH) + ObjectCount(AGSF);
+}
+
+// Chapter-1 gate: evidence the player actually used a trap, not the
+// seeded pond stock. The pond's 8 fish satisfy FishStock() at spawn, so
+// the chapter must key on a trap that holds a caught fish.
+global func HomesteadCaughtFish()
+{
+	var pTrap;
+	for (var pTrap in FindObjects(Find_ID(AGFT)))
+		if (pTrap->ContentsCount(FISH) >= 1) return true;
+	return false;
 }
 
 global func HomesteadFisheryGreen()
@@ -103,10 +114,21 @@ global func HomesteadMillGreen()
 	return g_mill_total >= 1;
 }
 
+// Loose-only flour count: the stall's registered FLOU stock is contained
+// and must not satisfy the mill leg (review H1-Flash). Only uncontained
+// FLOU counts as "milled".
+global func HomesteadLooseFlourCount()
+{
+	var n = 0, p;
+	for (var p in FindObjects(Find_ID(FLOU)))
+		if (!p->Contained()) n++;
+	return n;
+}
+
 global func HomesteadTradeGreen()
 {
 	if (!FindObject(MKTS)) return false;
-	return FrameCounter() - g_last_sale <= 2100;
+	return g_last_sale > -1 && FrameCounter() - g_last_sale <= 2100;
 }
 
 global func HomesteadAudit()
@@ -167,12 +189,13 @@ global func GrantKnowledge(id idDef)
 
 global func FxStoryTimer(target, effect, time)
 {
-	// mill-watch: tally newly milled flour
-	var f = ObjectCount(FLOU);
+	// mill-watch: tally newly milled flour (loose only — the stall's
+	// registered stock is contained and must never bump the ledger)
+	var f = HomesteadLooseFlourCount();
 	if (f > g_flou_prev) g_mill_total += f - g_flou_prev;
 	g_flou_prev = f;
 
-	if (g_chapter == 1 && FishStock() >= 4)
+	if (g_chapter == 1 && HomesteadCaughtFish())
 	{
 		g_chapter = 2;
 		GrantKnowledge(AGWS);

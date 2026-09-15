@@ -8,6 +8,7 @@ static g_last_sale;
 static g_mill_total;
 static g_flou_prev;
 static g_green_audits;
+static g_failed;        // any step FatalError'd (FatalError aborts the call)
 
 protected func Initialize()
 {
@@ -17,6 +18,7 @@ protected func Initialize()
 	g_mill_total = 0;
 	g_flou_prev = 0;
 	g_green_audits = 0;
+	g_failed = false;
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
 	return true;
 }
@@ -55,10 +57,20 @@ global func HomesteadMillGreen()
 	return g_mill_total >= 1;
 }
 
+// Loose-only flour count (mirror of FirstLight.c4s): the stall's registered
+// FLOU stock is contained and must not satisfy the "milled flour" claims.
+global func HomesteadLooseFlourCount()
+{
+	var n = 0, p;
+	for (var p in FindObjects(Find_ID(FLOU)))
+		if (!p->Contained()) n++;
+	return n;
+}
+
 global func HomesteadTradeGreen()
 {
 	if (!FindObject(MKTS)) return false;
-	return FrameCounter() - g_last_sale <= 2100;
+	return g_last_sale > -1 && FrameCounter() - g_last_sale <= 2100;
 }
 
 global func HomesteadAudit()
@@ -100,8 +112,9 @@ global func CaravanFactorTick(object pStall)
 global func FxRunTestTimer(target, effect, time)
 {
 	++g_iStep;
-	// mill-watch: tally newly milled flour
-	var f = ObjectCount(FLOU);
+	// mill-watch: tally newly milled flour (loose only — the stall's
+	// registered stock is contained and must never bump the ledger)
+	var f = HomesteadLooseFlourCount();
 	if (f > g_flou_prev) g_mill_total += f - g_flou_prev;
 	g_flou_prev = f;
 
@@ -111,12 +124,22 @@ global func FxRunTestTimer(target, effect, time)
 		var gx = 500, gy = 100;
 		while (gy < 550 && !GBackSolid(gx, gy)) gy++;
 		var pMill = CreateObject(AGWM, gx, gy - 60, NO_OWNER);
-		if (!pMill) FatalError("FirstLightSmoke FAIL: step 1 - no mill");
+		if (!pMill)
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 1 - no mill");
+		}
 		CreateContents(AGSH, pMill);
 		if (!pMill->ProductionStart())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 1 - ProductionStart refused");
+		}
 		if (GetAction(pMill) != "Grinding")
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 1 - mill not grinding");
+		}
 	}
 
 	if (g_iStep == 2)
@@ -130,24 +153,41 @@ global func FxRunTestTimer(target, effect, time)
 			for (px = gx - 39; px < gx + 40; px++)
 				InsertMaterial(water_mat, px, py);
 		var pTrap = CreateObject(AGFT, gx, gy + 26, NO_OWNER);
-		if (!pTrap) FatalError("FirstLightSmoke FAIL: step 2 - no trap");
+		if (!pTrap)
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 2 - no trap");
+		}
 	}
 
 	if (g_iStep == 3)
 	{
 		// fishery leg: trap settled, spawn fish at the trap, Attract
 		var pTrap = FindObject(AGFT);
-		if (!pTrap) FatalError("FirstLightSmoke FAIL: step 3 - trap vanished");
+		if (!pTrap)
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 3 - trap vanished");
+		}
 		if (!pTrap->InLiquid())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 3 - trap not in liquid");
+		}
 		var i;
 		for (i = 0; i < 8; i++)
 			CreateObject(FISH, GetX(pTrap) - 8 + i * 2, GetY(pTrap) + 4, NO_OWNER);
 		pTrap->Attract();
 		if (ContentsCount(FISH, pTrap) < 1)
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 3 - trap caught nothing");
+		}
 		if (!HomesteadFisheryGreen())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 3 - fishery leg not green");
+		}
 	}
 
 	if (g_iStep == 4)
@@ -159,13 +199,20 @@ global func FxRunTestTimer(target, effect, time)
 		for (i = 0; i < 4; i++)
 		{
 			pW = CreateObject(AGWH, gx + i * 15, gy - 10, NO_OWNER);
-			if (!pW) FatalError("FirstLightSmoke FAIL: step 4 - no wheat");
+			if (!pW)
+			{
+				g_failed = true;
+				FatalError("FirstLightSmoke FAIL: step 4 - no wheat");
+			}
 			pW->SetAction("Seedling");
 			pW->~Grow();
 			pW->~Grow();
 		}
 		if (!HomesteadFieldGreen())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 4 - field leg not green");
+		}
 	}
 
 	if (g_iStep == 5)
@@ -174,42 +221,71 @@ global func FxRunTestTimer(target, effect, time)
 		var gx = 800, gy = 100;
 		while (gy < 550 && !GBackSolid(gx, gy)) gy++;
 		var pStall = CreateObject(MKTS, gx, gy - 20, NO_OWNER);
-		if (!pStall) FatalError("FirstLightSmoke FAIL: step 5 - no stall");
+		if (!pStall)
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 5 - no stall");
+		}
 		RegisterTradeGood(AGSF, pStall, 10);
 		RegisterTradeGood(FLOU, pStall, 10);
 		CreateObject(AGSF, gx - 30, gy - 5, NO_OWNER);  // loose goods near the stall
 		CaravanFactorTick(pStall);
 		if (g_last_sale < 0)
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 5 - no sale recorded");
+		}
 		if (!HomesteadTradeGreen())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 5 - trade leg not green");
-	}
-
-	if (g_iStep == 6)
-	{
-		// mill leg: flour must exist by now (grind 160 frames, started t=35)
-		if (ObjectCount(FLOU) < 1)
-			FatalError("FirstLightSmoke FAIL: step 6 - no flour milled");
-		if (!HomesteadMillGreen())
-			FatalError("FirstLightSmoke FAIL: step 6 - mill leg not green");
+		}
 	}
 
 	if (g_iStep == 7)
 	{
-		// audit 1: all four legs must hold simultaneously
-		if (!HomesteadAudit())
+		// mill leg + audit 1: loose flour lands ~t=215 (grind 160 frames
+		// from t=35) — the stall's contained stock must not count. Then all
+		// four legs must hold simultaneously.
+		var loose = HomesteadLooseFlourCount();
+		if (loose < 1)
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 7 - no loose flour milled");
+		}
+		if (!HomesteadMillGreen())
+		{
+			g_failed = true;
+			FatalError("FirstLightSmoke FAIL: step 7 - mill leg not green");
+		}
+		var green = HomesteadAudit();
+		if (!green)
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 7 - audit 1 not green");
+		}
 		if (g_green_audits != 1)
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 7 - audit counter wrong");
+		}
 	}
 
 	if (g_iStep == 8)
 	{
+		// any earlier step failed -> run must NOT print PASS
+		if (g_failed) return -1;
 		// audit 2: two consecutive green audits fulfill the ledger
 		if (!HomesteadAudit())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 8 - audit 2 not green");
+		}
 		if (!HomesteadLedgerFulfilled())
+		{
+			g_failed = true;
 			FatalError("FirstLightSmoke FAIL: step 8 - ledger not fulfilled after two green audits");
+		}
 		Log("FirstLightSmoke PASS");
 		GameOver();
 		return -1;
