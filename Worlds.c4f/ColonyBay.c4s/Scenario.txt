@@ -5,7 +5,6 @@ Version=4,9,9,2
 Difficulty=40
 MaxPlayer=4
 Access=1
-MissionAccess=ColonyBay
 Origin=Worlds.c4f\ColonyBay.c4s
 
 [Definitions]

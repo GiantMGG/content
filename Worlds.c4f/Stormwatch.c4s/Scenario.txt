@@ -5,7 +5,6 @@ Version=1,0,0,0
 Difficulty=30
 MaxPlayer=1
 Access=1
-MissionAccess=Stormwatch
 Origin=Worlds.c4f\Stormwatch.c4s
 
 [Definitions]
