@@ -6,7 +6,7 @@ Origin=ReactionLab.c4f\Dissolve.c4s
 
 [Definitions]
 Definition1=Objects.c4d
-Definition2=RTAP.c4d
+Definition2=ReactionLab.c4f\RTAP.c4d
 
 [Game]
 StructNeedEnergy=0
