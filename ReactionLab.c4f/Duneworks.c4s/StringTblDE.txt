@@ -1,0 +1,6 @@
+Intro=Wind treibt Sand - hinterdem Fels waechst eine Duene.
+Instr=Duenen-Sand:
+Mastery=Duene steht! Der Wind arbeitet fuer dich.
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu

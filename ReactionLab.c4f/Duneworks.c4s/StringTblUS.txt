@@ -1,0 +1,6 @@
+Intro=Wind drives sand - a dune grows behind the boulder.
+Instr=Dune sand:
+Mastery=The dune stands! The wind works for you.
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed
