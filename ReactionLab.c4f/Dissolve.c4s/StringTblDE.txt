@@ -1,0 +1,6 @@
+Intro=Saeure frisst alles - ausser Granit. Probier es aus!
+Instr=Teller-Rest:
+Mastery=Aufgeloest! Der Granit haelt.
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu

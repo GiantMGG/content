@@ -1,0 +1,6 @@
+Intro=Acid eats everything - except granite. Try it!
+Instr=Plate remainder:
+Mastery=Dissolved! The granite holds.
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed
