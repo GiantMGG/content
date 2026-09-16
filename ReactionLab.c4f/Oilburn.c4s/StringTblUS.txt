@@ -1,0 +1,6 @@
+Intro=An oil slick! Ignite it - then put it out again.
+Instr=Oil left:
+Mastery=Fire's out! Cleanly extinguished.
+TapName=Reaction Tap
+TapOpen=Tap open
+TapClosed=Tap closed

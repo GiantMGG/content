@@ -1,0 +1,6 @@
+Intro=Ein Oelteppich! Zuenden ihn an - und loesch ihn wieder.
+Instr=Oel-Rest:
+Mastery=Brand aus! Sauber geloescht.
+TapName=Reaktions-Hahn
+TapOpen=Hahn offen
+TapClosed=Hahn zu
