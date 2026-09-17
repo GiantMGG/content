@@ -4,6 +4,7 @@ Title=Tutorial
 MaxPlayer=1
 DisableMouse=1
 Access=1
+SkipPregameOptions=1
 Origin=Tutorial.c4f\Tutorial01.c4s
 Difficulty=1
 

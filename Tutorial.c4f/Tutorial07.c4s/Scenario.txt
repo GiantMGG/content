@@ -3,6 +3,7 @@ Icon=8
 Title=Tutorial
 Difficulty=7
 Access=1
+SkipPregameOptions=1
 MaxPlayer=1
 DisableMouse=1
 Origin=Tutorial.c4f\Tutorial07.c4s
