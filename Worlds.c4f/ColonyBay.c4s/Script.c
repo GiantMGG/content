@@ -81,7 +81,7 @@ func InitializePlayer(iPlr)
 }
 
 // Wealth check effect - unlocks lighthouse recipe when settlement value crosses threshold
-func FxWealthCheckTimer(object target, int effect, int timer)
+global func FxWealthCheckTimer(object target, int effect, int timer)
 {
     for (var i = 0; i < GetPlayerCount(); i++)
     {
