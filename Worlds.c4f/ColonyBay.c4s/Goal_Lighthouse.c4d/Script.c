@@ -4,12 +4,13 @@
 
 #include GOAL
 
-local missionPassword = "ColonyBay";
+local missionPassword;
 
 /* Initialisierung */
 
 protected func Initialize()
 {
+    missionPassword = "ColonyBay";
     SetMissionAccess("ColonyBay");
     SetAction("Idle");
     return _inherited();
@@ -27,7 +28,7 @@ public func IsFulfilled()
     if (!pLighthouse->~IsLit()) return false;
 
     // CHEM workshop must exist (fully built)
-    if (ObjectCount(CHEM, 0, 0, 0, 0, OCF_Fullcon()) == 0) return false;
+    if (ObjectCount(CHEM, 0, 0, 0, 0, OCF_Fullcon) == 0) return false;
 
     return true;
 }

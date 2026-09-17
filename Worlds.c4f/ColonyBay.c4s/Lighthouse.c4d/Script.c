@@ -73,7 +73,7 @@ func EndingSequence()
 {
     // Spawn TradeShip from off-map (left edge)
     var iShipY = LandscapeHeight() * 30 / 100;
-    CreateObject(TSHp, -50, iShipY, NO_OWNER);
+    CreateObject(TSHP, -50, iShipY, NO_OWNER);
     return true;
 }
 
