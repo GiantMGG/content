@@ -1,2 +1,1 @@
-TSHp=Trade Ship
 MsgShipArrived=A trade ship has arrived! It brings knowledge of the chemical factory.
