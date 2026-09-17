@@ -3,7 +3,7 @@ Title=FeuerstaudammMirrorSmoke
 Version=4,9,9,9
 Difficulty=30
 MaxPlayer=0
-Origin=Missions.c4f\Tests.c4f\FeuerstaudammMirrorSmoke.c4s
+Origin=PixelPhysics.c4d\Tests.c4f\FeuerstaudammMirrorSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d

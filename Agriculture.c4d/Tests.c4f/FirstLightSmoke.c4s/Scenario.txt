@@ -2,7 +2,7 @@
 Title=FirstLightSmoke
 Version=1
 MaxPlayer=0
-Origin=Missions.c4f\Tests.c4f\FirstLightSmoke.c4s
+Origin=Agriculture.c4d\Tests.c4f\FirstLightSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d
