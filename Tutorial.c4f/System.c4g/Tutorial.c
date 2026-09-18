@@ -21,6 +21,7 @@ global func HasSpeech(string strMessage)
 
 global func TutorialMessage(string strMessage)
 {
+	Log(Format("TutorialMessage: %s", strMessage));
 	// Message with speech marker
 	if (HasSpeech(strMessage))
 		// PlayerMessage will handle the speech output (and it won't show the message)
