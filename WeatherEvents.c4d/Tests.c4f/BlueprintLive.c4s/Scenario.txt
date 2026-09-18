@@ -1,0 +1,34 @@
+[Head]
+Title=BlueprintLive
+Version=1
+MaxPlayer=1
+Origin=WeatherEvents.c4d\Tests.c4f\BlueprintLive.c4s
+
+[Definitions]
+Definition1=Objects.c4d
+Definition2=WeatherEvents.c4d
+
+[Game]
+StructNeedEnergy=0
+
+[Landscape]
+MapWidth=100
+MapHeight=40
+MapZoom=10
+Material=Earth
+Sky=Clouds2
+
+[Weather]
+Climate=50
+YearSpeed=20
+
+[Disasters]
+Meteorite=0
+Volcano=0
+Earthquake=0
+
+; Base start knowledge WITHOUT WMIL — the --parameter Knowledge=WMIL=1
+; override must replace this list before the round starts.
+[Player1]
+Crew=CLNK=1
+Knowledge=FLNT=1
