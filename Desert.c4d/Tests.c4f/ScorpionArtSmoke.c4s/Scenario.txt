@@ -13,7 +13,6 @@ Definition3=Desert.c4d
 StructNeedEnergy=0
 
 [Landscape]
-Landscape=Landscape.txt
 MapWidth=100
 MapHeight=40
 MapZoom=10
