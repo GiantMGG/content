@@ -7,6 +7,17 @@
 
 #strict 3
 
+static g_iArrivals;  // step 5b counter: arrival GameCall resolutions observed
+
+// The caravan puppet's arrival GameCall target. Public, NOT global:
+// global funcs are engine-owned and invisible to Game.Script's own-table
+// lookup, so a global receiver silently never fires (cycle-146 F1 seam).
+public func SaltRoadCaravanArrived(object camel)
+{
+	g_iArrivals++;
+	return true;
+}
+
 protected func Initialize()
 {
 	RunSmokeSteps();
@@ -105,6 +116,23 @@ func RunSmokeSteps()
 	camel_a->FxSaltRoadCaravanTimer(camel_a, fx_a, 0);
 	if (!SEqual(GetCommand(camel_a), "MoveTo"))
 		FatalError("SaltRoadStorySmoke FAIL step 5: puppet did not resume after burial");
+
+	/* Step 5b: caravan arrival resolves through the scenario's GameCall
+	   receiver -- the F1 soft-lock seam, pinned permanently. */
+	var probe_camel = CreateObject(CAML, 600, 100, NO_OWNER);
+	if (!probe_camel) FatalError("SaltRoadStorySmoke FAIL step 5b: probe camel not spawned");
+	if (!SaltRoad_StartCaravan(probe_camel, [600]))
+		FatalError("SaltRoadStorySmoke FAIL step 5b: StartCaravan refused probe camel");
+	var fx_p = GetEffect("SaltRoadCaravan", probe_camel);
+	if (!fx_p) FatalError("SaltRoadStorySmoke FAIL step 5b: no puppet effect on probe camel");
+	g_iArrivals = 0;
+	var arrival_res = probe_camel->FxSaltRoadCaravanTimer(probe_camel, fx_p, 0);
+	if (g_iArrivals != 1)
+		FatalError(Format("SaltRoadStorySmoke FAIL step 5b: arrival GameCall resolved %d times, want 1", g_iArrivals));
+	/* Synced direct call: engine effect removal is dispatch-side, so assert
+	   the Fx's own dissolve contract (FX_Execute_Kill) like DuneBurialSmoke. */
+	if (arrival_res != FX_Execute_Kill)
+		FatalError("SaltRoadStorySmoke FAIL step 5b: puppet did not dissolve on arrival");
 
 	/* Step 6: storm budget (DuneBurialSmoke step-3 contract: 2+50/10=7). */
 	LaunchWeatherEvent(SNDT, 50, 100);

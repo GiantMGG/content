@@ -167,9 +167,9 @@ global func CaravanComplete()
 }
 
 // Arrival callback (GameCall from the caravan puppet, Camel.c4d).
-// global, not private: the puppet's global func in Camel.c4d resolves
-// GameCall targets through the engine global map (func-map lesson).
-global func SaltRoadCaravanArrived(object camel)
+// GameCall receivers must be public (script-local): global funcs are
+// engine-owned and invisible to Game.Script's own-table lookup.
+public func SaltRoadCaravanArrived(object camel)
 {
 	g_iArrived++;
 	if (g_iArrived >= ObjectCount(CAML)) return CaravanComplete();
