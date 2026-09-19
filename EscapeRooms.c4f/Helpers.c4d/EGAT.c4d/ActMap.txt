@@ -1,0 +1,13 @@
+[Action]
+Name=Gate
+Procedure=NONE
+Length=1
+Facet=0,0,16,28
+NextAction=Gate
+
+[Action]
+Name=GateOpen
+Procedure=NONE
+Length=1
+Facet=16,0,16,28
+NextAction=GateOpen

@@ -1,0 +1,17 @@
+[DefCore]
+id=EGAT
+Version=4,9,11
+Name=Escape Gate
+Category=C4D_Structure
+Width=16
+Height=28
+Offset=-8,-14
+Vertices=2
+VertexY=-14,13
+VertexFriction=100,100
+Mass=200
+Value=50
+Picture=0,0,16,28
+SolidMask=0,0,16,28,0,0
+DE:Ausgangstor
+US:Escape Gate

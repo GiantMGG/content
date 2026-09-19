@@ -1,0 +1,20 @@
+[DefCore]
+id=ERKY
+Version=4,9,11
+Name=Escape Key
+Category=C4D_Object|C4D_SelectMaterial|C4D_SelectHomebase|C4D_SelectInEarth
+MaxUserSelect=10
+Width=8
+Height=4
+Offset=-4,-2
+Vertices=2
+VertexX=-2,2
+VertexFriction=20,20
+Value=1000
+Mass=10
+Picture=0,0,8,4
+Rebuy=1
+Collectible=1
+Rotate=1
+DE:Fluchttürschlüssel
+US:Escape Key
