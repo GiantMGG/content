@@ -21,10 +21,13 @@ protected func Initialize()
 	CreateObject(SNDS, SALTROAD3_SHRINE_X - 60, GroundY(SALTROAD3_SHRINE_X - 60) - 10, NO_OWNER);
 	CreateObject(SNDS, SALTROAD3_SHRINE_X + 60, GroundY(SALTROAD3_SHRINE_X + 60) - 10, NO_OWNER);
 	// Date palm groves: the toll must be grown, not granted.
+	// (Skip the queen's column: her 2.5x draw spans ~575-625, and a palm
+	// crown at x=600 occludes her entirely -- playtest finding, cycle 146.)
 	var i, x;
 	for (i = 0; i < 8; i++)
 	{
 		x = 120 + i * 120;
+		if (Abs(x - 600) < 60) continue;
 		CreateObject(DATP, x, GroundY(x) - 10, NO_OWNER);
 	}
 	// The queen holds the narrows.
