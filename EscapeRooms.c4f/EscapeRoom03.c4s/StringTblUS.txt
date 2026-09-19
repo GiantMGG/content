@@ -1,5 +1,5 @@
-MsgIntro=A column of sand chokes the exit shaft. Fetch the escape key from the crypt beneath the sandstone shelf -- then undermine the shelf: dig it out slowly and safely, or blast it with the flint: the sand pours into the pit below.
-MsgKeyHint=The sand has run out -- but the gate still answers only to its key.
+MsgIntro=A column of sand chokes the exit shaft. Fetch the escape key from the crypt beneath the sandstone shelf -- then press [Use] to try it against the gate. Undermine the shelf: dig it out slowly and safely, or blast it with the flint: the sand pours into the pit below.
+MsgKeyHint=The sand has run out -- but the gate still answers only to its key. Press [Use] to try the key against the gate.
 MsgSolved=The sand has drained and the exit gate stands open.
 BtnReplay=&Replay
 BtnReplayDesc=The Undertow, once more.

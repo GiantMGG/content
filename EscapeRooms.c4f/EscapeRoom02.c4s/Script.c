@@ -3,10 +3,10 @@
 /* lava furnace under the plug. The lever is NOT wired to the gate  */
 /* - the room director senses the throw (GetPhase()), drops the     */
 /* furnace lid and blasts the plug base (the "stoke"), then opens   */
-/* the gate when the doorway is "mostly gone" (progressive melt     */
-/* predicate). Alternate solution: chisel the snow directly (Snow   */
-/* is DigFree=1 in Snow.c4m - the pick path works exactly like the  */
-/* original ice plug).                                              */
+/* the gate when the doorway is "mostly gone". The doorway-clear    */
+/* predicate is the UNIFIED WIN: the furnace melt feeds it, and so  */
+/* does the advertised pick chisel (Snow is DigFree=1 in Snow.c4m)  */
+/* - whoever clears the doorway opens the gate.                     */
 /*                                                                  */
 /* Mechanism note (cycle-147 RC, plan R1 escalation): the temp-     */
 /* scan melt (Ice AboveTempConvert=10) converted only ~4 px per     */
@@ -42,12 +42,15 @@ static const PLUG_ROI_X1   = 512;    // snow-plug sensor ROI (rect around the pl
 static const PLUG_ROI_Y1   = 145;
 static const PLUG_ROI_X2   = 532;
 static const PLUG_ROI_Y2   = 192;
-static const PLUG_MELTED_MAX = 40;   // CAL-FREEZE: doorway-snow end-state after the
-                                     // lever. EscapeFurnaceSmoke (the scale model)
-                                     // measured 6..13 of 750 in the doorway band
-                                     // -> room equivalent ~3..7 of 407; 40 keeps
-                                     // >=5x margin over the end-state and 10x below
-                                     // the pre-lever plug (~407).
+static const PLUG_MELTED_MAX = 40;   // CAL-FREEZE: doorway-snow end-state after
+                                     // either solution. The chisel path clears the
+                                     // plug outright (0); EscapeFurnaceSmoke (the
+                                     // scale model) measured 6..13 of 750 in the
+                                     // doorway band -> room equivalent ~3..7 of
+                                     // 407; 40 keeps >=5x margin over the worst
+                                     // end-state and 10x below the pre-win plug
+                                     // (~407). The unified win predicate reads
+                                     // this ROI regardless of how it was cleared.
 static const FURNACE_LID_X1 = 517;   // lava-furnace lid (the seal between the snow
 static const FURNACE_LID_Y1 = 187;   // plug and the charge); freed by the lever.
 static const FURNACE_LID_W  = 11;
@@ -96,7 +99,7 @@ protected func Initialize()
 	FreeRect(519, 192, 7, 44);                                         // carve the furnace cavity x[519,525] y[192,235]
 	DrawMaterialQuad("Lava", 520, 193, 524, 193, 524, 234, 520, 234);  // the charge (5 x 42)
 	// The exit gate behind the plug: the director unlocks + opens it
-	// when the doorway is mostly gone (never wired to the lever).
+	// when the doorway clears (never wired to the lever directly).
 	g_pGate = CreateObject(EGAT, 560, 209, NO_OWNER);
 	if (g_pGate) g_pGate->Lock();
 	// The furnace lever, mounted on the chamber's left wall.
@@ -145,9 +148,13 @@ global func FxEscapeRoomTimer(object target, int effect, int timer)
 	// deterministic kick (EscapeFurnaceSmoke-proven); re-blasting every
 	// tick would re-churn the settled debris.
 
-	// Solved predicate: the plug ROI is "mostly gone" (the melt is
-	// progressive; threshold shared with EscapeFurnaceSmoke).
-	if (g_bFurnace && g_pGate && g_pGate->IsLocked())
+	// Solved predicate: the doorway ROI is "mostly gone" - the unified
+	// win. Both paths feed it: the furnace melt (progressive; threshold
+	// shared with EscapeFurnaceSmoke) and the pick chisel (DigFreeRect
+	// clears the plug outright); whichever clears the doorway opens
+	// the gate, so the intro's chisel alternative is a true win.
+	// The lever->lava mechanism above is untouched by this check.
+	if (g_pGate && g_pGate->IsLocked())
 	{
 		var iSnow = CountMatRegion(Material("Snow"),
 		                          PLUG_ROI_X1, PLUG_ROI_Y1, PLUG_ROI_X2, PLUG_ROI_Y2);

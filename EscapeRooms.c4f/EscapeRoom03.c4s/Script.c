@@ -16,13 +16,23 @@
 /*    ceiling y[120,125]                                            */
 /*    x[350,358] left wall (entry door at ground level y[176,200]) */
 /*    shaft towers x[558,570] and x[650,662], shaft interior       */
-/*    x[570,650]: sand column x[590,630] y[156,236], keystone      */
+/*    x[570,650]: sand column x[594,626] y[156,236], keystone      */
 /*    x[558,662] y[236,244], undercroft cavity + sump pit below    */
 /*    chamber floor y[306,312]                                     */
 /*                                                                  */
 /* The gate stands at the shaft top on a platform capping the      */
 /* shaft; when sand clears AND the key has been used, the director */
 /* opens it and the room wins (last room: replay button only).     */
+/*                                                                  */
+/* Sizing note (cycle-147 FIX-NOW): the column was narrowed from   */
+/* 40px to 32px (x[590,630] -> x[594,626]) so the flint's 36px     */
+/* blast hole (Explode(18) at the keystone band) spans the WHOLE   */
+/* column - no support lip survives under it. A room-scale probe   */
+/* of the original 40px column showed a seed-fragile hang (choke   */
+/* residual 40..61 vs the 50 win bound; seed 42 read 61), the R2   */
+/* "2px-lip" arch class at player scale. With the 32px column the  */
+/* blast and dig paths both drain the choke into the sump within   */
+/* the smoke horizon with margin (fixnow-room03-{blast,dig}.txt).  */
 
 #strict 2
 
@@ -73,7 +83,9 @@ protected func Initialize()
 
 	// --- The choke: sandstone keystone shelf + static sand column --
 	DrawMaterialQuad("Sandstone", 558, 236, 662, 236, 662, 244, 558, 244);
-	DrawMaterialQuad("Sand", 590, 156, 630, 156, 630, 236, 590, 236);
+	// 32px column (see sizing note in the header): narrower than the
+	// flint's 36px blast so no support lip survives the undercut.
+	DrawMaterialQuad("Sand", 594, 156, 626, 156, 626, 236, 594, 236);
 
 	// --- The undercroft: cavity + sump pit below the keystone -----
 	// FreeRect (not DigFreeRect): the pit must cut through the rock

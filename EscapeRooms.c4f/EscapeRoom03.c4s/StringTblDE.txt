@@ -1,5 +1,5 @@
-MsgIntro=Eine Säule aus Sand versperrt den Ausgangsschacht. Hole den Fluchttürschlüssel aus der Gruft unter dem Sandstein-Tragwerk – dann untergrabe das Tragwerk: Grab es langsam und sicher aus oder spreng es mit dem Feuerstein: Der Sand ergießt sich in die Grube.
-MsgKeyHint=Das Sandbett ist leer – aber das Tor gehorcht nur noch seinem Schlüssel.
+MsgIntro=Eine Säule aus Sand versperrt den Ausgangsschacht. Hole den Fluchttürschlüssel aus der Gruft unter dem Sandstein-Tragwerk – drücke dann [Benutzen], um ihn am Tor zu probieren. Untergrabe das Tragwerk: Grab es langsam und sicher aus oder spreng es mit dem Feuerstein: Der Sand ergießt sich in die Grube.
+MsgKeyHint=Das Sandbett ist leer – aber das Tor gehorcht nur noch seinem Schlüssel. Drücke [Benutzen], um den Schlüssel am Tor zu probieren.
 MsgSolved=Der Sand ist abgeflossen und das Ausgangstor steht offen.
 BtnReplay=&Wiederholen
 BtnReplayDesc=Der Sog der Tiefe, noch einmal.
