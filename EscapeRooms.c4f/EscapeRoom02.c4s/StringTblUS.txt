@@ -1,0 +1,7 @@
+MsgIntro=The furnace is cold and the way out is sealed by snow. Throw the lever to stoke the furnace -- fire will melt the plug. (A clonk with a pick can chisel straight through the snow instead.)
+MsgFurnace=The furnace roars to life. The snow plug begins to melt.
+MsgSolved=The snow plug has melted -- the exit gate stands open.
+BtnReplay=&Replay
+BtnReplayDesc=The Furnace, once more.
+BtnNext=Escape Room 03: The Undertow
+BtnNextDesc=Enter the next chamber.

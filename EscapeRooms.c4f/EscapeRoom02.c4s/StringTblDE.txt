@@ -1,0 +1,7 @@
+MsgIntro=Der Ofen ist kalt und der Ausgang ist von Schnee versiegelt. Wirf den Hebel, um den Ofen anzuheizen – die Glut schmilzt den Pfropfen. (Ein Clonk mit Spitzhacke kann auch direkt durch den Schnee graben.)
+MsgFurnace=Der Ofen brüllt auf. Der Schneepfropfen beginnt zu schmelzen.
+MsgSolved=Der Schneepfropfen ist geschmolzen – das Ausgangstor steht offen.
+BtnReplay=&Wiederholen
+BtnReplayDesc=Der Ofen, noch einmal.
+BtnNext=Escape Room 03: Der Sog der Tiefe
+BtnNextDesc=Betritt die nächste Kammer.

@@ -1,0 +1,45 @@
+[Head]
+Title=EscapeRoom02
+Version=1
+Difficulty=10
+MaxPlayer=2
+Origin=EscapeRooms.c4f\EscapeRoom02.c4s
+SkipPregameOptions=1
+
+[Definitions]
+Definition1=Objects.c4d
+; Definition2=Helpers.c4d is intentionally ABSENT: a bare module name
+; resolves against the content search paths only (C4Group::Open at
+; C4GameParameters.cpp:198-206), so a folder-local Helpers.c4d would fail
+; the load. The engine's FoldersWithLocalsDefs (C4Game.cpp:4290) auto-adds
+; this pack folder (it contains .c4d defs), giving EGAT/ERLV/ERKY the
+; folder-local resolution priority (Knights.c4f precedent).
+
+[Game]
+StructNeedEnergy=0
+
+[Landscape]
+MapWidth=100
+MapHeight=40
+MapZoom=10
+Material=Earth
+Sky=Clouds2
+
+[Weather]
+Climate=100,0
+StartSeason=50,0
+YearSpeed=20
+Wind=0
+
+[Disasters]
+Meteorite=0
+Volcano=0
+Earthquake=0
+
+[Player1]
+Position=12,40
+Crew=CLNK=1
+
+[Player2]
+Position=12,40
+Crew=CLNK=1
