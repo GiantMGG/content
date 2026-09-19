@@ -31,9 +31,6 @@ Meteorite=0
 Volcano=0
 Earthquake=0
 
-[WeatherEvents]
-Event=SNDT=10;0;100
-
 [Player1]
 Position=10,40
 Crew=CLNK=2

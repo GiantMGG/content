@@ -39,9 +39,19 @@ protected func Initialize()
 	CreateObject(DATP, 90,  GroundY(90)  - 10, NO_OWNER);
 	CreateObject(DATP, 115, GroundY(115) - 10, NO_OWNER);
 	CreateObject(DATP, 240, GroundY(240) - 10, NO_OWNER);
-	// The failing oasis basin and the sandstone quarry (both self-ticking).
+	// The failing oasis basin (self-ticking) and the sandstone quarry.
+	// A sandstone outcrop veins the surface here (visible in-game), so
+	// the quarry's probe (its position +4px) reads Sandstone -- without
+	// it the prep goal is unwinnable (critic FIXNOW-1, cycle 146).
 	CreateObject(OASS, 220, GroundY(220) - 6, NO_OWNER);
-	CreateObject(QRRY, 380, GroundY(380) - 10, NO_OWNER);
+	var qy = GroundY(380);
+	DrawMaterialQuad("Sandstone", 340, qy - 6, 420, qy - 6, 420, qy + 12, 340, qy + 12, false);
+	var quarry = CreateObject(QRRY, 380, qy - 4, NO_OWNER);
+	// Permanent placement-defect pin: the quarry probe MUST sit in the
+	// painted vein. This logs if a future map/placement edit breaks it.
+	if (quarry)
+		if (quarry->GetMaterial(0, 4) != Material("Sandstone"))
+			Log("Salt Road Act I: quarry not on sandstone (placement defect)");
 
 	Log("Salt Road Act I: the waiting storm begins.");
 	StoryMessage("$MsgIntro$");
