@@ -4,6 +4,7 @@ Version=1
 Difficulty=25
 MaxPlayer=1
 Origin=SaltRoad.c4f\SaltRoad02.c4s
+SkipPregameOptions=1
 
 [Definitions]
 Definition1=Objects.c4d
