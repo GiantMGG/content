@@ -95,7 +95,12 @@ global func SaltRoad_SpawnQueen(int iX, int iY)
 	var queen = CreateObject(SCRP, iX, iY, NO_OWNER);
 	if (!queen) return nil;
 	queen->SetObjDrawTransform(2500, 0, 0, 0, 2500, 0);
-	queen->SetColorDw(RGB(150, 100, 40));
+	// Amber tint via draw modulation: the Color property is color-by-owner
+	// gated and wiped on every graphics update for SCRP (C4Object::
+	// UpdateGraphics), so SetColorDw would silently no-op. SetClrModulation
+	// tints at draw time regardless of the def's ColorByOwner flag and is
+	// readable back (GetClrModulation) for the story smoke.
+	queen->SetClrModulation(RGB(150, 100, 40));
 	queen->SetPhysical("Energy", 120000, 2);
 	queen->SetPhysical("Fight", 60000, 2);
 	queen->DoEnergy(90000);
