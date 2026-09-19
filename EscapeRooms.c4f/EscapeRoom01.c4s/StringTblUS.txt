@@ -1,0 +1,6 @@
+MsgIntro=The way out is sealed. A cistern hangs above you; its floor is a plug of sand. Dig it out with your shovel or blast it with the flint -- the water will plunge into the rock basin and open the gate.
+MsgSolved=The water thunders into the basin -- the exit gate stands open.
+BtnReplay=&Replay
+BtnReplayDesc=The Siphon, once more.
+BtnNext=Escape Room 02: The Furnace
+BtnNextDesc=Enter the next chamber.

@@ -1,0 +1,6 @@
+MsgIntro=Der Ausgang ist verschlossen. Über dir hängt eine Zisterne, ihr Boden ist ein Pfropfen aus Sand. Grabe ihn mit der Schaufel weg oder sprenge ihn mit dem Feuerstein – das Wasser stürzt in das Felsbecken und öffnet das Tor.
+MsgSolved=Das Wasser rauscht in das Becken – das Ausgangstor steht offen.
+BtnReplay=&Wiederholen
+BtnReplayDesc=Der Siphon, noch einmal.
+BtnNext=Escape Room 02: Der Ofen
+BtnNextDesc=Betritt die nächste Kammer.
