@@ -32,10 +32,17 @@ protected func Initialize()
 	CreateObject(SNDS, 340, GroundY(340) - 10, NO_OWNER);
 	// The far station cairn marks the arrival end of the map.
 	CreateObject(SNDS, LandscapeWidth() - 60, GroundY(LandscapeWidth() - 60) - 10, NO_OWNER);
+	// Wadi quicksand (spec §Act 2, review F3): fixed QKSD patches on the
+	// slow corridor. The patches sit between the wadi waypoints (380/560,
+	// 560/740, 920/1100) so the caravan crosses them, and QKSD self-timers
+	// its Sink() call (DefCore Timer=4) -- no script upkeep needed.
+	CreateObject(QKSD, 470, GroundY(470) - 2, NO_OWNER);
+	CreateObject(QKSD, 650, GroundY(650) - 2, NO_OWNER);
+	CreateObject(QKSD, 1010, GroundY(1010) - 2, NO_OWNER);
 
 	Log("Salt Road Act II: the dune sea opens.");
-	StoryMessage("Two roads east: the high ridge, or the wadi. Walk to a cairn to choose.");
-	SetNextMission("SaltRoad.c4f\\SaltRoad02.c4s", "Replay Act II", "The Dune Sea, once more.");
+	StoryMessage("$MsgIntro$");
+	SetNextMission("SaltRoad.c4f\\SaltRoad02.c4s", "$BtnReplayActII$", "$BtnReplayActIIDesc$");
 	AddEffect("SaltRoadAct", 0, 1, 35, 0);
 	return true;
 }
@@ -73,9 +80,9 @@ global func ChooseRoute(int route)
 	for (camel in FindObjects(Find_ID(CAML)))
 		SaltRoad_StartCaravan(camel, waypoints);
 	if (route == 1)
-		StoryMessage("The high ridge: fast going, but the wind owns it. Dig buried camels free!");
+		StoryMessage("$MsgRidge$");
 	else
-		StoryMessage("The wadi: slow ground, quicksand, and worse things waiting.");
+		StoryMessage("$MsgWadi$");
 }
 
 global func LeadCamelX()
@@ -95,17 +102,26 @@ global func AmbushCheck()
 		var x = thresholds[g_iAmbushIdx];
 		SaltRoad_SpawnRaid(x, GroundY(x) - 40, 2);
 		g_iAmbushIdx++;
-		StoryMessage("Ambush! Scorpions in the sand!");
+		StoryMessage("$MsgAmbush$");
 	}
 }
 
 global func FxSaltRoadActTimer(target, effect, time)
 {
+	// Win re-check (review F1): same soft-lock seam as Act I -- a camel
+	// killed in transit after the first arrival never fires another
+	// callback, so poll completion here every director tick.
+	if (g_iPhase < 2 && g_iArrived > 0 && g_iArrived >= ObjectCount(CAML))
+	{
+		g_iPhase = 2;
+		return CaravanComplete();
+	}
+
 	// Defeat watch: the caravan is dead, the crossing is lost.
 	if (g_iPhase < 2 && ObjectCount(CAML) == 0)
 	{
 		g_iPhase = 2;
-		StoryMessage("The caravan is lost beneath the dunes.");
+		StoryMessage("$MsgDefeat$");
 		GameOver();
 		return FX_OK;
 	}
@@ -130,12 +146,24 @@ global func FxSaltRoadActTimer(target, effect, time)
 		if (!g_iStormDone && LeadCamelX() > LandscapeWidth() / 2)
 		{
 			g_iStormDone = 1;
-			StoryMessage("The sky turns ochre. The storm is on you!");
+			StoryMessage("$MsgStorm$");
 			LaunchWeatherEvent(SNDT, 50, 1400);
 		}
 		if (g_iRoute == 2) AmbushCheck();
 	}
 	return FX_OK;
+}
+
+// The single Act-II victory: message, next-mission button and game over.
+// Called from the arrival callback and the director's win re-check
+// (review F1). global, not private: bare-name called from the director.
+global func CaravanComplete()
+{
+	g_iPhase = 2;
+	StoryMessage("$MsgActComplete$");
+	SetNextMission("SaltRoad.c4f\\SaltRoad03.c4s", "$BtnNextActIII$", "$BtnNextActIIIDesc$");
+	GameOver();
+	return true;
 }
 
 // Arrival callback (GameCall from the caravan puppet, Camel.c4d).
@@ -144,12 +172,6 @@ global func FxSaltRoadActTimer(target, effect, time)
 global func SaltRoadCaravanArrived(object camel)
 {
 	g_iArrived++;
-	if (g_iArrived >= ObjectCount(CAML))
-	{
-		g_iPhase = 2;
-		StoryMessage("Act II complete: the caravan is across the dune sea.");
-		SetNextMission("SaltRoad.c4f\\SaltRoad03.c4s", "Act III: The Queen's Toll", "The narrows, and what waits there.");
-		GameOver();
-	}
+	if (g_iArrived >= ObjectCount(CAML)) return CaravanComplete();
 	return true;
 }

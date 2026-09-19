@@ -1,0 +1,5 @@
+MsgIntro=Der Tribut der Königin: zehn Datteln auf ihren Schrein – oder ihr Stachel, wenn du dich traust.
+MsgTollPaid=Der Tribut ist entrichtet. Die Königin zieht sich in die Dunkelheit zurück.
+MsgQueenSlain=Die Königin ist gefallen. Der Pass ist offen.
+BtnReplayActIII=Akt III &wiederholen
+BtnReplayActIIIDesc=Der Tribut der Königin, noch einmal.

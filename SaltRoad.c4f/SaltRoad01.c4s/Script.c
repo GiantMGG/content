@@ -8,18 +8,28 @@
 static g_iPhase;       // 0 prep, 1 raid, 2 caravan, 3 done
 static g_iRaidWaves;   // raid waves launched so far
 static g_iRaidClock;   // director ticks since the last wave
+static g_iRaidKills;   // kill-confirmed scorpion deaths since the raid began
+static g_iRaidLastLive;// live SCRP count at the last director tick (kill-watch baseline)
+static g_iRaidSpawned; // scorpions spawned by the scripted waves
+static g_iRaidStall;   // grace clock: director ticks with no kill after the last wave
 static g_iArrived;     // camels through the departure gate
 
 static const SALTROAD1_DATES  = 6;    // dates stocked at camp
 static const SALTROAD1_BLOCKS = 4;    // SNDS braced at the well
 static const SALTROAD1_DUSK   = 2100; // dusk in frames (~60 director steps; effect `time` counts frames, DuneBurialSmoke `time>=175` precedent)
 static const SALTROAD1_WAVES  = 4;    // raid waves per night
+static const SALTROAD1_STALL  = 45;   // grace bound (director ticks, ~40s): re-command any raiders back to the camp
+static const SALTROAD1_STALL_HARD = 90;  // hard bound (~80s): no last raider in reach, advance and log it
 
 protected func Initialize()
 {
 	g_iPhase = 0;
 	g_iRaidWaves = 0;
 	g_iRaidClock = 0;
+	g_iRaidKills = 0;
+	g_iRaidLastLive = 0;
+	g_iRaidSpawned = 0;
+	g_iRaidStall = 0;
 	g_iArrived = 0;
 
 	// The caravan-to-be: two camels at the camp.
@@ -34,9 +44,9 @@ protected func Initialize()
 	CreateObject(QRRY, 380, GroundY(380) - 10, NO_OWNER);
 
 	Log("Salt Road Act I: the waiting storm begins.");
-	StoryMessage("The oasis is failing. Stock the camp with dates, brace the well with sandstone, and keep the basin wet before dusk.");
+	StoryMessage("$MsgIntro$");
 	// Repeat-self button (Tutorial01 pattern).
-	SetNextMission("SaltRoad.c4f\\SaltRoad01.c4s", "Replay Act I", "The Waiting Storm, once more.");
+	SetNextMission("SaltRoad.c4f\\SaltRoad01.c4s", "$BtnReplayActI$", "$BtnReplayActIDesc$");
 	AddEffect("SaltRoadAct", 0, 1, 35, 0);
 	return true;
 }
@@ -95,11 +105,22 @@ global func PrepGoalFilled()
 
 global func FxSaltRoadActTimer(target, effect, time)
 {
+	// Win re-check (review F1): the win condition used to live only in the
+	// arrival callback -- if the second camel was killed in transit, no
+	// further callback ever fired and the act soft-locked forever. Poll it
+	// here every director tick: some camel arrived AND every surviving
+	// camel has arrived => the crossing is complete.
+	if (g_iPhase < 3 && g_iArrived > 0 && g_iArrived >= ObjectCount(CAML))
+	{
+		g_iPhase = 3;
+		return CaravanComplete();
+	}
+
 	// Defeat watch: no camels left means no caravan, no Salt Road.
 	if (g_iPhase < 3 && ObjectCount(CAML) == 0)
 	{
 		g_iPhase = 3;
-		StoryMessage("The camels are lost. The Salt Road ends here.");
+		StoryMessage("$MsgDefeat$");
 		GameOver();
 		return FX_OK;
 	}
@@ -110,7 +131,7 @@ global func FxSaltRoadActTimer(target, effect, time)
 		{
 			g_iPhase = 1;
 			g_iRaidClock = 0;
-			StoryMessage("Dusk. The sand stirs -- scorpions!");
+			StoryMessage("$MsgDusk$");
 			// Sky-fade warning pulse (short, low intensity).
 			LaunchWeatherEvent(SNDT, 40, 350);
 		}
@@ -119,21 +140,81 @@ global func FxSaltRoadActTimer(target, effect, time)
 	{
 		g_iRaidClock += 35;
 		var live = ObjectCount(SCRP);
+
+		// Kill-confirmation watch (review F2): count confirmed scorpion
+		// deaths since the raid began, as the fall in the on-map count
+		// since the last tick. A same-tick scripted wave spawn net-zeroes;
+		// the baseline is re-snapshotted after every spawn below.
+		if (live < g_iRaidLastLive)
+		{
+			g_iRaidKills += g_iRaidLastLive - live;
+			g_iRaidStall = 0;   // progress: reset the stall grace clock
+		}
+		g_iRaidLastLive = live;
+
 		if (g_iRaidWaves < SALTROAD1_WAVES && g_iRaidClock >= 180 && live < 4)
 		{
 			var rx = LandscapeWidth() / 2;
-			SaltRoad_SpawnRaid(rx, GroundY(rx) - 40, 4 - live);
+			g_iRaidSpawned += SaltRoad_SpawnRaid(rx, GroundY(rx) - 40, 4 - live);
 			g_iRaidWaves++;
 			g_iRaidClock = 0;
+			g_iRaidLastLive = ObjectCount(SCRP);  // post-spawn baseline
 		}
-		if (g_iRaidWaves >= SALTROAD1_WAVES && ObjectCount(SCRP) == 0 && PrepGoalFilled())
+
+		// Raid-clear gate (review F2): the old `ObjectCount(SCRP) == 0`
+		// test stalled forever when one scorpion got trapped in terrain the
+		// player cannot reach (quarry pit, oasis basin, outcrop pocket).
+		// Advance on a kill-confirmed counter -- every scripted raider fell
+		// -- with a bounded grace fallback for unreachable remainder.
+		if (g_iRaidWaves >= SALTROAD1_WAVES && PrepGoalFilled())
 		{
-			g_iPhase = 2;
-			StartCaravan();
-			StoryMessage("The raid is broken. The caravan rides east at dawn.");
+			if (g_iRaidKills >= g_iRaidSpawned)
+			{
+				g_iRaidStall = 0;
+				CaravanDeparts();
+			}
+			else
+			{
+				g_iRaidStall++;
+				if (g_iRaidStall >= SALTROAD1_STALL)
+					RecommandRaiders();
+				if (g_iRaidStall >= SALTROAD1_STALL_HARD)
+				{
+					Log(Format("Salt Road Act I: raid cleared by grace period -- %d/%d raiders confirmed dead, the remainder unreachable. Caravan departs.", g_iRaidKills, g_iRaidSpawned));
+					CaravanDeparts();
+				}
+			}
+		}
+		else
+		{
+			g_iRaidStall = 0;
 		}
 	}
 	return FX_OK;
+}
+
+// Global, not private: bare-name called from the global effect director
+// FxSaltRoadActTimer (func-map lesson, FirstLight.c4s precedent).
+global func CaravanDeparts()
+{
+	g_iPhase = 2;
+	StartCaravan();
+	StoryMessage("$MsgRaidBroken$");
+	return true;
+}
+
+// The raid broke, but a stray scorpion may be stuck somewhere the player
+// cannot even see. Re-command every survivor to Attack the nearest target
+// so terrain-trapped raiders path out of their pocket (review F2).
+global func RecommandRaiders()
+{
+	var scorpion;
+	for (scorpion in FindObjects(Find_ID(SCRP)))
+	{
+		var victim = SaltRoad_NearestVictim(GetX(scorpion), GetY(scorpion));
+		if (victim) SetCommand(scorpion, "Attack", victim);
+	}
+	return true;
 }
 
 // global, not private: bare-name called from the global effect director
@@ -145,17 +226,25 @@ global func StartCaravan()
 		SaltRoad_StartCaravan(camel, [LandscapeWidth() - 120]);
 }
 
+// The single Act-I victory: message, next-mission button and game over.
+// Called from the arrival callback and from the director's win re-check
+// (review F1), so a straggler death after the first arrival still ends
+// the act. global, not private: bare-name called from the global director.
+global func CaravanComplete()
+{
+	g_iPhase = 3;
+	StoryMessage("$MsgActComplete$");
+	SetNextMission("SaltRoad.c4f\\SaltRoad02.c4s", "$BtnNextActII$", "$BtnNextActIIDesc$");
+	GameOver();
+	return true;
+}
+
 // Arrival callback (GameCall from the caravan puppet, Camel.c4d).
 // global, not private: the puppet's global func in Camel.c4d resolves
 // GameCall targets through the engine global map (func-map lesson).
 global func SaltRoadCaravanArrived(object camel)
 {
 	g_iArrived++;
-	if (g_iArrived >= ObjectCount(CAML))
-	{
-		StoryMessage("Act I complete: the caravan is provisioned and away.");
-		SetNextMission("SaltRoad.c4f\\SaltRoad02.c4s", "Act II: The Dune Sea", "Ride with the caravan into the dune sea.");
-		GameOver();
-	}
+	if (g_iArrived >= ObjectCount(CAML)) return CaravanComplete();
 	return true;
 }

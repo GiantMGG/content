@@ -1,0 +1,5 @@
+MsgIntro=The queen's toll: ten dates on her shrine -- or her sting, if you dare.
+MsgTollPaid=The toll is paid. The queen withdraws into the dark.
+MsgQueenSlain=The queen is slain. The pass is open.
+BtnReplayActIII=&Replay Act III
+BtnReplayActIIIDesc=The Queen's Toll, once more.

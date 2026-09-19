@@ -1,0 +1,11 @@
+MsgIntro=Zwei Wege nach Osten: der hohe Kamm oder das Wadi. Geh zu einem Steinhügel, um zu wählen.
+MsgRidge=Der hohe Kamm: zügiges Vorankommen, doch der Wind gehört ihm. Grabe verschüttete Kamele frei!
+MsgWadi=Das Wadi: schwerer Boden, Treibsand und Schlimmeres wartet dort.
+MsgStorm=Der Himmel wird ocker. Der Sturm ist über euch!
+MsgAmbush=Hinterhalt! Skorpione im Sand!
+MsgActComplete=Akt II geschafft: Die Karawane hat das Dünenmeer überquert.
+MsgDefeat=Die Karawane ist unter den Dünen verloren.
+BtnReplayActII=Akt II &wiederholen
+BtnReplayActIIDesc=Das Dünenmeer, noch einmal.
+BtnNextActIII=Akt III: Der Tribut der Königin
+BtnNextActIIIDesc=Die Enge – und was dort wartet.

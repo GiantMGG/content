@@ -72,6 +72,10 @@ private func MaxAnimalCount() { return 6; }
 
 // Spawn up to iCount SCRP at (iX, iY), Attack-commanded onto the nearest
 // clonk or camel. Returns the number actually spawned.
+// Spawn-embedding hardening (review F5): the SCRP 20x12 shape embeds into
+// slopes/outcrops when the terrain rises into the spawn column, which
+// leaves an immobile-unreachable raider -- an Act I raid-gate stall. Every
+// spawn nudge picks a free-stance column and spawns a few px higher.
 global func SaltRoad_SpawnRaid(int iX, int iY, int iCount)
 {
 	var victim = SaltRoad_NearestVictim(iX, iY);
@@ -79,12 +83,36 @@ global func SaltRoad_SpawnRaid(int iX, int iY, int iCount)
 	var i;
 	for (i = 0; i < iCount; i++)
 	{
-		var scrp = CreateObject(SCRP, iX + Random(41) - 20, iY - Random(11), NO_OWNER);
+		var sy = iY - 6 - Random(15);
+		var sx = SaltRoad_FreeStanceX(iX + Random(41) - 20, sy);
+		var scrp = CreateObject(SCRP, sx, sy, NO_OWNER);
 		if (!scrp) break;
 		if (victim) SetCommand(scrp, "Attack", victim);
 		spawned++;
 	}
 	return spawned;
+}
+
+// Pick the nearest horizontal position to (x, y) whose 20px-wide SCRP
+// stance clears solid terrain (review F5): a spawn whose GroundY was
+// sampled at the group leader's column can sit inside a rising slope or
+// outcrop at its own column. Try 0, then 10px/20px neighbours on both
+// sides; return the first column whose head-to-foot box is open air.
+// Falls back to the requested column when every candidate cuts into
+// terrain (e.g. cliff faces).
+global func SaltRoad_FreeStanceX(int x, int y)
+{
+	var offsets = [0, -10, 10, -20, 20];
+	var i, cx;
+	for (i = 0; i < GetLength(offsets); i++)
+	{
+		cx = x + offsets[i];
+		if (!GBackSolid(cx - 8, y - 8) && !GBackSolid(cx, y - 8) && !GBackSolid(cx + 8, y - 8)
+		 && !GBackSolid(cx - 8, y - 4) && !GBackSolid(cx, y - 4) && !GBackSolid(cx + 8, y - 4)
+		 && !GBackSolid(cx - 8, y) && !GBackSolid(cx, y) && !GBackSolid(cx + 8, y))
+			return cx;
+	}
+	return x;
 }
 
 // The queen of the toll: 2.5x draw-scaled, amber-tinted, boss-physicals.
@@ -117,7 +145,10 @@ global func SaltRoad_QueenBrood(object queen)
 {
 	if (!queen) return 0;
 	if (ObjectCount(SCRP) >= 6) return 0;
-	var minion = CreateObject(SCRP, GetX(queen) - 20 + Random(41), GetY(queen) - 10, NO_OWNER);
+	// Free-stance nudge (review F5), same embed risk as the raids above.
+	var sy = GetY(queen) - 10 - Random(6);
+	var sx = SaltRoad_FreeStanceX(GetX(queen) - 20 + Random(41), sy);
+	var minion = CreateObject(SCRP, sx, sy, NO_OWNER);
 	if (!minion) return 0;
 	var victim = SaltRoad_NearestVictim(GetX(queen), GetY(queen));
 	if (victim) SetCommand(minion, "Attack", victim);
@@ -133,7 +164,7 @@ global func SaltRoad_Ending()
 	return true;
 }
 
-// Nearest uncontained clonk or camel to (iX, iY) -- raid targeting.
+// Nearest uncontained live clonk or camel to (iX, iY) -- raid targeting.
 // (global, not private: bare-name calls from the global raid/brood funcs
 // resolve through the engine's global scope in this engine -- a local
 // helper is not visible from a global func's scope.)
@@ -144,11 +175,15 @@ global func SaltRoad_NearestVictim(int iX, int iY)
 	var obj;
 	for (obj in FindObjects(Find_ID(CLNK), Find_NoContainer()))
 	{
+		// Liveness filter (review F6): dead clonks linger as corpses, and
+		// Attack-commanding a far-away body wastes a raid wave.
+		if (!GetAlive(obj)) continue;
 		var dist = Abs(GetX(obj) - iX) + Abs(GetY(obj) - iY);
 		if (dist < best_dist) { best_dist = dist; best = obj; }
 	}
 	for (obj in FindObjects(Find_ID(CAML), Find_NoContainer()))
 	{
+		if (!GetAlive(obj)) continue;
 		var dist = Abs(GetX(obj) - iX) + Abs(GetY(obj) - iY);
 		if (dist < best_dist) { best_dist = dist; best = obj; }
 	}

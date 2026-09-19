@@ -1,0 +1,9 @@
+MsgIntro=Die Oase versiegt. Fülle das Lager mit Datteln, stütze den Brunnen mit Sandstein und halte das Becken vor Einbruch der Dämmerung nass.
+MsgDusk=Dämmerung. Der Sand kribbelt – Skorpione!
+MsgRaidBroken=Der Angriff ist abgewehrt. Bei Sonnenaufgang zieht die Karawane nach Osten.
+MsgActComplete=Akt I geschafft: Die Karawane ist versorgt und unterwegs.
+MsgDefeat=Die Kamele sind verloren. Hier endet die Salzstraße.
+BtnReplayActI=Akt I &wiederholen
+BtnReplayActIDesc=Der wartende Sturm, noch einmal.
+BtnNextActII=Akt II: Das Dünenmeer
+BtnNextActIIDesc=Reite mit der Karawane ins Dünenmeer.

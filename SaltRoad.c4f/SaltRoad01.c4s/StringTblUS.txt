@@ -1,0 +1,9 @@
+MsgIntro=The oasis is failing. Stock the camp with dates, brace the well with sandstone, and keep the basin wet before dusk.
+MsgDusk=Dusk. The sand stirs -- scorpions!
+MsgRaidBroken=The raid is broken. The caravan rides east at dawn.
+MsgActComplete=Act I complete: the caravan is provisioned and away.
+MsgDefeat=The camels are lost. The Salt Road ends here.
+BtnReplayActI=&Replay Act I
+BtnReplayActIDesc=The Waiting Storm, once more.
+BtnNextActII=Act II: The Dune Sea
+BtnNextActIIDesc=Ride with the caravan into the dune sea.

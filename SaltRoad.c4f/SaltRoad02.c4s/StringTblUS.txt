@@ -1,0 +1,11 @@
+MsgIntro=Two roads east: the high ridge, or the wadi. Walk to a cairn to choose.
+MsgRidge=The high ridge: fast going, but the wind owns it. Dig buried camels free!
+MsgWadi=The wadi: slow ground, quicksand, and worse things waiting.
+MsgStorm=The sky turns ochre. The storm is on you!
+MsgAmbush=Ambush! Scorpions in the sand!
+MsgActComplete=Act II complete: the caravan is across the dune sea.
+MsgDefeat=The caravan is lost beneath the dunes.
+BtnReplayActII=&Replay Act II
+BtnReplayActIIDesc=The Dune Sea, once more.
+BtnNextActIII=Act III: The Queen's Toll
+BtnNextActIIIDesc=The narrows, and what waits there.

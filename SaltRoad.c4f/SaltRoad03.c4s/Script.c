@@ -31,8 +31,8 @@ protected func Initialize()
 	SaltRoad_SpawnQueen(LandscapeWidth() / 2, GroundY(LandscapeWidth() / 2) - 20);
 
 	Log("Salt Road Act III: the queen's toll awaits.");
-	StoryMessage("The queen's toll: ten dates on her shrine -- or her sting, if you dare.");
-	SetNextMission("SaltRoad.c4f\\SaltRoad03.c4s", "Replay Act III", "The Queen's Toll, once more.");
+	StoryMessage("$MsgIntro$");
+	SetNextMission("SaltRoad.c4f\\SaltRoad03.c4s", "$BtnReplayActIII$", "$BtnReplayActIIIDesc$");
 	AddEffect("SaltRoadAct", 0, 1, 35, 0);
 	return true;
 }
@@ -90,14 +90,14 @@ global func FxSaltRoadActTimer(target, effect, time)
 	// PAY: the shrine offering is complete.
 	if (ShrineOfferings() >= SALTROAD3_TOLL)
 	{
-		StoryMessage("The toll is paid. The queen withdraws into the dark.");
+		StoryMessage("$MsgTollPaid$");
 		return Ending();
 	}
 
 	// FIGHT: the queen has fallen.
 	if (!FindQueen())
 	{
-		StoryMessage("The queen is slain. The pass is open.");
+		StoryMessage("$MsgQueenSlain$");
 		return Ending();
 	}
 	return FX_OK;
