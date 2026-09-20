@@ -15,7 +15,7 @@ static g_pClonk;       // the crew clonk under test
 static g_pFlint;       // the flint it holds
 static g_fSpuriousDig; // saw procedure DIG after the release
 
-static func PrepareSite()
+func PrepareSite()
 {
 	// Solid earth floor, top edge at y=280, under the whole test site
 	DrawMaterialQuad("Earth", 380, 280, 620, 280, 620, 320, 380, 320, false);
