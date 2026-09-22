@@ -35,6 +35,9 @@ public func Attract()
 	for (var pFish in FindObjects(Find_Distance(15), Find_ID(FISH), Find_Action("Swim")))
 	{
 		if (fish_count >= 4) break;
+		// Skip fish already inside a container (e.g. this trap): a wild
+		// fish swimming past has Contained() == nil and still gets caught.
+		if (pFish->Contained()) continue;
 		Enter(this, pFish);
 		fish_count++;
 		// Positional splash as the fish slips into the trap
