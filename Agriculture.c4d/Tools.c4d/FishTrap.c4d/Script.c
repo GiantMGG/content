@@ -37,6 +37,8 @@ public func Attract()
 		if (fish_count >= 4) break;
 		Enter(this, pFish);
 		fish_count++;
+		// Positional splash as the fish slips into the trap
+		Sound("FishCatch", false, this);
 	}
 	return(1);
 }

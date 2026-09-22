@@ -53,6 +53,8 @@ public func Harvest(object pClonk)
 		if (pClonk) pClonk->Collect(pSheaf);
 		else Exit(pSheaf, RandomX(-5, 5), -5);
 	}
+	// Positional chop at the sickle cut
+	Sound("HarvestChop", false, this);
 	RemoveObject();
 	return(1);
 }

@@ -81,6 +81,8 @@ private func Grinding()
 	// Output Flour (FLOU — the existing Knights item)
 	var pFlour = CreateObject(FLOU, 0, 0, GetOwner());
 	if (pFlour) Exit(pFlour, RandomX(-6, 6), -10);
+	// Positional grinding creak at the flour-production moment
+	Sound("MillGrind", false, this);
 	Sound("WoodHit*");
 	return(1);
 }

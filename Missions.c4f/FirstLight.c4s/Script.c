@@ -176,6 +176,8 @@ global func OpenMarket()
 	if (!pStall) return 0;
 	RegisterTradeGood(AGSF, pStall, 10);
 	RegisterTradeGood(FLOU, pStall, 10);
+	// The market bell announces the opening
+	Sound("MarketBell");
 	return 1;
 }
 
@@ -232,7 +234,7 @@ global func FxAuditTimer(target, effect, time)
 	// The ledger only counts once all four chapters have fired.
 	if (g_chapter < 5) return 1;
 	var green = HomesteadAudit();
-	if (green) Log("$MsgLedgerGreen$");
+	if (green) { Log("$MsgLedgerGreen$"); Sound("LedgerChime"); }
 	else Log("$MsgLedgerRed$");
 	if (g_green_audits >= 2) Log("$MsgWin$");
 	// The engine's goal polling picks up IsFulfilled via HMGL from here.
