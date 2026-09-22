@@ -1,7 +1,8 @@
 /*-- FirstLightSoundSmoke.c4s -- sound-wiring pin for FirstLight (cycle 164). --*/
 /* Mirrors FirstLightSmoke's four-ledger-leg driver, then pins the five     */
 /* wired sounds: the three Agriculture sounds must be registered at Init,   */
-/* and the two homestead sounds whenever Goal_Homestead.c4d loads.          */
+/* and the two homestead sounds must be registered via the Definition5      */
+/* Goal_Homestead.c4d resolution — all five sounds asserted unconditionally. */
 
 #strict 2
 
@@ -11,7 +12,6 @@ static g_mill_total;
 static g_flou_prev;
 static g_green_audits;
 static g_failed;        // any step FatalError'd (FatalError aborts the call)
-static g_homestead_loaded; // MarketBell sample registered -> goal def loaded
 
 protected func Initialize()
 {
@@ -22,7 +22,6 @@ protected func Initialize()
 	g_flou_prev = 0;
 	g_green_audits = 0;
 	g_failed = false;
-	g_homestead_loaded = false;
 	AddEffect("RunTest", 0, 1, 35, 0, 0);
 	return true;
 }
@@ -125,31 +124,34 @@ global func FxRunTestTimer(target, effect, time)
 	if (g_iStep == 1)
 	{
 		// sound-wiring pins: the three Agriculture sounds load with the
-		// defs; the two homestead sounds only if the goal def resolved.
+		// defs; the two homestead sounds resolve via Definition5
+		// (Goal_Homestead.c4d). All five asserted unconditionally.
 		var bMill = SoundExists("MillGrind");
 		var bChop = SoundExists("HarvestChop");
 		var bFish = SoundExists("FishCatch");
+		var bBell = SoundExists("MarketBell");
+		var bChime = SoundExists("LedgerChime");
 		// NOTE: `..` on a *false* bool errors in the engine ("can not convert
 		// any to string"), so bools are logged via explicit branches.
 		if (bMill) Log("FirstLightSoundSmoke SoundExists MillGrind=1"); else Log("FirstLightSoundSmoke SoundExists MillGrind=0");
 		if (bChop) Log("FirstLightSoundSmoke SoundExists HarvestChop=1"); else Log("FirstLightSoundSmoke SoundExists HarvestChop=0");
 		if (bFish) Log("FirstLightSoundSmoke SoundExists FishCatch=1"); else Log("FirstLightSoundSmoke SoundExists FishCatch=0");
+		if (bBell) Log("FirstLightSoundSmoke SoundExists MarketBell=1"); else Log("FirstLightSoundSmoke SoundExists MarketBell=0");
+		if (bChime) Log("FirstLightSoundSmoke SoundExists LedgerChime=1"); else Log("FirstLightSoundSmoke SoundExists LedgerChime=0");
 		if (!bMill || !bChop || !bFish)
 		{
 			g_failed = true;
 			FatalError("FirstLightSoundSmoke FAIL: step 1 - Agriculture sound not registered");
 		}
-		g_homestead_loaded = SoundExists("MarketBell");
-		if (g_homestead_loaded) Log("FirstLightSoundSmoke SoundExists MarketBell=1"); else Log("FirstLightSoundSmoke SoundExists MarketBell=0");
-		if (g_homestead_loaded)
+		if (!bBell)
 		{
-			var bChime = SoundExists("LedgerChime");
-			if (bChime) Log("FirstLightSoundSmoke SoundExists LedgerChime=1"); else Log("FirstLightSoundSmoke SoundExists LedgerChime=0");
-			if (!bChime)
-			{
-				g_failed = true;
-				FatalError("FirstLightSoundSmoke FAIL: step 1 - LedgerChime not registered");
-			}
+			g_failed = true;
+			FatalError("FirstLightSoundSmoke FAIL: step 1 - MarketBell not registered");
+		}
+		if (!bChime)
+		{
+			g_failed = true;
+			FatalError("FirstLightSoundSmoke FAIL: step 1 - LedgerChime not registered");
 		}
 	}
 
