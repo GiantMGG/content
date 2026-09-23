@@ -24,7 +24,7 @@ Material=Earth
 Sky=Clouds2
 
 [Weather]
-Climate=50,0
+Climate=0,0
 StartSeason=50,0
 YearSpeed=20
 Rain=0
