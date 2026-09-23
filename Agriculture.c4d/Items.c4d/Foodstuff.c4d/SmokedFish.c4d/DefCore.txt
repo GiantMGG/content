@@ -12,7 +12,7 @@ VertexY=0,-5,0,4
 Value=20
 Mass=10
 Components=FISH=1
-Picture=0,0,64,64
+Picture=0,0,16,12
 Edible=1
 Collectible=1
 Float=1
