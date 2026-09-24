@@ -13,7 +13,7 @@ VertexFriction=80,80,80,80
 Value=8
 Mass=10
 Components=WOOD=2;ROPE=1
-Picture=0,0,32,32
+Picture=0,0,16,16
 Timer=30
 TimerCall=CheckCatch
 Collectible=1

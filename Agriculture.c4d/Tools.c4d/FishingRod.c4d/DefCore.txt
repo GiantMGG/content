@@ -12,7 +12,7 @@ VertexFriction=80,80,80,80,80
 Value=10
 Mass=20
 Components=WOOD=1;ROPE=1
-Picture=0,0,40,32
+Picture=0,0,40,4
 Collectible=1
 Rebuy=1
 Rotate=1
