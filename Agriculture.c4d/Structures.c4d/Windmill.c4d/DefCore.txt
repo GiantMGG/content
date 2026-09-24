@@ -12,7 +12,7 @@ VertexY=-27,-28,-28,28,28
 VertexFriction=50,50,50,100,100
 Value=120
 Mass=1000
-Components=WOOD=6;METL=1;ROPE=1
+Components=WOOD=7;METL=1
 Picture=0,0,28,58
 Timer=10
 TimerCall=CheckWing
