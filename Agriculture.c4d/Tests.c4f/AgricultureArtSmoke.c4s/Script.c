@@ -36,6 +36,19 @@ func AssertPicture(id idDef, int iPx, int iPy, int iPw, int iPh, string szDef)
 		FatalError(Format("AgricultureArtSmoke FAIL: %s Picture mismatch", szDef));
 }
 
+func AssertAction(string szAction, id idDef, int iFx, int iFy, int iFw, int iFh, int iLen, int iDir, string szDef)
+{
+	if (GetActMapVal("Facet", szAction, idDef, 0) != iFx
+	 || GetActMapVal("Facet", szAction, idDef, 1) != iFy
+	 || GetActMapVal("Facet", szAction, idDef, 2) != iFw
+	 || GetActMapVal("Facet", szAction, idDef, 3) != iFh)
+		FatalError(Format("AgricultureArtSmoke FAIL: %s %s Facet mismatch", szDef, szAction));
+	if (GetActMapVal("Length", szAction, idDef) != iLen)
+		FatalError(Format("AgricultureArtSmoke FAIL: %s %s Length != %d", szDef, szAction, iLen));
+	if (GetActMapVal("Directions", szAction, idDef) != iDir)
+		FatalError(Format("AgricultureArtSmoke FAIL: %s %s Directions != %d", szDef, szAction, iDir));
+}
+
 func RunSmokeSteps()
 {
 	/* Step 0: lobster spawns + physical block tripwire + Picture. */
@@ -159,6 +172,56 @@ func RunSmokeSteps()
 	 || GetActMapVal("Facet", "Idle", AGAT, 2) != 24
 	 || GetActMapVal("Facet", "Idle", AGAT, 3) != 40)
 		FatalError("AgricultureArtSmoke FAIL step 8: Idle Facet mismatch");
+
+	/* Steps 9-18: cycle-168 Wave-A/Wave-B wiring pins — the ten defs. */
+	/* Landed Picture rects + ActMap facets pin the post-rewire numbers  */
+	/* (spec firstlight-visible; see waveA/waveB NOTES for deviations).  */
+	var pFT = CreateObject(AGFT, 350, 30, NO_OWNER);
+	if (!pFT) FatalError("AgricultureArtSmoke FAIL step 9: AGFT not spawned");
+	AssertPicture(AGFT, 0, 0, 20, 24, "AGFT");
+	AssertAction("Idle", AGFT, 0, 0, 20, 24, 1, 1, "AGFT");
+
+	var pSK = CreateObject(AGSK, 360, 30, NO_OWNER);
+	if (!pSK) FatalError("AgricultureArtSmoke FAIL step 10: AGSK not spawned");
+	AssertPicture(AGSK, 0, 0, 16, 12, "AGSK");
+
+	var pWS = CreateObject(AGWS, 370, 30, NO_OWNER);
+	if (!pWS) FatalError("AgricultureArtSmoke FAIL step 11: AGWS not spawned");
+	AssertPicture(AGWS, 0, 0, 8, 8, "AGWS");
+
+	var pSH = CreateObject(AGSH, 380, 30, NO_OWNER);
+	if (!pSH) FatalError("AgricultureArtSmoke FAIL step 12: AGSH not spawned");
+	AssertPicture(AGSH, 0, 0, 6, 12, "AGSH");
+
+	var pSF = CreateObject(AGSF, 390, 30, NO_OWNER);
+	if (!pSF) FatalError("AgricultureArtSmoke FAIL step 13: AGSF not spawned");
+	AssertPicture(AGSF, 0, 0, 16, 12, "AGSF");
+
+	var pSM = CreateObject(AGSM, 400, 30, NO_OWNER);
+	if (!pSM) FatalError("AgricultureArtSmoke FAIL step 14: AGSM not spawned");
+	AssertPicture(AGSM, 0, 0, 28, 40, "AGSM");
+	AssertAction("Idle", AGSM, 0, 0, 28, 40, 1, 1, "AGSM");
+	AssertAction("Smoking", AGSM, 0, 40, 28, 40, 3, 1, "AGSM");
+
+	var pNT = CreateObject(AGNT, 410, 30, NO_OWNER);
+	if (!pNT) FatalError("AgricultureArtSmoke FAIL step 15: AGNT not spawned");
+	AssertPicture(AGNT, 0, 0, 16, 16, "AGNT");
+	AssertAction("Idle", AGNT, 0, 0, 16, 16, 2, 1, "AGNT");
+
+	var pFR = CreateObject(AGFR, 420, 30, NO_OWNER);
+	if (!pFR) FatalError("AgricultureArtSmoke FAIL step 16: AGFR not spawned");
+	AssertPicture(AGFR, 0, 0, 40, 4, "AGFR");
+	AssertAction("ThrowFishingPole", AGFR, 0, 0, 40, 4, 4, 2, "AGFR");
+	AssertAction("Fish", AGFR, 0, 4, 40, 4, 2, 2, "AGFR");
+	AssertAction("PickupFish", AGFR, 0, 8, 40, 4, 2, 2, "AGFR");
+
+	var pAP = CreateObject(AGAP, 430, 30, NO_OWNER);
+	if (!pAP) FatalError("AgricultureArtSmoke FAIL step 17: AGAP not spawned");
+	AssertPicture(AGAP, 0, 0, 8, 8, "AGAP");
+
+	var pAS = CreateObject(AGAS, 440, 30, NO_OWNER);
+	if (!pAS) FatalError("AgricultureArtSmoke FAIL step 18: AGAS not spawned");
+	AssertPicture(AGAS, 0, 0, 6, 6, "AGAS");
 
 	Log("AgricultureArtSmoke PASS");
 	GameOver();
