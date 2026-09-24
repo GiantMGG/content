@@ -12,7 +12,7 @@ VertexY=0,-40,-40,0
 VertexFriction=50,50,50,50
 Value=80
 Mass=600
-Components=WOOD=6;CLNK=1
+Components=WOOD=6;ROPE=1
 Picture=0,0,28,40
 Construction=1
 Rotate=1

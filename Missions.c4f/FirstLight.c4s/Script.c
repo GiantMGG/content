@@ -20,8 +20,10 @@ protected func Initialize()
 	g_flou_prev = 0;
 	g_green_audits = 0;
 
-	// Starting kit into the workbench: 2 fish traps, seeds, a sickle,
-	// 4 wood (spec chapter 0). The workbench stands at x=500.
+	// Starting kit into the workbench: 2 fish traps, 6 wheat seeds (sow 6,
+	// harvest 2, keep 4 standing for the field leg), a sickle, 12 wood +
+	// 1 metal + 2 rope (windmill 6W/1M/1R, smokehouse 6W/1R; critic
+	// FIX-NOW 1+2, cycle 168). The workbench stands at x=500.
 	var gy = 100;
 	while (gy < 550 && !GBackSolid(500, gy)) gy++;
 	var pBase = CreateObject(WRKS, 500, gy, NO_OWNER);
@@ -31,11 +33,26 @@ protected func Initialize()
 		CreateContents(AGFT, pBase);
 		CreateContents(AGWS, pBase);
 		CreateContents(AGWS, pBase);
+		CreateContents(AGWS, pBase);
+		CreateContents(AGWS, pBase);
+		CreateContents(AGWS, pBase);
+		CreateContents(AGWS, pBase);
 		CreateContents(AGSK, pBase);
 		CreateContents(WOOD, pBase);
 		CreateContents(WOOD, pBase);
 		CreateContents(WOOD, pBase);
 		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(WOOD, pBase);
+		CreateContents(METL, pBase);
+		CreateContents(ROPE, pBase);
+		CreateContents(ROPE, pBase);
 		// Chapter-1 fishery: the pond west of the homestead
 		CarveHomesteadPond(360, gy);
 	}

@@ -39,5 +39,3 @@ Earthquake=0
 Position=50,30
 Crew=CLNK=2
 Knowledge=AGFT=1
-HomeBaseMaterial=AGFT=2;AGWS=4;AGSK=1;WOOD=8
-HomeBaseProduction=AGFT=1
