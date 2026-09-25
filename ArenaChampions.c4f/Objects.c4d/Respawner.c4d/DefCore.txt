@@ -3,6 +3,7 @@ id=RSPN
 Version=4,9,8
 Name=Respawner
 Category=C4D_StaticBack
+TimerCall=Timer
 Width=24
 Height=12
 Offset=-12,-6

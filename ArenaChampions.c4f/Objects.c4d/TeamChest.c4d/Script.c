@@ -1,6 +1,7 @@
 #strict
 
 protected func Activate(byPlr) {
+  if (SoundExists("ChestOpen")) Sound("ChestOpen");
   return 1;
 }
 
