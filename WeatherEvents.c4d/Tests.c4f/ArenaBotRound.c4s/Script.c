@@ -27,6 +27,22 @@
          that very tick, so reaching the canary step means the round did
          NOT end by itself — the [error] turns CTest red via the FAIL
          regex (exit code stays 0 for effect-timer errors).
+       - B2 (cycle-172 re-review): the KILT Guard's WIN-BY-SCORE GameOver is
+         now preceded by a loser-elimination sweep (EliminateLosers in
+         KillTarget Script.c) so the engine's elimination-based game-over
+         evaluation (C4Game::DoGameOver credits every non-eliminated player)
+         yields exactly the announced winning team in the results dialog.
+         THIS SWEEP IS NOT OBSERVABLE FROM THIS SMOKE: the console engine
+         quits on the Guard's GameOver in the same tick (no script runs
+         after it), no script function exposes a player's Eliminated flag,
+         and GetPlayerCount stays 4 until retirement (C4RetireDelay=60). The
+         sweep's in-tree mutation evidence is at the LOG level instead: a
+         good run banks two "[info] Player <n> eliminated." lines between
+         the win message and "Game over." — comment the sweep out and those
+         disappear while the run still ends (see b2-bot-good/b2-mut-red in
+         .opencode/scratch/172/remediation/b2/). The results-dialog winner
+         credit itself cannot be asserted headlessly: the round end of an
+         arena match must be eyeballed in the GUI once (tag-gate material).
        - MELE never fires (all four players stay active).
 
      Permanent gate for "a scripted 4-player bot round on the arena
@@ -54,6 +70,7 @@ static g_T1, g_T2;   // team ids
 static g_D2Crew0;    // defender partner's initial crew count
 static g_TCrew0;     // defender's initial crew count
 static g_Canary;     // late-canary step counter (phase 5)
+static g_CanaryFired; // one-shot latch: the canary stops after its first error
 
 protected func Initialize()
 {
@@ -63,6 +80,7 @@ protected func Initialize()
 	g_Ticks = 0;
 	g_Done = 0;
 	g_Canary = 0;
+	g_CanaryFired = 0;
 	AddEffect("RunTest", 0, 1, 35);
 	return true;
 }
@@ -322,11 +340,21 @@ global func StepFinal()
 global func StepCanary()
 {
 	++g_Canary;
+	if (g_CanaryFired)   // one-shot: stop the FxRunTest effect after the first
+		return -1;        // canary FatalError (was re-firing every 35f up to the
+	                      // 1600-frame smoke cap, ~19 repeats - the FAIL regex
+	                      // already went red on the very first [error])
 	if (g_Canary < 2) return 1;   // step +1 (35f): guard's fire is due at the
 	                              // next object-timer boundary - still waiting
 	if (!Local(1000, g_Goal))
+	{
+		g_CanaryFired = 1;   // FatalError aborts the call itself - flag FIRST
 		FatalError("ArenaBotRound FAIL: KILT Guard did not fire - round did not end by itself");
+	}
 	else
+	{
+		g_CanaryFired = 1;   // FatalError aborts the call itself - flag FIRST
 		FatalError("ArenaBotRound FAIL: KILT Guard fired but the round did not end - GameOver lost");
+	}
 	return 1;
 }

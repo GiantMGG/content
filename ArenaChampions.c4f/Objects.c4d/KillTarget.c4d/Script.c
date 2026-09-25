@@ -36,11 +36,13 @@ protected func Guard()
   for (t = 1; t < 64; t++)
     if (Local(t) >= iTarget)
     {
-      // Atomic in a single Guard call: flag -> log -> sting -> GameOver, so
-      // a smoke may treat Local(1000)==1 as "the goal ended the round".
+      // Atomic in a single Guard call: flag -> log -> sting -> elimination
+      // sweep -> GameOver, so a smoke may treat Local(1000)==1 as "the goal
+      // ended the round" (flag set BEFORE the GameOver stays set).
       Local(1000) = 1;
       Log(Format("$MsgWin$", t, iTarget));
       if (SoundExists("VictorySting")) Sound("VictorySting");
+      EliminateLosers(t);
       GameOver();
       return;
     }
@@ -52,9 +54,36 @@ protected func Guard()
     if (team > 0) Log(Format("$MsgWinLastTeam$", team));
     else Log("$MsgWinNoTeam$");
     if (SoundExists("VictorySting")) Sound("VictorySting");
+    EliminateLosers(team);
     GameOver();
   }
   return;
+}
+
+// B2 (cycle-172 re-review): the engine's game-over evaluation is
+// ELIMINATION-based, not goal-based. FnGameOver -> C4Game::DoGameOver flags
+// every NON-eliminated player as winner (EvaluateLeague -> SetWinner/PIF_Won,
+// and C4Player::Evaluate sets LastRound.Won = !Eliminated, so RoundsWon++ for
+// every player still standing). The WIN-BY-SCORE end-state has ALL players
+// alive — without this sweep the results dialog would show BOTH teams
+// "(won)" and both would accrue RoundsWon, contradicting the announced
+// "Team %d wins the round!". This sweep retires every player not on the
+// winning team through the same Eliminate() -> C4RetireDelay(60) ->
+// C4PlayerList::Retire path the WIN-BY-WIPE end-state already produces, so
+// DoGameOver credits exactly the announced team. Idempotent: EliminatePlayer
+// returns false for already-eliminated players (the wipe branch — those
+// losers are already out), and iWinningTeam<=0 skips entirely (double wipe:
+// every team is already out, nothing to sweep).
+private func EliminateLosers(int iWinningTeam)
+{
+  if (iWinningTeam <= 0) return;
+  var i;
+  for (i = 0; i < GetPlayerCount(); i++)
+  {
+    var plr = GetPlayerByIndex(i);
+    if (GetPlayerTeam(plr) != iWinningTeam)
+      EliminatePlayer(plr);
+  }
 }
 
 public func IsFulfilled()
