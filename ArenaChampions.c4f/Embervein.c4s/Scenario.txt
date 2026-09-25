@@ -13,8 +13,8 @@ Definition1=Objects.c4d
 
 [Game]
 StructNeedEnergy=0
-Goals=MELE=1
-Rules=KILC=1;TACC=1
+Goals=MELE=1;KILT=1
+Rules=TACC=1
 
 [Player1]
 Wealth=140,0,0,250

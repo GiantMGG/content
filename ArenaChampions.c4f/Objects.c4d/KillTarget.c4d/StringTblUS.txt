@@ -1,0 +1,4 @@
+MsgName=Kill Target
+MsgKill=%s scored: %d/%d kills
+MsgWin=Team %d reached %d kills first and wins the round!
+MsgTeam=Team %d: %d/%d

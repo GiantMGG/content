@@ -1,0 +1,4 @@
+MsgName=Tötungsziel
+MsgKill=%s erzielte %d/%d Eliminierungen
+MsgWin=Team %d erreicht als erstes %d Eliminierungen und gewinnt die Runde!
+MsgTeam=Team %d: %d/%d

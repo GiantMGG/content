@@ -1,0 +1,2 @@
+DE:Tötungsziel
+US:Kill Target
