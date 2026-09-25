@@ -21,11 +21,12 @@
          fires — and never calls GameOver itself, so the "Game over." line
          in the saved log can only be the goal's end; a guard that fails
          to end the round (the cycle-172 B1 bug class) leaves that line
-         missing while PASS still prints (the negative mutation proves the
-         smoke no longer masks the missing end with its own GameOver). The
-         engine quits on the guard's tick, so a PASS-after-guard flag check
-         can never execute; PASS-before-fire is the only order that keeps
-         the goal's round end provable from the log.
+         missing while PASS still prints. The late canary (phase 5) runs
+         70 frames after the deciding kill and FatalErrors if the round is
+         still going: the console engine quits on the guard's GameOver on
+         that very tick, so reaching the canary step means the round did
+         NOT end by itself — the [error] turns CTest red via the FAIL
+         regex (exit code stays 0 for effect-timer errors).
        - MELE never fires (all four players stay active).
 
      Permanent gate for "a scripted 4-player bot round on the arena
@@ -39,7 +40,7 @@
 #strict 2
 
 static g_Step;
-static g_Phase;      // 0 setup, 1 kills 1-3, 2 respawn wait, 3 kills 4-8, 4 final
+static g_Phase;      // 0 setup, 1 kills 1-3, 2 respawn wait, 3 kills 4-8, 4 final, 5 canary
 static g_Kills;      // kills landed so far (1..8)
 static g_Ticks;      // poll counter for the bounded respawn wait
 static g_Done;       // PASS logged + effect finished (idempotence guard)
@@ -52,6 +53,7 @@ static g_D, g_D2;    // team-2 players (defender + partner)
 static g_T1, g_T2;   // team ids
 static g_D2Crew0;    // defender partner's initial crew count
 static g_TCrew0;     // defender's initial crew count
+static g_Canary;     // late-canary step counter (phase 5)
 
 protected func Initialize()
 {
@@ -60,6 +62,7 @@ protected func Initialize()
 	g_Kills = 0;
 	g_Ticks = 0;
 	g_Done = 0;
+	g_Canary = 0;
 	AddEffect("RunTest", 0, 1, 35);
 	return true;
 }
@@ -72,6 +75,7 @@ global func FxRunTestTimer(target, effect, time)
 	if (g_Phase == 2) return StepRespawnWait();
 	if (g_Phase == 3) return StepKillLate();
 	if (g_Phase == 4) return StepFinal();
+	if (g_Phase == 5) return StepCanary();
 	return 1;
 }
 
@@ -267,17 +271,17 @@ global func StageFinalKill()
 	return 1;
 }
 
-// Win assertion + PASS. Runs on the deciding-kill step (returning -1 stops
-// the RunTest effect, so it fires exactly once; g_Done is a belt-and-braces
-// idempotence guard). The round's end is NOT produced here: KILT's 35-frame
-// Guard timer fires the win log + Victory-Sting + GameOver on its own within
-// the next 35 frames — the smoke polls nothing and calls no GameOver, so the
-// "Game over." line in the saved log can only be the goal's. If the guard
-// never ran (round end un-enforced — the cycle-172 B1 class), that line is
-// missing from the log: the red signal. The engine quits on the guard's
-// tick, so a PASS-after-guard flag-check can never execute; logging PASS
-// before the guard's fire is the only ordering that keeps the round-end
-// provable from the log.
+// Win assertion + PASS. Runs on the deciding-kill step. The round's end is
+// NOT produced here: KILT's 35-frame Guard timer fires the win log +
+// Victory-Sting + GameOver on its own within the next 35 frames — the smoke
+// polls nothing and calls no GameOver, so the "Game over." line in the saved
+// log can only be the goal's end. Passing here transitions into the late
+// canary (phase 5) instead of stopping the effect: the console engine quits
+// on the guard's GameOver on that very tick, so in the good case the canary
+// step never executes and the saved log ends with PASS followed by the
+// goal's own "Game over." — a round that never ended by itself (the
+// cycle-172 B1 class) is still running at +70 frames and the canary
+// FatalErrors.
 global func StepFinal()
 {
 	var i;
@@ -297,5 +301,32 @@ global func StepFinal()
 			FatalError(Format("ArenaBotRound FAIL: player %d eliminated (crew 0)", GetPlayerByIndex(i)));
 	g_Done = 1;
 	Log(Format("ArenaBotRound PASS: team %d first to 8 kills - round end now up to the KILT goal, %d players alive", g_T1, GetPlayerCount()));
-	return -1;
+	g_Phase = 5;   // late canary: 2 steps ahead for the guard's GameOver
+	return 1;
+}
+
+// Late canary (phase 5) - runs 70 frames (two 35-frame steps) after the
+// deciding kill. The KILT Guard's 35-frame timer fires the win log +
+// GameOver at most 35 frames after the kill and the console engine quits on
+// that GameOver on its own tick; if this step executes at all, the round is
+// still running and did NOT end by itself. That is the cycle-172 B1 class
+// the CTest previously stayed green on: PASS (and the announcement) in the
+// log, then play to the 1600-frame smoke cap with no "Game over.". Both
+// failure modes are fatal here, so a kill-target that only ANNOUNCES but
+// never ENDS the round turns CTest red (the FAIL regex catches the [error]):
+//   - Local(1000)==0: the Guard never entered its win branch at all;
+//   - Local(1000)==1: the Guard announced the win but its GameOver never
+//     ended the round (Guard sets the flag BEFORE the GameOver call).
+// In the good case the engine is gone before this step ever runs, so it
+// logs nothing on a healthy round.
+global func StepCanary()
+{
+	++g_Canary;
+	if (g_Canary < 2) return 1;   // step +1 (35f): guard's fire is due at the
+	                              // next object-timer boundary - still waiting
+	if (!Local(1000, g_Goal))
+		FatalError("ArenaBotRound FAIL: KILT Guard did not fire - round did not end by itself");
+	else
+		FatalError("ArenaBotRound FAIL: KILT Guard fired but the round did not end - GameOver lost");
+	return 1;
 }
