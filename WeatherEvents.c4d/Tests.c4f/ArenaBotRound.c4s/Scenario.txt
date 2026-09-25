@@ -2,10 +2,11 @@
 Title=ArenaBotRound
 Version=1
 MaxPlayer=4
-Origin=ArenaChampions.c4f\Tests.c4f\ArenaBotRound.c4s
+Origin=WeatherEvents.c4d\Tests.c4f\ArenaBotRound.c4s
 
 [Definitions]
 Definition1=Objects.c4d
+Definition2=ArenaChampions.c4f
 
 [Game]
 StructNeedEnergy=0

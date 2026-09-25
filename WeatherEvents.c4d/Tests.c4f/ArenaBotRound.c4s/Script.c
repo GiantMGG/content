@@ -15,12 +15,26 @@
          fresh NON-crew team-2 clonk precisely so no player ever drops to
          0 crew — the pool contract (2 players x 3 crew + 3 charges = 9)
          nets only 7 avoid-elimination real-crew kills;
-       - the KILT goal reaches its target -> IsFulfilled -> PASS log;
-         MELE never fires (all four players stay active).
+       - the round SELF-ENDS: KILT's 35-frame Guard timer fires the win
+         log + GameOver on its own within 35 frames of the deciding kill.
+         This smoke logs PASS on the deciding-kill step — BEFORE the guard
+         fires — and never calls GameOver itself, so the "Game over." line
+         in the saved log can only be the goal's end; a guard that fails
+         to end the round (the cycle-172 B1 bug class) leaves that line
+         missing while PASS still prints (the negative mutation proves the
+         smoke no longer masks the missing end with its own GameOver). The
+         engine quits on the guard's tick, so a PASS-after-guard flag check
+         can never execute; PASS-before-fire is the only order that keeps
+         the goal's round end provable from the log.
+       - MELE never fires (all four players stay active).
 
      Permanent gate for "a scripted 4-player bot round on the arena
-     finishes" (cycle 172 arena-rotation). NO "Smoke" suffix in the
-     scenario name: the Tests.c4f glob must not double-register it. --*/
+     finishes" (cycle 172 arena-rotation). Lives in the def-pack Tests.c4f
+     fixture home (WeatherEvents.c4d/Tests.c4f) because the scenario browser
+     lists *.c4f packs: a Tests.c4f inside the browsable ArenaChampions.c4f
+     would leak test scenarios into the browser (menu_walk_smoke A6). NO
+     "Smoke" suffix in the scenario name: the Tests.c4f glob must not
+     double-register it. --*/
 
 #strict 2
 
@@ -28,6 +42,7 @@ static g_Step;
 static g_Phase;      // 0 setup, 1 kills 1-3, 2 respawn wait, 3 kills 4-8, 4 final
 static g_Kills;      // kills landed so far (1..8)
 static g_Ticks;      // poll counter for the bounded respawn wait
+static g_Done;       // PASS logged + effect finished (idempotence guard)
 static g_Goal;       // the KILT goal object
 static g_Melee;      // the MELE goal object (must stay dormant)
 static g_Rspn;       // team-2 respawner (serves the defender)
@@ -44,6 +59,7 @@ protected func Initialize()
 	g_Phase = 0;
 	g_Kills = 0;
 	g_Ticks = 0;
+	g_Done = 0;
 	AddEffect("RunTest", 0, 1, 35);
 	return true;
 }
@@ -123,13 +139,17 @@ global func StepSetup()
 	var s5 = SoundExists("VictorySting");
 	if (!(s1 && s2 && s3 && s4 && s5))
 		FatalError(Format("ArenaBotRound FAIL: sounds %d %d %d %d %d (KillPing RespawnChime ChestOpen TideAlert VictorySting)", s1, s2, s3, s4, s5));
-	// 4) crew pool contract: every player carries the section crew (3+)
+	// 4) crew pool contract: every player carries the section crew (3+);
+	//    the DEFENDER must start at EXACTLY 3 — the phase-2 respawn wait
+	//    (crew>=2 && charges==1) only ever triggers from a 3-crew start, so
+	//    a future fixture change to 4 fails loudly here instead of
+	//    desyncing the respawn-wait contract.
 	var aC = GetCrewCount(g_A);
 	var a2C = GetCrewCount(g_A2);
 	g_TCrew0 = GetCrewCount(g_D);
 	g_D2Crew0 = GetCrewCount(g_D2);
-	if (aC < 3 || a2C < 3 || g_TCrew0 < 3 || g_D2Crew0 < 3)
-		FatalError(Format("ArenaBotRound FAIL: crew pool %d %d %d %d too small", aC, a2C, g_TCrew0, g_D2Crew0));
+	if (aC < 3 || a2C < 3 || g_TCrew0 != 3 || g_D2Crew0 < 3)
+		FatalError(Format("ArenaBotRound FAIL: crew pool %d %d %d %d (defender must be exactly 3)", aC, a2C, g_TCrew0, g_D2Crew0));
 	// 5) fighter, respawner + map flavor objects
 	g_Killer = CreateObject(CLNK, 20, 8, g_A);
 	if (!g_Killer)
@@ -186,18 +206,28 @@ global func StepRespawnWait()
 }
 
 // kills 4-8: defender twice more (charges empty thereafter), partner twice,
-// then the deciding non-crew kill that keeps everyone at >= 1 crew
+// then the deciding non-crew kill that keeps everyone at >= 1 crew. The
+// deciding-kill step also logs PASS (StageWin): the KILT guard's win log +
+// GameOver fire on the guard's NEXT 35-frame timer, strictly AFTER this
+// tick (kills land in the global-effect phase, object timers run before
+// them), so the saved log shows PASS and then the goal's own "Game over."
+// — the smoke never calls GameOver itself.
 global func StepKillLate()
 {
 	if (g_Kills >= 8)
 	{
 		g_Phase = 4;
-		return 1;
+		return StepFinal();
 	}
 	++g_Kills;
 	if (g_Kills <= 5) StageCrewKill(g_D);
 	else if (g_Kills <= 7) StageCrewKill(g_D2);
 	else StageFinalKill();
+	if (g_Kills == 8)
+	{
+		g_Phase = 4;
+		return StepFinal();
+	}
 	return 1;
 }
 
@@ -237,15 +267,25 @@ global func StageFinalKill()
 	return 1;
 }
 
+// Win assertion + PASS. Runs on the deciding-kill step (returning -1 stops
+// the RunTest effect, so it fires exactly once; g_Done is a belt-and-braces
+// idempotence guard). The round's end is NOT produced here: KILT's 35-frame
+// Guard timer fires the win log + Victory-Sting + GameOver on its own within
+// the next 35 frames — the smoke polls nothing and calls no GameOver, so the
+// "Game over." line in the saved log can only be the goal's. If the guard
+// never ran (round end un-enforced — the cycle-172 B1 class), that line is
+// missing from the log: the red signal. The engine quits on the guard's
+// tick, so a PASS-after-guard flag-check can never execute; logging PASS
+// before the guard's fire is the only ordering that keeps the round-end
+// provable from the log.
 global func StepFinal()
 {
 	var i;
+	if (g_Done) return -1;
 	if (Local(g_T1, g_Goal) != 8)
 		FatalError(Format("ArenaBotRound FAIL: final team 1 score %d != 8", Local(g_T1, g_Goal)));
 	if (!g_Goal->~IsFulfilled())
 		FatalError("ArenaBotRound FAIL: KILT not fulfilled after 8 kills");
-	if (!g_Goal->~IsFulfilled())
-		FatalError("ArenaBotRound FAIL: KILT fulfilled flag flapped");
 	// MELE may not have ended the round early: all four players active
 	if (GetPlayerCount() != 4)
 		FatalError(Format("ArenaBotRound FAIL: %d players left, MELE would have fired", GetPlayerCount()));
@@ -255,7 +295,7 @@ global func StepFinal()
 	for (i = 0; i < 4; ++i)
 		if (GetCrewCount(GetPlayerByIndex(i)) < 1)
 			FatalError(Format("ArenaBotRound FAIL: player %d eliminated (crew 0)", GetPlayerByIndex(i)));
-	Log(Format("ArenaBotRound PASS: team %d first to 8 kills, %d players alive", g_T1, GetPlayerCount()));
-	GameOver();
+	g_Done = 1;
+	Log(Format("ArenaBotRound PASS: team %d first to 8 kills - round end now up to the KILT goal, %d players alive", g_T1, GetPlayerCount()));
 	return -1;
 }

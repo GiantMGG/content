@@ -18,7 +18,7 @@ with its upstream source, license, and checksum.
 | ArenaChampions.c4f/Objects.c4d/KillTarget.c4d/KillPing.wav | Audio/tick_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | d2028308a9f9e9bf63d7aa4d3c90a7f6ff0d7d141f85012785846248b9f214a4 | 2026-09-25 |
 | ArenaChampions.c4f/Objects.c4d/Respawner.c4d/RespawnChime.wav | Audio/pluck_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | 81a4b05a72cede822fe26b1e57b110ecf3ee578e9e29d03aab1e53bc5955e9ee | 2026-09-25 |
 | ArenaChampions.c4f/Objects.c4d/TeamChest.c4d/ChestOpen.wav | Audio/handleCoins.ogg | Kenney RPG Audio pack (`kenney_rpg-audio.zip`), https://kenney.nl/assets/rpg-audio | CC0 | 1e41e1566b43fbb9e80fa974de52e96840f3d047430ada1298cf3b41afe2180f | 2026-09-25 |
-| ArenaChampions.c4f/Tidemark.c4s/TideAlert.wav | Audio/bong_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | f065fefe2483ebc362eeba926488a2e24b85ce4331999cdc1d41beaeea49acde | 2026-09-25 |
+| ArenaChampions.c4f/Objects.c4d/Boundary.c4d/TideAlert.wav | Audio/bong_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | f065fefe2483ebc362eeba926488a2e24b85ce4331999cdc1d41beaeea49acde | 2026-09-25 |
 | ArenaChampions.c4f/Objects.c4d/KillTarget.c4d/VictorySting.wav | Audio/confirmation_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | 45df1829f45b81890562a019e316623781c6cf6ef53b272ef9d5991885ba9e2f | 2026-09-25 |
 
 License notes:

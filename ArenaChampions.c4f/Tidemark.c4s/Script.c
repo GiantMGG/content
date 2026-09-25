@@ -15,7 +15,7 @@ func Initialize() {
   CreateObject(BNDR, LandscapeWidth(), 0, NO_OWNER);
   CreateObject(BNDR, 0, LandscapeHeight(), NO_OWNER);
   CreateObject(BNDR, LandscapeWidth(), LandscapeHeight(), NO_OWNER);
-  waterLevel = 0;
+  waterLevel = 5;
   ScriptGo(1);
   // Rising tide: one raise every 10 seconds. The scenario-script counter
   // (C4ScriptHost) calls each ScriptN exactly once, so the periodic cadence
@@ -38,7 +38,9 @@ func Script10() {
 }
 
 /* Paints a 5 px tall band of Water-Smooth across the full map width at the
-   level that just rose above the previous one (starts at the bottom).
+   level that just rose above the previous one. waterLevel starts at 5 so
+   the first band is drawn at H-5..H — on-map and visible (a 0 start would
+   paint the first band at H..H+5, entirely off-map).
    Global: the Tide effect timer runs in the engine context and cannot see
    scenario-private functions. */
 global func RaiseWater() {
