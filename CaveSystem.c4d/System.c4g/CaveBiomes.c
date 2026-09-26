@@ -38,8 +38,12 @@ global func Biome_LavaCavern(int x0, int y0, int wdt, int hgt)
  * Internal: scan a sparse grid in the band and InsertMaterial target_mat at
  * eligible pixels (currently Earth/Rock/Sand and not already target_mat),
  * plus seed_mat at a 1-in-seedEvery chance for crystal seams.
+ *
+ * global: called only from the global Biome_* composers above; C4Aul
+ * resolves global funcs through the engine table, so a private func would
+ * be invisible to them.
  */
-private func StampBand(int x0, int y0, int wdt, int hgt, string target_mat, string seed_mat, int seedEvery)
+global func StampBand(int x0, int y0, int wdt, int hgt, string target_mat, string seed_mat, int seedEvery)
 {
 	var mat_target = Material(target_mat);
 	var mat_seed   = Material(seed_mat);
@@ -54,7 +58,7 @@ private func StampBand(int x0, int y0, int wdt, int hgt, string target_mat, stri
 			var here = GetMaterial(x, y);
 			if (here == -1) continue;
 			// Only stamp into solid earth/rock-class materials (Density > 0)
-			if (GetMaterialDensity(here) <= 0) continue;
+			if (GetMaterialVal("Density", "Material", here) <= 0) continue;
 			if (here == mat_target) continue;
 			InsertMaterial(mat_target, x, y);
 			stamped++;

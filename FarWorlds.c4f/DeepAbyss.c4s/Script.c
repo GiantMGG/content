@@ -104,7 +104,7 @@ global func FxPressureTimer(pObj, iNum, iA)
     if (y > DEEP_ABYSS_Y)
     {
       DoBreath(-4, o);
-      DoEnergy(-1, false, C4FxCall_EngAsphyxiation, GetOwner(o), o);
+      o->DoEnergy(-1, false, FX_Call_EngAsphyxiation, GetOwner(o) + 1);
     }
     else if (y > DEEP_SUNLIGHT_Y)
     {

@@ -1,0 +1,13 @@
+[Material]
+Name=Selenite
+Color=250,245,210,235,215,160,190,170,120
+Shape=2
+Density=80
+Friction=80
+DigFree=1
+BlastFree=1
+Dig2Object=SLNT
+Dig2ObjectRatio=80
+MaxAirSpeed=100
+MaxSlide=1
+TextureOverlay=Ridge

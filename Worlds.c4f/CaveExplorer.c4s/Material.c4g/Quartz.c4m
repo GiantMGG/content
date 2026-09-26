@@ -1,0 +1,13 @@
+[Material]
+Name=Quartz
+Color=235,238,250,210,215,235,170,175,200
+Shape=2
+Density=80
+Friction=80
+DigFree=1
+BlastFree=1
+Dig2Object=QRTZ
+Dig2ObjectRatio=80
+MaxAirSpeed=100
+MaxSlide=1
+TextureOverlay=Ridge

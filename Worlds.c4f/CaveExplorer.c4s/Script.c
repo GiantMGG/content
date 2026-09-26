@@ -72,7 +72,7 @@ func PlaceDecor()
 		y = CVEX_Stratum2_Top + Random(80);
 		// Only place where the surrounding material is diggable rock
 		mat = GetMaterial(x, y);
-		if (GetMaterialDensity(mat) > 0)
+		if (GetMaterialVal("Density", "Material", mat) > 0)
 			CreateObject(CCLT, x, y, NO_OWNER);
 	}
 	// CaveMoss in stratum 1 (submerged walls)
@@ -81,7 +81,7 @@ func PlaceDecor()
 		x = Random(LandscapeWidth() - 40) + 20;
 		y = CVEX_Stratum1_Top + Random(80);
 		mat = GetMaterial(x, y);
-		if (GetMaterialDensity(mat) > 0)
+		if (GetMaterialVal("Density", "Material", mat) > 0)
 			CreateObject(CMOS, x, y, NO_OWNER);
 	}
 }

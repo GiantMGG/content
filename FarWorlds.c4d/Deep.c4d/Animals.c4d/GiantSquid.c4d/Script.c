@@ -62,8 +62,9 @@ protected func Activity()
   if (!territory) ClaimTerritory();
 
   // Patrol centre = territory farm, else current position
-  var cx = territory ? GetX(territory) : GetX();
-  var cy = territory ? GetY(territory) : GetY();
+  var cx = GetX();
+  var cy = GetY();
+  if (territory) { cx = GetX(territory); cy = GetY(territory); }
 
   // Intruder detection: any crew member or prey inside patrol radius
   var intruder = FindObject(0, 0, 0, 0, 0, OCF_CrewMember | OCF_Prey, 0, 0, NoContainer());

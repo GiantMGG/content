@@ -1,6 +1,8 @@
 /* CaveExplorer -- four-strata cave map */
 
 overlay EarthBorder { algo=border; a=1; b=1; mat=Earth; tex=Rough; };
+// Clip mask for the map-wide border closure (mirrors Lavacaves' Border overlay)
+overlay Border { invert=1; x=5; y=15; wdt=90; hgt=85; loosebounds=1; turbulence=100; };
 
 map CaveParcour {
   mat=Tunnel; tex=Smooth;
@@ -17,7 +19,8 @@ map CaveParcour {
   overlay Stratum1 { algo=bozo; zoomX=40; zoomY=40; turbulence=800; a=-1;
     loosebounds=1; x=0; y=25; wdt=100; hgt=25; } &
   overlay { mat=Rock; tex=Rough; loosebounds=1; x=0; y=25; wdt=100; hgt=25;
-    overlay { algo=bozo; mat=Water-Smooth; tex=Smooth; zoomX=30; zoomY=20; turbulence=400; a=4; };
+    // mat=Water: the "-Smooth" suffix is unparseable (parser splits '-' as the range operator -> "';' expected")
+    overlay { algo=bozo; mat=Water; tex=Smooth; zoomX=30; zoomY=20; turbulence=400; a=4; };
     overlay { algo=bozo; mat=Amethyst; tex=Ridge; zoomX=15; zoomY=15; turbulence=500; a=2; };
     overlay { algo=bozo; mat=Quartz; tex=Ridge; zoomX=15; zoomY=15; turbulence=500; a=2; };
     EarthBorder;

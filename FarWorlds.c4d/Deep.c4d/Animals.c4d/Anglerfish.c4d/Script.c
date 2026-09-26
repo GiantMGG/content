@@ -39,7 +39,9 @@ protected func Activity()
   }
 
   // Stay stationary unless prey is in the detection rect (60x40 in front)
-  var detect_x = 30 * (GetDir() == DIR_Right ? 1 : -1);
+  var dir_sign = 1;
+  if (GetDir() != DIR_Right) dir_sign = -1;
+  var detect_x = 30 * dir_sign;
   var prey = FindObject(0, detect_x - 30, -20, 60, 40, OCF_Prey, 0, 0, NoContainer());
   if (prey && GetAlive(prey))
   {
@@ -93,12 +95,12 @@ protected func Damage(int iChange, int iPlr)
 
 protected func Death()
 {
-  SetDir(0);
-  ChangeDef(DAGLF);
-  SetAction("Dead");
-  CreateContents(AGLL);
-  if (lure) RemoveObject(lure);
-  return(1);
+	SetDir(0);
+	ChangeDef(DGLF);
+	SetAction("Dead");
+	CreateContents(AGLL);
+	if (lure) RemoveObject(lure);
+	return(1);
 }
 
 protected func Birth()

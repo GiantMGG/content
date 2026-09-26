@@ -11,7 +11,9 @@ public func IsPossessible() { return 1; }
 protected func Initialize()
 {
 	SetAction("Fly");
-	SetComDir(Random(2) ? COMD_Right : COMD_Left);
+	var dir = COMD_Left;
+	if (Random(2)) dir = COMD_Right;
+	SetComDir(dir);
 	Birth();
 }
 

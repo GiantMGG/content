@@ -12,8 +12,10 @@ protected func Completion()
   SetAction("Walk");
   SetComDir(COMD_Stop);
   turn_end_dir = -1;
+  var lamp_x = -12;
+  if (GetDir() == DIR_Right) lamp_x = 12;
   // Attach headlamp glow-overlay sprite (faked — no AddLight in LegacyClonk)
-  lamp = CreateObject(AGLL, 12 * (GetDir() == DIR_Right ? 1 : -1), -8, GetOwner());
+  lamp = CreateObject(AGLL, lamp_x, -8, GetOwner());
   if (lamp)
   {
     lamp->SetAction("Attach", this());

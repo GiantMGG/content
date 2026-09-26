@@ -20,8 +20,8 @@ global func AttachGlowOverlay(object to, int rgb, int radius)
 	glow->SetAction("Attach", to);
 	glow->SetCategory(C4D_Object | C4D_Background | C4D_Parallax);
 	// Store tint + radius on the overlay so a renderer hook can read them
-	glow.LocalN("glow_rgb") = rgb;
-	glow.LocalN("glow_radius") = radius;
+	glow->LocalN("glow_rgb") = rgb;
+	glow->LocalN("glow_radius") = radius;
 	return glow;
 }
 

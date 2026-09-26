@@ -1,0 +1,13 @@
+[Material]
+Name=Amethyst
+Color=200,120,230,160,80,200,110,50,150
+Shape=2
+Density=80
+Friction=80
+DigFree=1
+BlastFree=1
+Dig2Object=AMTH
+Dig2ObjectRatio=80
+MaxAirSpeed=100
+MaxSlide=1
+TextureOverlay=Ridge

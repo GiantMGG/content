@@ -30,7 +30,11 @@ protected func Activity()
 	{
 		var sample = SampleDarkestPixel(GetX(), GetY());
 		if (sample[2] > 600)  // dark enough to be worth fleeing toward
-			SetComDir(sample[0] < GetX() ? COMD_Left : COMD_Right);
+		{
+			var flee_dir = COMD_Left;
+			if (sample[0] >= GetX()) flee_dir = COMD_Right;
+			SetComDir(flee_dir);
+		}
 	}
 }
 

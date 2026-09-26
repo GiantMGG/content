@@ -53,7 +53,11 @@ protected func Activity()
 					}
 				}
 			if (best_dist < 9999)
-				SetComDir(best_x < 0 ? COMD_Left : COMD_Right);
+			{
+				var best_dir = COMD_Left;
+				if (best_x >= 0) best_dir = COMD_Right;
+				SetComDir(best_dir);
+			}
 		}
 	}
 
