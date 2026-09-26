@@ -15,5 +15,5 @@ map SilkRoad {
     AlterMat { mat = Rock; tex = Rough; a = 2; };
   } &
   /* Bedrock floor */
-  overlay { sub = 1; x = 0; wdt = 100; y = 95; hgt = 5; mat = Rock; tex = Ridge; }
-}
+  overlay { sub = 1; x = 0; wdt = 100; y = 95; hgt = 5; mat = Rock; tex = Ridge; };
+};

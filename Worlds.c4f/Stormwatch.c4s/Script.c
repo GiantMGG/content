@@ -16,19 +16,20 @@ static g_iChapter;
 // Five chapters: [C4ID, prepMsgKey, threatMsgKey, debriefMsgKey, durationTicks]
 // Duration is in 35-frame timer ticks (~1s each); 700 ticks ~= 20s real time.
 // The spec's §Mid-game table drives the order.
-static const C4ID STRM = C4Id("STRM");
-static const C4ID BLZD = C4Id("BLZD");
-static const C4ID DRGT = C4Id("DRGT");
-static const C4ID HTWV = C4Id("HTWV");
-static const C4ID FLDD = C4Id("FLDD");
+//
+// Def-id constants for the five weather events. The bare ids are lexed as
+// id constants (4 uppercase chars may not be redeclared as const names and
+// C4Id("...") is a call, not a constant expression), so the names carry an
+// ID_ prefix and the value is the plain id constant itself.
+static const ID_STRM = STRM;
+static const ID_BLZD = BLZD;
+static const ID_DRGT = DRGT;
+static const ID_HTWV = HTWV;
+static const ID_FLDD = FLDD;
 
-static const g_Chapters = [
-	[STRM, "$MsgStormPrep$",  "$MsgStormHit$",   "$MsgStormDone$",  700],
-	[BLZD, "$MsgBlizPrep$",   "$MsgBlizHit$",    "$MsgBlizDone$",   700],
-	[DRGT, "$MsgDrgtPrep$",   "$MsgDrgtHit$",    "$MsgDrgtDone$",   700],
-	[HTWV, "$MsgHtwvPrep$",   "$MsgHtwvHit$",    "$MsgHtwvDone$",   700],
-	[FLDD, "$MsgFloodPrep$",  "$MsgFloodHit$",   "$MsgFloodDone$",  700]
-];
+// Chapter table — not `static const`: an array literal is not a valid
+// constant expression in C4Script, so it is assigned at runtime.
+static g_Chapters;
 
 // Local TutorialMessage wrapper so the scenario does not require the
 // Tutorial.c4f system group. Mirrors ColonyBay.c4s:13-18.
@@ -42,6 +43,14 @@ global func TutorialMessage(string strMessage)
 protected func Initialize()
 {
 	g_iChapter = 0;
+
+	g_Chapters = [
+		[ID_STRM, "$MsgStormPrep$",  "$MsgStormHit$",   "$MsgStormDone$",  700],
+		[ID_BLZD, "$MsgBlizPrep$",   "$MsgBlizHit$",    "$MsgBlizDone$",   700],
+		[ID_DRGT, "$MsgDrgtPrep$",   "$MsgDrgtHit$",    "$MsgDrgtDone$",   700],
+		[ID_HTWV, "$MsgHtwvPrep$",   "$MsgHtwvHit$",    "$MsgHtwvDone$",   700],
+		[ID_FLDD, "$MsgFloodPrep$",  "$MsgFloodHit$",   "$MsgFloodDone$",  700]
+	];
 
 	// --- Pre-place the settlement (spec §Opening) ---
 
@@ -105,7 +114,7 @@ func FxCrisisDirectorTimer(object target, int effect, int timer)
 	{
 		var idEvent = chapter[0];
 		LaunchWeatherEvent(idEvent, 50, chapter[4]);
-		GameMsg(chapter[2]);
+		Message(chapter[2]);
 		return 1;
 	}
 
@@ -115,12 +124,12 @@ func FxCrisisDirectorTimer(object target, int effect, int timer)
 
 	// Phase 4: stop the event, debrief, advance chapter.
 	StopWeatherEvent();
-	GameMsg(chapter[3]);
+	Message(chapter[3]);
 	++g_iChapter;
 
 	if (g_iChapter >= GetLength(g_Chapters))
 	{
-		GameMsg("$MsgAllDone$");
+		Message("$MsgAllDone$");
 		GameOver();
 		return -1;  // kill the effect
 	}

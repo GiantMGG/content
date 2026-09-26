@@ -1,8 +1,11 @@
 /* SpellCompositor - reusable spell-combine protocol library */
 
-#strict
+// Maps (the {} literal + string-keyed registry below) require strict 3 in
+// this engine; spell ids are 4-char codes, so the "idA_idB" string keys
+// must hash as strings, not ints.
+#strict 3
 
-local Combinations; // proplist registry: key "idA_idB" -> idResult
+local Combinations; // map registry: key "idA_idB" -> idResult
 local idFirstCombine; // first pick remembered between CombineSelect and CombineExecute
 
 func Initialize() {
@@ -36,8 +39,8 @@ public func CombineSpell(id a, id b) {
 }
 
 public func StartCombineMenu(object pClonk) {
-	if (!pClonk->~ReadyToMagic()) return();
-	SetComDir(COMD_Stop(), pClonk);
+	if (!pClonk->~ReadyToMagic()) return;
+	SetComDir(COMD_Stop, pClonk);
 	OpenSpellMenu(pClonk, this, "$MnuCombineSpells$: %s", "CombineSelect", GetOwner(pClonk), pClonk, "$MnuNoSpells$");
 }
 
@@ -54,7 +57,7 @@ public func CombineExecute(id idSecond, object pClonk) {
 	if (!idResult) {
 		PlayerMessage(GetOwner(pClonk), "$MsgNoCombination$", pClonk);
 		Sound("Error", 0, pClonk, 100, GetOwner(pClonk)+1);
-		return();
+		return;
 	}
 	// Play magic action and fire the fused spell from the clonk's position.
 	// CreateObject offsets by this() (the compositor), so AbsX/AbsY convert

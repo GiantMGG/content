@@ -13,7 +13,7 @@ func Activate(pCaster, pRealcaster) {
 	var iRange = 150;
 	var pVictim;
 	while (pVictim = FindObject(0,0,0,-1,-1,OCF_CrewMember, 0,0, NoContainer(), pVictim)) {
-		if (GetOCF(pVictim) & OCF_Dead) continue;
+		if (!GetAlive(pVictim)) continue; // OCF_Dead does not exist in this engine; dead == !GetAlive
 		if (!Hostile(GetOwner(pVictim), GetOwner(pClonk))) continue;
 		if (ObjectDistance(pVictim, pClonk) > iRange) continue;
 		AddEffect("TimeWarpNSpell", pVictim, 200, 1, 0, GetID());

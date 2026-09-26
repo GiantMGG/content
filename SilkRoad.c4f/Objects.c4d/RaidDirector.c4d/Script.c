@@ -42,7 +42,9 @@ func FxRaidTickTimer(object pTarget, int fx) {
 	// Boss every Nth wave.
 	if (iWave % iBossEveryN == 0) {
 		var pBoss = CreateObject(BNDT, GetX(pMarker) + 20, GetY(pMarker) - 30, NO_OWNER);
-		pBoss->SetAI("BanditRevolver", 3);
+		// Note: no SetAI here -- the AIBandit* effects only exist in the
+		// Western.c4f scenario-local AI defs, not in this pack; base BNDT
+		// uses the engine's default combat AI.
 		pBoss->MakeBoss();
 		pBoss->SetColorDw(RGB(150));
 	}
@@ -56,7 +58,7 @@ global func SpawnBanditWave(int iCount, object pMarker) {
 	var iY = GetY(pMarker);
 	for (var i = 0; i < iCount; i++) {
 		var pBandit = CreateObject(BNDT, iX + Random(40) - 20, iY - Random(30), NO_OWNER);
-		pBandit->SetAI("BanditNoMove", 3);
+		// No SetAI (see FxRaidTickTimer note): bandits run engine default AI.
 		pBandit->SetColorDw(RGB(150));
 		// Prioritise attacking the nearest caravan.
 		var pCaravan = GetNearestCaravan(iX, iY);

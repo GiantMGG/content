@@ -18,7 +18,9 @@ private func RamContact(int iDirSign) {
 	// Ram head is the leading edge: scan a small box ahead
 	var iHeadX = 18 * iDirSign;
 	var pTarget;
-	while (pTarget = FindObject(0, iHeadX - 2, -8, 4, 16, OCF_Fullcon(), 0, C4D_Structure() | C4D_StaticBack(), NoContainer(), pTarget))
+	// Category filter via FindObjects (plain FindObject has no category
+	// parameter; see SiegeBoulder.c4d Hit()).
+	for (pTarget in FindObjects(Find_InRect(iHeadX - 2, -8, 4, 16), Find_OCF(OCF_Fullcon()), Find_Category(C4D_Structure() | C4D_StaticBack()), Find_NoContainer()))
 		if (pTarget->~IsSiegeTarget()) {
 			var iMomentum = GetMass() * Abs(GetXDir(this(), 100)) / 1000;
 			iMomentum = BoundBy(iMomentum, 0, 60);
