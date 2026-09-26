@@ -4,6 +4,7 @@ static pBase1, pBase2;
 
 func Initialize() {
   SetWind(0);
+  AddEffect("ArenaTeams", 0, 1, 35); // F3: auto-team + place teamless joins
   pBase1 = CreateConstruction(HUT3, 200, 270, NO_OWNER, 100, 1);
   pBase2 = CreateConstruction(HUT3, LandscapeWidth()-200, 270, NO_OWNER, 100, 1);
   CreateObject(TCHS, 200, 270, NO_OWNER);
@@ -18,10 +19,56 @@ func Initialize() {
 }
 
 protected func InitializePlayer(iPlr, x, y, bas, team) {
+  // F3 (cycle-172 critic fix-now): with TeamDistribution=Free a join reaches
+  // this callback teamless (team=0) BEFORE the team list is compiled - do
+  // nothing here; the ArenaTeams poll below assigns a team and re-enters
+  // this callback (via InitScenarioPlayer's ~InitializePlayer broadcast)
+  // with the chosen team on the first 35-frame tick.
   if (team == 1) PlacePlayer1(iPlr);
-  if (team == 2) PlacePlayer2(iPlr);
+  else if (team == 2) PlacePlayer2(iPlr);
   return 1;
 }
+
+// F3 (cycle-172 critic fix-now): 4 headless/console joins on
+// TeamDistribution=Free never resolve their team selection (the engine's
+// GetForcedTeamSelection needs exactly ONE joinable team - with two it stays
+// 0), so nobody was placed and MELE/KILT never saw two teams: the round
+// stalled. This global poll (gotcha #4 form) assigns the SMALLER team
+// (tie -> team 1) to every teamless player through the engine's own
+// InitScenarioPlayer(plr, team) -> C4Player::ScenarioAndTeamInit -> the
+// regular ~InitializePlayer broadcast, so placement + the join logs run in
+// the scenario context. Waits for GetTeamCount() > 0: the Teams.txt list is
+// compiled only after the first joins landed.
+global func FxArenaTeamsTimer(target, effect, time)
+{
+  if (GetTeamCount() <= 0) return 1;
+  var i, done = 0;
+  for (i = 0; i < GetPlayerCount(); i++)
+  {
+    var plr = GetPlayerByIndex(i);
+    if (GetPlayerTeam(plr) <= 0)
+    {
+      InitScenarioPlayer(plr, ArenaSmallerTeam());
+      done++;
+    }
+  }
+  if (!done) return -1;   // every joined player has a team: stop polling
+  return 1;
+}
+
+global func ArenaSmallerTeam()
+{
+  var c1 = 0, c2 = 0, i;
+  for (i = 0; i < GetPlayerCount(); i++)
+  {
+    var pt = GetPlayerTeam(GetPlayerByIndex(i));
+    if (pt == 1) c1++;
+    else if (pt == 2) c2++;
+  }
+  if (c2 < c1) return 2;
+  return 1;
+}
+
 
 private func PlacePlayer1(int iPlr) {
   var objs = FindObjects(Find_Category(C4D_Structure), Find_InRect(0, 0, LandscapeWidth()/2, LandscapeHeight()));

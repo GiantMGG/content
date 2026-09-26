@@ -3,6 +3,8 @@
 protected func Initialize() {
   Local(0) = 3;
   Local(1) = 2;
+  // F4: one board message announcing the shared charge pool + threshold
+  Log("$MsgReady$");
   return 1;
 }
 
@@ -10,6 +12,8 @@ protected func Initialize() {
 // the shared Local(0) charge pool serves the WHOLE team, not just the
 // structure owner - any team member below Local(1) crew gets a clonk
 // (explicitly made crew so it counts toward the threshold and is playable).
+// Local(2) = depleted-latch: the "charges exhausted" board message fires
+// exactly once per object life (new round -> new object -> fresh latch).
 protected func Timer() {
   var team = GetOwner();
   if (team == NO_OWNER) return 1;
@@ -22,7 +26,14 @@ protected func Timer() {
       if (clonk) MakeCrewMember(clonk, plr);
       Local(0)--;
       if (SoundExists("RespawnChime")) Sound("RespawnChime");
-      if (Local(0) <= 0) break;
+      if (Local(0) <= 0) {
+        // F4: the LAST charge was spent on this spawn
+        if (!Local(2)) {
+          Local(2) = 1;
+          Log("$MsgDepleted$");
+        }
+        break;
+      }
     }
   }
   return 1;

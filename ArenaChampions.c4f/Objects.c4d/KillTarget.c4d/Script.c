@@ -147,7 +147,16 @@ public func CreditKill(int iKillerPlr, int iKillerTeam)
   var iTarget = GetTarget();
   var iScore = Local(iKillerTeam) + 1;
   Local(iKillerTeam) = iScore;
-  Log(Format("$MsgKill$", GetPlayerName(iKillerPlr), iScore, iTarget));
+  // F5 (cycle-172 critic fix-now): the feed echoes BOTH teams' running
+  // scores (numeric team ids 1/2 - GetTeamName is deliberately unused).
+  Log(Format("$MsgKill$", GetPlayerName(iKillerPlr), iScore, iTarget, Local(1), Local(2)));
+  // F5: match-point line the moment a team hits TargetScore-1, once per
+  // team (Local(1001+team) latches; Local 1000/1001 are the Guard's own).
+  if (iScore == iTarget - 1 && !Local(1001 + iKillerTeam))
+  {
+    Local(1001 + iKillerTeam) = 1;
+    Log(Format("$MsgMatchPoint$", iKillerTeam, iScore, iTarget));
+  }
   if (SoundExists("KillPing")) Sound("KillPing");
   return iScore;
 }

@@ -1,1 +1,3 @@
 MsgName=Respawner
+MsgReady=Respawner ready: refills crew below 2, 3 charges
+MsgDepleted=Respawner depleted

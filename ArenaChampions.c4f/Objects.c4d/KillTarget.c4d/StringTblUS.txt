@@ -1,5 +1,6 @@
 MsgName=Kill Target
-MsgKill=%s scored: %d/%d kills
+MsgKill=%s scored: %d/%d kills - 1:%d 2:%d
+MsgMatchPoint=Team %d is on match point: %d/%d kills - one more wins!
 MsgWin=Team %d reached %d kills first and wins the round!
 MsgWinLastTeam=Team %d is the last team standing and wins the round!
 MsgWinNoTeam=The round is over - no team is left standing.

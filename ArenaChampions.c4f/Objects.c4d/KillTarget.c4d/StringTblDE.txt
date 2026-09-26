@@ -1,5 +1,6 @@
 MsgName=Tötungsziel
-MsgKill=%s erzielte %d/%d Eliminierungen
+MsgKill=%s erzielt: %d/%d Eliminierungen - 1:%d 2:%d
+MsgMatchPoint=Team %d hat Matchball: %d/%d Eliminierungen - noch einer gewinnt!
 MsgWin=Team %d erreicht als erstes %d Eliminierungen und gewinnt die Runde!
 MsgWinLastTeam=Team %d ist das letzte verbliebene Team und gewinnt die Runde!
 MsgWinNoTeam=Die Runde ist beendet - kein Team steht mehr im Spiel.

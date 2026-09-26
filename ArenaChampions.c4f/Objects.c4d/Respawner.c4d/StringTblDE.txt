@@ -1,1 +1,3 @@
 MsgName=Wiederbelebungspunkt
+MsgReady=Wiederbelebungspunkt bereit: füllt Besatzung unter 2 auf, 3 Aufladungen
+MsgDepleted=Wiederbelebungspunkt erschöpft
