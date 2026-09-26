@@ -129,7 +129,7 @@ func Script37()
 func Script38()
 {
 	// Powerplant working?
-	if (!(FindObject(POWR)->GetAction() eq "Burning")) return(goto(38));
+	if (!(FindObject(POWR)->GetAction() == "Burning")) return(goto(38));
 	RemoveArrow();
 	wait(10);
 	return(1);

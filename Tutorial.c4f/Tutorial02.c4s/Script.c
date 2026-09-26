@@ -59,22 +59,22 @@ func Script1()
 }
 func Script2()
 {
-  if (GetHiRank(0)->GetAction() != "Push") return(goto(2));
-  if (GetHiRank(0)->GetActionTarget()->GetID()!=BALN) return(goto(2));
+  if (GetAction(GetHiRank(0)) != "Push") return(goto(2));
+  if (GetID(GetActionTarget(0, GetHiRank(0)))!=BALN) return(goto(2));
   SetPlrShowControl(0,"___345678_   345678 ____5__7__");  
   TutorialMessage("$TxtNowfloatupwiththebal$");
 }
 func Script3()
 {
   if (!FindObject(0,450,250,260,70,OCF_Living)) return(goto(3));
-  if (GetHiRank(0)->GetAction() != "Push") return(goto(5));
+  if (GetAction(GetHiRank(0)) != "Push") return(goto(5));
   SetPlrShowControl(0,"___345678_   345678 _______7__");  
   TutorialMessage("$TxtLetgooftheballoonwit$");
   wait(20);
 }
 func Script4()
 {
-  if (GetHiRank(0)->GetAction() == "Push") return(goto(4));
+  if (GetAction(GetHiRank(0)) == "Push") return(goto(4));
 }
 func Script5()
 {
@@ -96,10 +96,10 @@ func Script20()
     iCounter = 20;
   }
   SetPlrShowControl(0,"___345678_   345678 __________");  
-  if(GetHiRank(0)->Contents(0))
+  if(Contents(0, GetHiRank(0)))
   {
-    if (GetHiRank(0)->Contents(0)->GetID()==FLAG) return(goto(30));
-    if (GetHiRank(0)->Contents(0)->GetID()==LOAM) return(goto(40));
+    if (GetID(Contents(0, GetHiRank(0)))==FLAG) return(goto(30));
+    if (GetID(Contents(0, GetHiRank(0)))==LOAM) return(goto(40));
   }
   TutorialMessage("$TxtPickuponeoftheloamch$");
   wait(7);
@@ -109,10 +109,10 @@ func Script20()
 
 func Script21()
 {	
-  if(GetHiRank(0)->Contents(0))
+  if(Contents(0, GetHiRank(0)))
   {
-    if (GetHiRank(0)->Contents(0)->GetID()==FLAG) return(goto(30));
-    if (GetHiRank(0)->Contents(0)->GetID()==LOAM) return(goto(40));
+    if (GetID(Contents(0, GetHiRank(0)))==FLAG) return(goto(30));
+    if (GetID(Contents(0, GetHiRank(0)))==LOAM) return(goto(40));
   }
   goto(21);
 }
@@ -145,9 +145,9 @@ func Script41()
 }
 func Script42()
 {
-  if (GetHiRank(0)->GetMenu()==2) return(goto(60));
-  if (GetHiRank(0)->GetMenu()==LMMS) return(goto(60));
-  if (GetHiRank(0)->GetAction() == "Dig") return(goto(50));
+  if (GetMenu(GetHiRank(0))==2) return(goto(60));
+  if (GetMenu(GetHiRank(0))==LMMS) return(goto(60));
+  if (GetAction(GetHiRank(0)) == "Dig") return(goto(50));
   return(goto(42));
 }
 func Script50()
@@ -159,7 +159,7 @@ func Script50()
 }
 func Script51()
 {
-  if (GetHiRank(0)->GetAction()=="Dig") return(goto(51));
+  if (GetAction(GetHiRank(0))=="Dig") return(goto(51));
 }
 func Script52()
 {
@@ -176,8 +176,8 @@ func Script60()
 }
 func Script61()
 {
-  if (GetHiRank(0)->GetAction() == "Bridge") return(goto(70));
-  if (!GetHiRank(0)->GetMenu()) return(goto(20));
+  if (GetAction(GetHiRank(0)) == "Bridge") return(goto(70));
+  if (!GetMenu(GetHiRank(0))) return(goto(20));
   return(goto(61));
 }
 func Script70()
@@ -200,8 +200,8 @@ func Script82()
 }
 func Script83()
 {
-  if (!GetHiRank()->Contained()) return(goto(83));
-  if (!GetHiRank(0)->FindContents(FLAG)) return(goto(83));
+  if (!Contained(GetHiRank())) return(goto(83));
+  if (!FindContents(FLAG, GetHiRank(0))) return(goto(83));
   SetPlrShowControl(0,"___345678_   345678 ___3______");
   TutorialMessage("$TxtUsecommandthrowtoput$");
   wait(15);
@@ -225,11 +225,12 @@ func RelaunchPlayer(iPlr)
   CreateMaterial(iPlr);
   CreateObject(BALN, iBlnX, iBlnY, iPlr);
   // Neuen Clonk erzeugen, falls n�tig
-  if (!FindObject(CLNK)->GetAlive())
+  var pClonk = FindObject(CLNK);
+  if (!pClonk || !pClonk->GetAlive())
  	{
-	  var pClonk = CreateObject(CLNK, iPlrX, iPlrY, iPlr);
-	  MakeCrewMember(pClonk, iPlr);
-	  SetCursor(iPlr, pClonk);
+	  var pNewClonk = CreateObject(CLNK, iPlrX, iPlrY, iPlr);
+	  MakeCrewMember(pNewClonk, iPlr);
+	  SetCursor(iPlr, pNewClonk);
 	}
   // Scriptcounter zur�ck setzen
   goto(iCounter);

@@ -162,7 +162,8 @@ func Script19()
 	if (FindObject(CRYS)) return(goto(19));
   FindObject(SCRG)->Fulfill();
   SetNextMission("Tutorial.c4f\\Tutorial08.c4s", "$BtnNextTutorial$", "$BtnNextTutorialDesc$");
-	return(1);		
+	return(1);
+}
 
 global func PXSRemove()
 {
@@ -182,5 +183,4 @@ global func FxFixPositionTimer(pTarget, iEffectNumber)
 		sailboatX = pTarget->GetX();
 		sailboatY = pTarget->GetY();
 	}
-}
 }
