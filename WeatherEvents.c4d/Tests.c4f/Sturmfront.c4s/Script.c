@@ -403,6 +403,7 @@ global func SFDumpCounters(string when)
 	// a vacuous dump (e.g. at eval, outside any calm window) must not
 	// become the last SFMT:idle_pct the parser reads
 	if (g_calm_steps > 0) Log(Format("SFMT:idle_pct=%d", SFIdlePct()));
+	Log(Format("SFMT:jobs_pending=%d", SFJobsPending()));
 	Log(Format("SFMT:t_first_task=%d", g_t_first_task));
 	// idle accumulators are per calm window
 	g_idle_steps = 0;
@@ -414,6 +415,59 @@ global func SFIdlePct()
 {
 	if (g_calm_steps <= 0) return 100;
 	return g_idle_steps * 100 / g_calm_steps;
+}
+
+// ---------------- job availability (instrument, read-only) -----------------
+
+// Honest "was there work?" line, distinct from idle_pct (which measures
+// empty command stacks -- the model assists finish synchronously, so the
+// crew legitimately reads ~98% idle while the crops ripen). Returns the
+// number of ladder jobs a freshly assigned idle clonk could take right
+// now: berm cells remaining, trench steps remaining, the mill site
+// (incomplete, or complete with a sheaf available), and farming (ripe
+// wheat, or a dry sowable plot with seeds left). MUST NOT mutate driver
+// state -- unlike SFNextDryPlot it does not advance g_plant_cursor.
+global func SFJobsPending()
+{
+	var n = 0;
+	if (!SF_SKIP_WALL && g_sill_cells < SF_BERM_CELLS) ++n;
+	if (!SF_SKIP_TRENCH && g_trench_step < 10) ++n;
+	var pSite = FindObject(AGWM);
+	if (!SF_SKIP_MILL && pSite)
+	{
+		if (GetCon(pSite) < 100) ++n;
+		else if (ObjectCount(AGSH) > 0) ++n;
+	}
+	if (SFFarmPending()) ++n;
+	return n;
+}
+
+global func SFFarmPending()
+{
+	var pBase = FindObject(WRKS);
+	// a ripe plant anywhere is harvest work (SFFindRipeWheat is read-only)
+	if (SFFindRipeWheat()) return true;
+	// no sowing without seeds in the workbench
+	if (!pBase || ContentsCount(AGWS, pBase) <= 0) return false;
+	// any dry, unoccupied plot left to sow -- dry-feet probe mirrors
+	// SFNextDryPlot without touching the cursor
+	var n_field = GetLength(g_FieldPlots);
+	var i, idx, px, sy;
+	for (i = 0; i < n_field + 2; i++)
+	{
+		idx = (g_plant_cursor + i) % (n_field + 2);
+		if (SF_RIDGE_ONLY) px = SF_RIDGE_PLOT1 + (idx % 2) * 15;
+		else if (idx < n_field) px = g_FieldPlots[idx];
+		else px = SF_RIDGE_PLOT1 + (idx - n_field) * 15;
+		sy = SFSurfaceY(px);
+		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
+		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
+		if (GBackLiquid(px, sy - 3)) continue;            // flood puddle
+		var occupied = FindObjects(Find_ID(AGWH), Find_InRect(px - 8, sy - 22, 16, 24));
+		if (GetLength(occupied) > 0) continue;
+		return true;
+	}
+	return false;
 }
 
 // ---------------- claim rule (rule 1) --------------------------------------
