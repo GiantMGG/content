@@ -49,19 +49,14 @@
       announce and the spec's calm-window schedule; the hunkered clonks
       are never counted in the idle census (the calm expression excludes
       the storm window);
-    - late-sow reserve wave: SF_SEED_RESERVE seeds are held back until
-      SF_T_LATESOW (28980, 828 x 35 -- late enough that a wave seed is
-      Seedling through BOTH claim sweeps 31850/32480 and never Ready
-      before eval), then sown on the three WEST plots only -- in-ground
-      over the flood peak, so the claim rule destroys them and the
-      floodplain gamble becomes mechanical (without it the greedy kit
-      exhausts all seeds by ~frame 16000 and the fields are fallow at
-      the flood, "claim sweep -- nothing submerged" in baselines
-      176/177); tracked per sow via SFMT:sow_wave; the round ALSO pinned
-      that the reserve was only ever destroyed with the burning
-      workbench in 176/177 (intact=0), never sown -- the trace will
-      prove which; an occupied floodplain is a planted floodplain, so
-      seeds_left > 0 at eval is correct;
+    - claim bite: the flood's economic bite is measured SMALL
+      (flood_claimed <= 1 across seeds) -- crops that would straddle the
+      flood would need sowing in [27960, 31500], which the greedy
+      driver's early-sowing cycle never does; the floodplain-vs-ridge
+      dilemma resolves to harvest-before-the-flood. Recorded as a
+      cycle-175 finding, not engineered around (a late-sow reserve wave
+      was tried and removed -- it never fired once in 3 seeds, and its
+      hold-back only starved the granary while serving nothing);
     - sowing: RemoveObject(seed) + CreateObject(AGWH) +
       SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
       soil check is bypassed (EventSmoke re-set pattern, deterministic
@@ -115,24 +110,6 @@ static const SF_GRANARY_QUOTA  = 12;    // calibration 10-16 (playtest task)
 static const SF_KIT_SEEDS      = 20;    // 3 field cycles need 18 (D3)
 static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
-
-// LATE-SOW RESERVE WAVE (fix 1): hold back SF_SEED_RESERVE seeds until
-// SF_T_LATESOW. Without it the greedy kit exhausts all 20 seeds by
-// ~frame 16000 and the fields are FALLOW at the flood ("claim sweep --
-// nothing submerged" in baseline-176/177, claim=1 in 175): the spec's
-// bar-b rationale (a cycle-4 sowing stands in-ground at the flood) was
-// structurally unreachable.
-//   Fix round 2 (ripeness race): SF_T_LATESOW moved 28000 -> 28980
-// (= 828 x 35). A wave seed sown at 28980 is Seedling at 28980+3540
-// = 32520 (> both claim sweeps 31850/32480), i.e. in-ground and
-// un-harvestable (never Ready before eval 33600; Ready needs +7080 =
-// 36060) through the entire flood window - the claim takes it, no
-// "ripened dry before the water tops the rim" window remains. The
-// baselines also showed the reserve was only ever *destroyed with the
-// burning workbench* (seeds_left 20/14 -> 0 across the storm in
-// 176/177, outcome_intact=0), never sown - sow_wave traces that.
-static const SF_SEED_RESERVE  = 6;
-static const SF_T_LATESOW     = 28980;
 
 // ---------------- ROI / geometry (world px; map 100x60 @ zoom 10) --------
 static const SF_FIELD_W1 = 60;     // west field flank (the floodplain)
@@ -506,24 +483,14 @@ global func SFFarmPending()
 	if (SFFindRipeWheat()) return true;
 	// no sowing without seeds in the workbench
 	if (!pBase || ContentsCount(AGWS, pBase) <= 0) return false;
-	// late-sow reserve hold-back: before the wave, seeds at/below the
-	// reserve are a DELIBERATE DEFERRAL, not pending work (fix 1);
-	// from the wave onward only a west-field dry plot counts.
-	var t = FrameCounter();
-	if (t < SF_T_LATESOW && ContentsCount(AGWS, pBase) <= SF_SEED_RESERVE) return false;
-	if (t >= SF_T_LATESOW) return SFAnyDryPlot(true);
-	return SFAnyDryPlot(false);
+	// any dry, unoccupied plot left to sow
+	return SFAnyDryPlot();
 }
 
 // read-only dry-plot scan (mirrors SFNextDryPlot's predicate, MUST NOT
-// advance g_plant_cursor). fWestOnly restricts to the LATE-SOW wave's
-// target list -- EXACTLY the three west field plots (g_FieldPlots[0..2]
-// = 100/140/180), no east, no ridge, no other source. Under SF_RIDGE_ONLY
-// the wave is naturally inert -- that variant never touches field plots,
-// so no west plot is ever offered (comment: fix 1).
-global func SFAnyDryPlot(bool fWestOnly)
+// advance g_plant_cursor).
+global func SFAnyDryPlot()
 {
-	if (fWestOnly) return SFWestPlotFree();
 	var n_field = GetLength(g_FieldPlots);
 	var i, idx, px, sy;
 	for (i = 0; i < n_field + 2; i++)
@@ -532,27 +499,6 @@ global func SFAnyDryPlot(bool fWestOnly)
 		if (SF_RIDGE_ONLY) px = SF_RIDGE_PLOT1 + (idx % 2) * 15;
 		else if (idx < n_field) px = g_FieldPlots[idx];
 		else px = SF_RIDGE_PLOT1 + (idx - n_field) * 15;
-		sy = SFSurfaceY(px);
-		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
-		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
-		if (GBackLiquid(px, sy - 3)) continue;            // flood puddle
-		var occupied = FindObjects(Find_ID(AGWH), Find_InRect(px - 8, sy - 22, 16, 24));
-		if (GetLength(occupied) > 0) continue;
-		return true;
-	}
-	return false;
-}
-
-// any of the three west floodplain plots dry AND unoccupied? (fix 1,
-// read-only). An occupied floodplain is a PLANTED floodplain: if all
-// three already carry the wave's crops the remaining reserved seeds
-// stay in the WRKS -- seeds_left > 0 at eval is CORRECT behavior.
-global func SFWestPlotFree()
-{
-	var i, px, sy;
-	for (i = 0; i < 3; i++)
-	{
-		px = g_FieldPlots[i];
 		sy = SFSurfaceY(px);
 		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
 		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
@@ -1087,24 +1033,12 @@ global func SFFarmWork(object clnk, object pBase)
 	}
 	// 3) sow a dry plot (dry-feet rule: the surface cell must not be
 	// liquid; probe 3 px down too -- a flood puddle rests 1+ px above the
-	// ground, so a surface-only probe misses a standing pool).
-	// LATE-SOW RESERVE WAVE (fix 1): before SF_T_LATESOW the driver holds
-	// back SF_SEED_RESERVE seeds (no sowing while seeds are at/below the
-	// reserve -- harvesting and banking continue untouched; the greedy
-	// kit otherwise exhausts all seeds by ~frame 16000 and the fields are
-	// FALLOW at the flood); from the wave onward the REMAINING seeds are
-	// sown onto the three WEST plots ONLY (SFNextWestPlot -- the exposed
-	// floodplain): in-ground and un-harvestable through both claim
-	// sweeps (sown at >= 28980 -> Seedling/Growing at >= 32520 > 32480),
-	// so the flood claims them and the bar-b gamble is mechanical.
-	var px = 0;
-	var tNow = FrameCounter();
-	if (pBase && ContentsCount(AGWS, pBase) > 0)
-	{
-		if (tNow >= SF_T_LATESOW) px = SFNextWestPlot();
-		else if (ContentsCount(AGWS, pBase) > SF_SEED_RESERVE) px = SFNextDryPlot();
-	}
-	if (px > 0 && pBase)
+	// ground, so a surface-only probe misses a standing pool). Any dry
+	// plot while seeds remain (the greedy early-sowing cycle; a late-sow
+	// reserve wave was tried and removed -- 0 sow_wave firings across
+	// the round-4 seeds, and its hold-back starved the granary).
+	var px = SFNextDryPlot();
+	if (px > 0 && pBase && ContentsCount(AGWS, pBase) > 0)
 	{
 		var sy = SFSurfaceY(px);
 		if (SFTransit(clnk, px)) return true;
@@ -1117,7 +1051,6 @@ global func SFFarmWork(object clnk, object pBase)
 		if (pSeed) RemoveObject(pSeed);
 		var pNew = CreateObject(AGWH, px, sy, NO_OWNER);
 		if (pNew) pNew->SetAction("Seedling");
-		if (tNow >= SF_T_LATESOW) Log(Format("SFMT:sow_wave=%d", px));
 		return true;
 	}
 	// 4) fallback: stand by the workbench (counts as idle if the stack
@@ -1150,31 +1083,6 @@ global func SFFindRipeWheat()
 {
 	for (var pW in FindObjects(Find_ID(AGWH)))
 		if (pW->~IsRipe()) return pW;
-	return 0;
-}
-
-global func SFNextWestPlot()
-{
-	// the LATE-SOW wave's target list is EXACTLY the three west field
-	// plots (g_FieldPlots[0..2] = 100/140/180) -- no east, no ridge, no
-	// other source; reads the dry-feet + occupancy predicate of the
-	// normal rotation but does NOT advance g_plant_cursor (the wave is a
-	// fixed list). If all three are occupied (grown wave plants), zero is
-	// returned and the remaining reserved seeds stay in the WRKS --
-	// seeds_left > 0 at eval is CORRECT (an occupied floodplain is a
-	// planted floodplain).
-	var i, px, sy;
-	for (i = 0; i < 3; i++)
-	{
-		px = g_FieldPlots[i];
-		sy = SFSurfaceY(px);
-		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
-		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
-		if (GBackLiquid(px, sy - 3)) continue;            // flood puddle
-		var occupied = FindObjects(Find_ID(AGWH), Find_InRect(px - 8, sy - 22, 16, 24));
-		if (GetLength(occupied) > 0) continue;
-		return px;
-	}
 	return 0;
 }
 
