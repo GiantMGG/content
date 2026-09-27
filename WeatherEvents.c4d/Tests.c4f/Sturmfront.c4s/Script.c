@@ -37,13 +37,24 @@
       players bridge with the kit's CNKT/LOAM -- kept for them, the
       driver transits instead). Counted via SFMT:transit;
     - storm: the driver HUNKERS -- while SFStormActive() no jobs are
-      assigned and every command stack is cleared at the storm's first
-      tick, so nobody is mid-transit/mid-harvest outdoors in lightning
-      (seeds 176/177 lost all four clonks to storm strikes at ~frame
-      21100 -- fixprobe-176/177.log). Work is a calm-window activity,
-      matching the announce and the spec's calm-window schedule; the
-      hunkered clonks are never counted in the idle census (the calm
-      expression excludes the storm window);
+      assigned; at the storm's first tick every crew member transports
+      to one of four scattered SAFE havens (SFSafeHaven: terrace east,
+      peak crown, west crag, berm midspan -- >= 80 px from the wooden
+      WRKS/mill, >= 40 px apart) and their command stacks are cleared,
+      so nobody is mid-transit outdoors in lightning nor clustered next
+      to a burning structure ("hold fast" = take shelter; seeds 176/177
+      lost all four clonks to strikes at ~frame 21100 and to the mill/
+      WRKS fire right after storm end -- fixprobe-176/177.log,
+      baseline-177.log). Work is a calm-window activity, matching the
+      announce and the spec's calm-window schedule; the hunkered clonks
+      are never counted in the idle census (the calm expression excludes
+      the storm window);
+    - late-sow reserve wave: SF_SEED_RESERVE seeds are held back until
+      SF_T_LATESOW (28000), then sown WEST-FIELD ONLY -- growing over
+      the flood peak, so the claim rule destroys them (the floodplain
+      gamble becomes mechanical; without it the greedy kit exhausts all
+      seeds by ~frame 16000 and the fields are fallow at the flood,
+      "claim sweep -- nothing submerged" in baselines 176/177);
     - sowing: RemoveObject(seed) + CreateObject(AGWH) +
       SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
       soil check is bypassed (EventSmoke re-set pattern, deterministic
@@ -97,6 +108,20 @@ static const SF_GRANARY_QUOTA  = 12;    // calibration 10-16 (playtest task)
 static const SF_KIT_SEEDS      = 20;    // 3 field cycles need 18 (D3)
 static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
+
+// LATE-SOW RESERVE WAVE (fix 1): hold back SF_SEED_RESERVE seeds until
+// SF_T_LATESOW. Without it the greedy kit exhausts all 20 seeds by
+// ~frame 16000 and the fields are FALLOW at the flood ("claim sweep --
+// nothing submerged" in baseline-176/177, claim=1 in 175): the spec's
+// bar-b rationale (a cycle-4 sowing stands in-ground at the flood) was
+// structurally unreachable. The wave (28000 = 800 x 35) is sown WEST
+// ONLY (the un-bermed floodplain): 28000 + 3540 = 31540, i.e. the wheat
+// is Growing -- in-ground, never ripe -- when the flood peaks at 31850,
+// so the claim sweeps it and flood_claimed engages the >=3 bar
+// mechanically. Whatever drains after the recession re-sows west and
+// either ripens after eval or is swept by claim 2 -- the gamble is real.
+static const SF_SEED_RESERVE  = 6;
+static const SF_T_LATESOW     = 28000;
 
 // ---------------- ROI / geometry (world px; map 100x60 @ zoom 10) --------
 static const SF_FIELD_W1 = 60;     // west field flank (the floodplain)
@@ -417,6 +442,7 @@ global func SFDumpCounters(string when)
 	// become the last SFMT:idle_pct the parser reads
 	if (g_calm_steps > 0) Log(Format("SFMT:idle_pct=%d", SFIdlePct()));
 	Log(Format("SFMT:jobs_pending=%d", SFJobsPending()));
+	Log(Format("SFMT:seeds_left=%d", SFSeedsLeft()));
 	Log(Format("SFMT:t_first_task=%d", g_t_first_task));
 	// idle accumulators are per calm window
 	g_idle_steps = 0;
@@ -455,6 +481,13 @@ global func SFJobsPending()
 	return n;
 }
 
+global func SFSeedsLeft()
+{
+	var pBase = FindObject(WRKS);
+	if (!pBase) return 0;
+	return ContentsCount(AGWS, pBase);
+}
+
 global func SFFarmPending()
 {
 	var pBase = FindObject(WRKS);
@@ -462,8 +495,22 @@ global func SFFarmPending()
 	if (SFFindRipeWheat()) return true;
 	// no sowing without seeds in the workbench
 	if (!pBase || ContentsCount(AGWS, pBase) <= 0) return false;
-	// any dry, unoccupied plot left to sow -- dry-feet probe mirrors
-	// SFNextDryPlot without touching the cursor
+	// late-sow reserve hold-back: before the wave, seeds at/below the
+	// reserve are a DELIBERATE DEFERRAL, not pending work (fix 1);
+	// from the wave onward only a west-field dry plot counts.
+	var t = FrameCounter();
+	if (t < SF_T_LATESOW && ContentsCount(AGWS, pBase) <= SF_SEED_RESERVE) return false;
+	if (t >= SF_T_LATESOW) return SFAnyDryPlot(true);
+	return SFAnyDryPlot(false);
+}
+
+// read-only dry-plot scan (mirrors SFNextDryPlot's predicate, MUST NOT
+// advance g_plant_cursor). fWestOnly restricts to the west floodplain
+// plots (the late-sow wave); under that flag SF_RIDGE_ONLY is naturally
+// inert -- the ridge-only variant never touches field plots, so the
+// west-only scan finds nothing (comment: fix 1).
+global func SFAnyDryPlot(bool fWestOnly)
+{
 	var n_field = GetLength(g_FieldPlots);
 	var i, idx, px, sy;
 	for (i = 0; i < n_field + 2; i++)
@@ -472,6 +519,7 @@ global func SFFarmPending()
 		if (SF_RIDGE_ONLY) px = SF_RIDGE_PLOT1 + (idx % 2) * 15;
 		else if (idx < n_field) px = g_FieldPlots[idx];
 		else px = SF_RIDGE_PLOT1 + (idx - n_field) * 15;
+		if (fWestOnly && !SFOnWestField(px)) continue;
 		sy = SFSurfaceY(px);
 		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
 		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
@@ -643,15 +691,24 @@ global func FxCrewDriverTimer(target, effect, time)
 	// Seeds 176/177 lost all four clonks to lightning while the greedy
 	// ladder kept assigning outdoor transits/harvests during the storm
 	// (~frame 21100, fixprobe-176/177.log / baseline-176.log:725-744).
-	// At the storm's first driver tick every command stack is cleared so
-	// nobody is mid-transit in the open; then NO new jobs are assigned
-	// until the storm ends. The clonks stand where their last job left
-	// them (scattered -- deliberately not gathered).
+	// At the storm's first driver tick the crew TRANSPORTS to scattered
+	// SAFE havens (fix 2: hunkering WHERE THEY STOOD still left the
+	// grind/bank branches clustered at the wooden mill/WRKS -- the fire
+	// from the burning structure reached them right after storm end in
+	// seed 177, baseline-177.log) and every command stack is cleared so
+	// nobody is mid-transit; then NO new jobs are assigned until the
+	// storm ends.
 	if (SFStormActive())
 	{
 		if (t == SF_T_STORM_START)
 		{
 			var h, hc = SFCrewList();
+			for (h = 0; h < GetLength(hc); h++)
+			{
+				var hx = SFSafeHaven(h % 4);
+				SetPosition(hx, SFSurfaceY(hx) - 12, hc[h]);
+				Log(Format("SFMT:transit=%d", hx));
+			}
 			for (h = 0; h < GetLength(hc); h++) SetCommand(hc[h], "None");
 			Log("SFMT:storm_hunker=1");
 		}
@@ -667,6 +724,11 @@ global func FxCrewDriverTimer(target, effect, time)
 	// players get the same assist (harmless).
 	if (t == 35)
 	{
+		// boot evidence (one-shot): the four storm havens each resolve to
+		// solid ground -- log their surfaces (220/120/400/440-or-419)
+		var hq;
+		for (hq = 0; hq < 4; hq++)
+			Log(Format("SFMT:haven_%d_surf=%d", hq, SFSurfaceY(SFSafeHaven(hq))));
 		var m;
 		for (m = 0; m < GetLength(crew); m++)
 		{
@@ -755,6 +817,14 @@ global func SFOnRidge(int x)
 	return x >= SF_RIDGE_X1 && x <= SF_RIDGE_X2;
 }
 
+// the west floodplain zone (x < 240): the un-bermed field the flood
+// takes -- the late-sow reserve wave sows ONLY here (fix 1), so the
+// flood can claim it while the east/ridge crops stay safe.
+global func SFOnWestField(int x)
+{
+	return x < 240;
+}
+
 // true while the storm window is active (21000..22400 after the R3
 // mitigation): the driver must not send clonks across open ground in
 // lightning -- work happens in the calm windows (spec + announce).
@@ -762,6 +832,25 @@ global func SFStormActive()
 {
 	var t = FrameCounter();
 	return t >= SF_T_STORM_START && t < SF_T_STORM_START + SF_STORM_LENGTH;
+}
+
+// storm havens (fix 2): four scattered, structure-free stand points for
+// the hunker, read from the map: 870 = terrace east end (surface 220),
+// 915 = peak crown rock (surface 120), 25 = west crag top (rock, surface
+// 400), 540 = berm midspan (surface 419, 440 pre-berm). Each is >= 80 px
+// from the workbench (720) and the mill (790), >= 40 px from the others,
+// and stands on solid ground (SFSurfaceY; the surfaces are logged once
+// at frame 35 as SFMT:haven_*_surf for the boot probe). Taking shelter
+// away from the tall wooden structures is the honest reading of "hold
+// fast"; the old freeze-in-place hunker left the crew clustered at the
+// mill/WRKS and the burning structure's fire reached them after storm
+// end (seed 177, baseline-177.log).
+global func SFSafeHaven(int i)
+{
+	if (i == 0) return 870;
+	if (i == 1) return 915;
+	if (i == 2) return 25;
+	return 540;
 }
 
 // ---------------- zone transit (B3: no foot route off the islands) --------
@@ -965,9 +1054,22 @@ global func SFFarmWork(object clnk, object pBase)
 	}
 	// 3) sow a dry plot (dry-feet rule: the surface cell must not be
 	// liquid; probe 3 px down too -- a flood puddle rests 1+ px above the
-	// ground, so a surface-only probe misses a standing pool)
-	var px = SFNextDryPlot();
-	if (px > 0 && pBase && ContentsCount(AGWS, pBase) > 0)
+	// ground, so a surface-only probe misses a standing pool).
+	// LATE-SOW RESERVE WAVE (fix 1): before SF_T_LATESOW the driver holds
+	// back SF_SEED_RESERVE seeds (no sowing while seeds are at/below the
+	// reserve -- harvesting and banking continue untouched; the greedy
+	// kit otherwise exhausts all seeds by ~frame 16000 and the fields are
+	// FALLOW at the flood); from the wave onward the REMAINING seeds are
+	// sown WEST-FIELD ONLY, into the exposed floodplain -- the flood at
+	// 31850 claims them, making the bar-b gamble mechanical.
+	var px = 0;
+	var tNow = FrameCounter();
+	if (pBase && ContentsCount(AGWS, pBase) > 0)
+	{
+		if (tNow >= SF_T_LATESOW) px = SFNextDryPlot(true);
+		else if (ContentsCount(AGWS, pBase) > SF_SEED_RESERVE) px = SFNextDryPlot(false);
+	}
+	if (px > 0 && pBase)
 	{
 		var sy = SFSurfaceY(px);
 		if (SFTransit(clnk, px)) return true;
@@ -1015,7 +1117,7 @@ global func SFFindRipeWheat()
 	return 0;
 }
 
-global func SFNextDryPlot()
+global func SFNextDryPlot(bool fWestOnly)
 {
 	var n_field = GetLength(g_FieldPlots);
 	var i, idx, px, sy;
@@ -1025,6 +1127,11 @@ global func SFNextDryPlot()
 		if (SF_RIDGE_ONLY) px = SF_RIDGE_PLOT1 + (idx % 2) * 15;
 		else if (idx < n_field) px = g_FieldPlots[idx];
 		else px = SF_RIDGE_PLOT1 + (idx - n_field) * 15;
+		// the late-sow wave is west-field only (fix 1); under
+		// SF_RIDGE_ONLY there are no west plots at all, so the wave is
+		// naturally inert for the ridge-only variant (it never touches
+		// field plots anyway)
+		if (fWestOnly && !SFOnWestField(px)) continue;
 		sy = SFSurfaceY(px);
 		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
 		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
