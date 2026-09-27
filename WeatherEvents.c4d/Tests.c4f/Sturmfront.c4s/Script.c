@@ -106,7 +106,14 @@ static const SF_T_CLAIM2       = 32480; // 928 x 35, 315 after drain-start
 static const SF_T_EVAL         = 33600; // 960 x 35
 
 // ---------------- economy ------------------------------------------------
-static const SF_GRANARY_QUOTA  = 12;    // calibration 10-16 (playtest task)
+static const SF_GRANARY_QUOTA  = 10;    // calibrated 2026-09-27 from the cycle-175 matrix
+                                        // (parse-table.md): baselines 12/7/10, ridge-only 3;
+                                        // 10 = best separator (177 knife-edge WIN, 176
+                                        // fire-loss stays a loss, ridge-only margin 7).
+                                        // NOTE: provisional -- the mill-accounting anomaly
+                                        // (baseline 12 vs no-mill variant 43 on identical
+                                        // 22-harvest economies) must be resolved before any
+                                        // quota is final; revisit with it.
 static const SF_KIT_SEEDS      = 20;    // 3 field cycles need 18 (D3)
 static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
