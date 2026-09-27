@@ -70,8 +70,13 @@ static const SF_T_FORECAST     = 70;
 static const SF_T_RAIN_START   = 4200;   // 120 x 35
 static const SF_T_RAIN_END     = 6300;   // 180 x 35
 static const SF_T_STORM_START  = 21000;  // 600 x 35
-static const SF_STORM_INTENSITY = 60;   // R3: drop to 40 / shorten to 1400 if
-static const SF_STORM_LENGTH   = 2100;  //        the mill burns >1 of 3 seeds
+static const SF_STORM_INTENSITY = 40;   // R3 mitigation applied 2026-09-27:
+static const SF_STORM_LENGTH   = 1400;  //        intensity 60->40 + length 2100->1400
+                                        //        after storm fire ruined 2 of 3
+                                        //        robustness seeds (mill-convergence
+                                        //        blast, seed 176, frame ~21100;
+                                        //        WRKS burn, seed 177) -- evidence
+                                        //        fixprobe-176/177.log
 static const SF_T_FLOOD_START  = 31500; // 900 x 35
 static const SF_FLOOD_RISE     = 350;   // 10 x 35 director calls to peak
 static const SF_FLOOD_RECEDE   = 315;   // 9 x 35 calls back to the river bed
