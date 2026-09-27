@@ -36,6 +36,14 @@
       terrace face and the open canyon kill headless clonks; interactive
       players bridge with the kit's CNKT/LOAM -- kept for them, the
       driver transits instead). Counted via SFMT:transit;
+    - storm: the driver HUNKERS -- while SFStormActive() no jobs are
+      assigned and every command stack is cleared at the storm's first
+      tick, so nobody is mid-transit/mid-harvest outdoors in lightning
+      (seeds 176/177 lost all four clonks to storm strikes at ~frame
+      21100 -- fixprobe-176/177.log). Work is a calm-window activity,
+      matching the announce and the spec's calm-window schedule; the
+      hunkered clonks are never counted in the idle census (the calm
+      expression excludes the storm window);
     - sowing: RemoveObject(seed) + CreateObject(AGWH) +
       SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
       soil check is bypassed (EventSmoke re-set pattern, deterministic
@@ -615,7 +623,10 @@ global func FxCrewDriverTimer(target, effect, time)
 	// (review A1): the shipped any-clonk-empty form made ONE idle clonk
 	// count the whole step idle -- a driver artifact that fails bar c on
 	// honest ripening waits. Here every crew member's step is a sample:
-	// idle_pct = idle crew-steps / total crew-steps.
+	// idle_pct = idle crew-steps / total crew-steps. The storm window
+	// [21000, 22400) is NOT calm (both halves of this expression exclude
+	// it), so the hunkered crew is never counted idle -- matching the
+	// spec's calm-window schedule.
 	var calm = (t > SF_T_RAIN_END && t < SF_T_STORM_START)
 	        || (t > SF_T_STORM_START + SF_STORM_LENGTH && t < SF_T_FLOOD_START);
 	var crew = SFCrewList();
@@ -625,6 +636,26 @@ global func FxCrewDriverTimer(target, effect, time)
 		var c;
 		for (c = 0; c < GetLength(crew); c++)
 			if (!GetCommand(crew[c])) ++g_idle_steps;
+	}
+
+	// STORM HUNKER: the storm is not a work window ("Hold fast -- the
+	// storm is upon us!"; the spec schedules the economy in calm windows).
+	// Seeds 176/177 lost all four clonks to lightning while the greedy
+	// ladder kept assigning outdoor transits/harvests during the storm
+	// (~frame 21100, fixprobe-176/177.log / baseline-176.log:725-744).
+	// At the storm's first driver tick every command stack is cleared so
+	// nobody is mid-transit in the open; then NO new jobs are assigned
+	// until the storm ends. The clonks stand where their last job left
+	// them (scattered -- deliberately not gathered).
+	if (SFStormActive())
+	{
+		if (t == SF_T_STORM_START)
+		{
+			var h, hc = SFCrewList();
+			for (h = 0; h < GetLength(hc); h++) SetCommand(hc[h], "None");
+			Log("SFMT:storm_hunker=1");
+		}
+		return 1;
 	}
 
 	// SPAWN MARSHAL (t == 35, once): the [Player] Position=70,35 drops
@@ -722,6 +753,15 @@ global func SFSurfaceY(int x)
 global func SFOnRidge(int x)
 {
 	return x >= SF_RIDGE_X1 && x <= SF_RIDGE_X2;
+}
+
+// true while the storm window is active (21000..22400 after the R3
+// mitigation): the driver must not send clonks across open ground in
+// lightning -- work happens in the calm windows (spec + announce).
+global func SFStormActive()
+{
+	var t = FrameCounter();
+	return t >= SF_T_STORM_START && t < SF_T_STORM_START + SF_STORM_LENGTH;
 }
 
 // ---------------- zone transit (B3: no foot route off the islands) --------
