@@ -271,17 +271,29 @@ global func StepFlood()
 }
 
 // ---- step 7: the claim rule (flood bite, mechanically enforced) ----
+// a flood destroys crops, not just ripe ones (cycle-175 A5): ANY
+// in-ground AGWH under liquid is swept. The anchor cell of a plant on
+// flat ground sits 1-2 px above the ground line, which standing water
+// NEVER wets (liquid rests 1+ px off solid; scenario claimprobe) -- so
+// the probe reads the plant's stem up to 12 px above the anchor. Mirror
+// of Sturmfront.c4s SFClaimSweep + SFUnderLiquid (duplicated-identical).
+global func SFUnderLiquid(object pW)
+{
+	if (GBackLiquid(GetX(pW), GetY(pW))) return true;
+	if (GBackLiquid(GetX(pW), GetY(pW) - 6)) return true;
+	if (GBackLiquid(GetX(pW), GetY(pW) - 12)) return true;
+	return false;
+}
+
 global func SFClaimSweep()
 {
-	// mirror of Sturmfront.c4s SFClaimSweep (both flank rects, ripe
-	// wheat + loose sheaves under liquid; counts into g_claim_n)
 	var n = 0, rect, x1, x2;
 	for (rect = 0; rect < 2; rect++)
 	{
 		if (rect == 0) { x1 = 60; x2 = 230; }
 		else { x1 = 430; x2 = 640; }
 		for (var pW in FindObjects(Find_ID(AGWH), Find_InRect(x1, 420, x2 - x1, 125)))
-			if (pW->~IsRipe() && GBackLiquid(GetX(pW), GetY(pW)))
+			if (SFUnderLiquid(pW))
 			{
 				RemoveObject(pW);
 				++n;
@@ -324,20 +336,25 @@ global func StepClaim()
 	// fixtures inside the pooled pit water (GetY reads liquid same tick)
 	var p1 = CreateObject(AGWH, 460, 440, NO_OWNER);
 	var p2 = CreateObject(AGWH, 480, 440, NO_OWNER);
+	var p4 = CreateObject(AGWH, 472, 440, NO_OWNER);
 	if (p1) { p1->SetAction("Seedling"); p1->~Grow(); p1->~Grow(); }
 	if (p2) { p2->SetAction("Seedling"); p2->~Grow(); p2->~Grow(); }
+	// UNRIPE fixture (no Grow) -- the negative-control pin: reverting the
+	// A5 predicate (back to IsRipe-only) leaves it standing -> count 3 ->
+	// step 7 red. A flood destroys crops, not just ripe ones (cycle-175 A5).
+	if (p4) p4->SetAction("Seedling");
 	var p3 = CreateObject(AGSH, 492, 448, NO_OWNER);
 	// ridge control: outside the field ROI, must survive
 	var pCtl = CreateObject(AGWH, 740, 220, NO_OWNER);
 	if (pCtl) pCtl->SetAction("Seedling");
-	if (!p1 || !p2 || !p3 || !pCtl) SFFail("claim fixtures did not spawn");
+	if (!p1 || !p2 || !p3 || !p4 || !pCtl) SFFail("claim fixtures did not spawn");
 	if (!p1->~IsRipe() || !p2->~IsRipe()) SFFail("claim wheat not ripe after Grow x2");
 	if (!GBackLiquid(460, 440) && !GBackLiquid(480, 440) && !GBackLiquid(492, 440))
 		SFFail("claim fixture site not wet");
 	SFClaimSweep();
 	var left = FindObjects(Find_ID(AGWH), Find_InRect(460, 435, 60, 20));
 	if (GetLength(left) > 0) SFFail("submerged field wheat survived the sweep");
-	if (g_claim_n != 3) SFFail(Format("flood_claimed=%d, want 3 (2 wheat + 1 sheaf)", g_claim_n));
+	if (g_claim_n != 4) SFFail(Format("flood_claimed=%d, want 4 (2 wheat + 1 sheaf + 1 unripe seedling)", g_claim_n));
 	var ctl = FindObjects(Find_ID(AGWH), Find_InRect(730, 210, 30, 16));
 	if (GetLength(ctl) < 1) SFFail("ridge control wheat was swept - claim rule leaks out of the field ROI");
 	Log(Format("SturmfrontSmoke step 7: claim swept %d units, ridge control intact", g_claim_n));

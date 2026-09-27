@@ -7,29 +7,55 @@
   floor punctures leak the world dry (run5 -- never touch rows 58-59),
   CastPXS water never integrates (run4 -- hence no CastPXS anywhere).
 
-  Fronts (FrameCounter ticks, 35 fps; ~16 min full run):
+  Fronts (FrameCounter ticks, 35 fps; ~16 min full run). Every beat is a
+  multiple of 35 -- the 35-tick FrontDirector effect can only ever sample
+  those (cycle-175 A: the flood endgame once sat on non-lattice beats and
+  silently never ran; Initialize enforces the lattice with a FatalError):
      70        forecast
      4200-6300    front 1 rain    -- scripted InsertMaterial drizzle
-     6300-21000   calm 1          -- sow / finish mill / trench / sill
+     6300-21000   calm 1          -- sow / finish mill / trench / berm
      21000-23100  front 2 storm   -- LaunchWeatherEvent(STRM,60,2100)
      23100-31500  calm 2          -- bank crunch (knife-edge cycle 3)
-     31500-31800  front 3 rise    -- scripted canyon row painting
-     31800-32100  recession       -- ExtractLiquid(x,y) surface sweeps
-     31800/32600  claim sweeps    -- submerged field assets are swept
+     31500-31850  front 3 rise    -- scripted canyon row painting (10 x 35)
+     31850        flood peaks     -- claim sweep 1 (spill head reached)
+     31850-32165  recession       -- ExtractLiquid(x,y) surface sweeps
+     32480        claim sweep 2   -- 315 frames post-drain-start
      33600        EvaluateOutcome -- WIN/LOSE by granary+homestead+crew
 
   Model-assisted driver actions (spec "Crew driver" -- commands are
   unreliable headless, R7; every assist is listed here honestly):
-    - trench: staged DigFreeRect at the digger's site (measured dig rate
-      = one increment per 35-tick step);
-    - sill: staged InsertMaterial(Material("Earth")) pours -- the LOAM
+    - trench: staged DigFreeRect at the digger's column, dug while the
+      clonk STANDS BESIDE the shaft (stand x = dig column + 24 -- never
+      over the mouth; fall-ins were a shipped death cause, B3);
+    - berm: staged InsertMaterial(Material("Earth")) pours -- the LOAM
       item builds Earth bridges (Loam.c4d BridgeMaterial()); no "Loam"
-      material exists, so Earth IS the loam wall;
-    - sowing/harvest: the clonk walks there (real MoveTo), then the
-      driver performs Plant()/Harvest() natively at the clonk's feet.
-  Everything else is real engine commands (MoveTo/Acquire/Put/Build/
-  Call -- Windmill.ProductionOrder and Workshop StartProduction shapes;
-  mill grinding reuses Windmill.ProductionOrder verbatim).
+      material exists, so Earth IS the loam wall. The berm seals the
+      WHOLE east rim x430-649 (rows 419-439): the east flank stays dry,
+      the west flank is the exposed floodplain (that is the bet);
+    - transit: cross-zone Movement is assisted by SetPosition (the 220-px
+      terrace face and the open canyon kill headless clonks; interactive
+      players bridge with the kit's CNKT/LOAM -- kept for them, the
+      driver transits instead). Counted via SFMT:transit;
+    - sowing: RemoveObject(seed) + CreateObject(AGWH) +
+      SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
+      soil check is bypassed (EventSmoke re-set pattern, deterministic
+      headless);
+    - sheaf bank / mill feed: a carried sheaf is moved with
+      RemoveObject + CreateContents into the WRKS or (completed mill,
+      up to its 5-cap) into the mill hopper -- no container-Put works
+      headless (haulprobe1/4-6: the Acquire section search cannot reach
+      container contents and the mill has no collection/entrance);
+    - mill grind: Call ProductionStart -- the in-tree
+      ProductionOrder's Put/Acquire prefix stalls in this engine; the
+      grind itself (consume hopper sheaf -> Grinding action -> FLOU
+      after grind_time) is the real Windmill script (Windmill.c4d/
+      Script.c:60-88, Starts only at con==100 -- incomplete-phase
+      actions are forced to Idle);
+    - harvest: native pW->Harvest(clnk) at the clonk's feet (Wheat.Harvest
+      collects both sheaves into the clonk, so banking works);
+    - rain / flood rise / recession / claim = scripted sweeps (above).
+  Everything else is real engine commands (MoveTo/Acquire/Put/Build/Call
+  -- Workshop StartProduction shapes).
 
   Instrumentation: SFMT:<key>=<value> log lines, mirrored by
   SturmfrontSmoke.c4s (FirstLight/FirstLightSmoke mirror discipline).
@@ -41,17 +67,17 @@
 
 // ---------------- pacing (FrameCounter ticks; absolute -- D7) ----------
 static const SF_T_FORECAST     = 70;
-static const SF_T_RAIN_START   = 4200;
-static const SF_T_RAIN_END     = 6300;
-static const SF_T_STORM_START  = 21000;
+static const SF_T_RAIN_START   = 4200;   // 120 x 35
+static const SF_T_RAIN_END     = 6300;   // 180 x 35
+static const SF_T_STORM_START  = 21000;  // 600 x 35
 static const SF_STORM_INTENSITY = 60;   // R3: drop to 40 / shorten to 1400 if
 static const SF_STORM_LENGTH   = 2100;  //        the mill burns >1 of 3 seeds
-static const SF_T_FLOOD_START  = 31500;
-static const SF_FLOOD_RISE     = 300;
-static const SF_FLOOD_RECEDE   = 300;
-static const SF_T_CLAIM1       = 31800; // flood peak
-static const SF_T_CLAIM2       = 32600; // post-recession
-static const SF_T_EVAL         = 33600;
+static const SF_T_FLOOD_START  = 31500; // 900 x 35
+static const SF_FLOOD_RISE     = 350;   // 10 x 35 director calls to peak
+static const SF_FLOOD_RECEDE   = 315;   // 9 x 35 calls back to the river bed
+static const SF_T_CLAIM1       = 31850; // 910 x 35 == flood peak
+static const SF_T_CLAIM2       = 32480; // 928 x 35, 315 after drain-start
+static const SF_T_EVAL         = 33600; // 960 x 35
 
 // ---------------- economy ------------------------------------------------
 static const SF_GRANARY_QUOTA  = 12;    // calibration 10-16 (playtest task)
@@ -60,9 +86,9 @@ static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
 
 // ---------------- ROI / geometry (world px; map 100x60 @ zoom 10) --------
-static const SF_FIELD_W1 = 60;     // west field flank
+static const SF_FIELD_W1 = 60;     // west field flank (the floodplain)
 static const SF_FIELD_W2 = 230;
-static const SF_FIELD_E1 = 430;    // east field flank
+static const SF_FIELD_E1 = 430;    // east field flank (behind the berm)
 static const SF_FIELD_E2 = 640;
 static const SF_FIELD_Y1 = 420;
 static const SF_FIELD_Y2 = 545;
@@ -74,15 +100,22 @@ static const SF_RIDGE_X1 = 700;    // terrace shelf
 static const SF_RIDGE_X2 = 890;
 static const SF_RIVER_TOP = 540;   // authored standing-river surface
 static const SF_RIM_Y = 440;       // flank surface == spill lip
-static const SF_FLOOD_TOP = 435;   // paint up to here (spill head)
+static const SF_FLOOD_TOP = 420;   // paint up to here (spill head): the west
+                                   // flank sheet is rows 420-439 = 20 px deep
 static const SF_WRKS_X = 720;      // terrace furniture
 static const SF_MILL_X = 790;
 static const SF_RIDGE_PLOT1 = 740; // the pre-sown family plot
 static const SF_RIDGE_PLOT2 = 755;
 
 // ---------------- rain / flood rates --------------------------------------
-static const SF_RAIN_RATE = 8;     // cells/tick drizzle
-static const SF_FLOOD_RATE = 67;   // cells/tick (191*105 cells / 300 ticks)
+static const SF_RAIN_RATE = 280;    // 8 cells/game-tick x 35 = 280 per call;
+                                    // 60 calls over the 2100-frame rain
+                                    // deliver ~16,800 cells (B2: the old
+                                    // per-tick constant delivered 1/35 of
+                                    // the designed volume)
+static const SF_FLOOD_RATE = 2345;  // 67 cells/game-tick x 35 per call;
+                                    // 10 rise calls paint 23,450 cells >=
+                                    // the 22920-cell canyon fill (191 x 120)
 
 // ---------------- variant switches (playtest flips scratch copies) -------
 static const SF_SKIP_TRENCH = 0;
@@ -92,7 +125,10 @@ static const SF_SKIP_WALL   = 0;
 static const SF_RIDGE_ONLY  = 0;
 static const SF_AUTOPLAY    = 1;
 
-static const SF_SILL_CELLS = 464;  // 16 cols x 29 rows east-rim levee
+static const SF_BERM_CELLS = 4620;  // 220 cols (x430-649) x 21 rows
+                                    // (y439 up to y419) east-rim full-span
+                                    // berm: every rim px is sealed; the
+                                    // west rim stays open (the bet)
 
 // ---------------- runtime state ------------------------------------------
 static g_FieldPlots;      // [100,140,180,470,510,550] (arrays are runtime)
@@ -112,11 +148,31 @@ static g_recede_level;    // recession surface row
 static g_recede_x;
 static g_rain_cursor;
 static g_trench_step;     // carve increments done (0..10)
-static g_sill_cells;
+static g_sill_cells;      // berm pour counter (SFMT legacy name kept)
 static g_done;            // evaluation fired
+static g_peak_done;       // once-flags: belt-and-suspenders on the >= gates
+static g_drain_done;      //   a future constant edit cannot silently kill a
+static g_claim1_done;     //   one-shot beat again (review B1)
+static g_claim2_done;
 
 protected func Initialize()
 {
+	// A.3 LATTICE SELF-CHECK: the FrontDirector samples FrameCounter()
+	// only on multiples of 35, so every one-shot beat must land on the
+	// lattice or it silently never fires (the cycle-175 B1 endgame bug).
+	// This is a top-level FatalError -> the run dies LOUDLY at boot.
+	if (SF_T_FORECAST % 35 != 0) return SFLatticeFatal("SF_T_FORECAST");
+	if (SF_T_RAIN_START % 35 != 0) return SFLatticeFatal("SF_T_RAIN_START");
+	if (SF_T_RAIN_END % 35 != 0) return SFLatticeFatal("SF_T_RAIN_END");
+	if (SF_T_STORM_START % 35 != 0) return SFLatticeFatal("SF_T_STORM_START");
+	if ((SF_T_STORM_START + SF_STORM_LENGTH) % 35 != 0) return SFLatticeFatal("SF_T_STORM_START+SF_STORM_LENGTH");
+	if (SF_T_FLOOD_START % 35 != 0) return SFLatticeFatal("SF_T_FLOOD_START");
+	if ((SF_T_FLOOD_START + SF_FLOOD_RISE) % 35 != 0) return SFLatticeFatal("SF_T_FLOOD_START+SF_FLOOD_RISE");
+	if ((SF_T_FLOOD_START + SF_FLOOD_RISE + SF_FLOOD_RECEDE) % 35 != 0) return SFLatticeFatal("peak+SF_FLOOD_RECEDE");
+	if (SF_T_CLAIM1 % 35 != 0) return SFLatticeFatal("SF_T_CLAIM1");
+	if (SF_T_CLAIM2 % 35 != 0) return SFLatticeFatal("SF_T_CLAIM2");
+	if (SF_T_EVAL % 35 != 0) return SFLatticeFatal("SF_T_EVAL");
+
 	SetWind(20);
 	g_FieldPlots = [100, 140, 180, 470, 510, 550];
 	g_plant_cursor = 0; g_harvest_fp = 0; g_harvest_ridge = 0;
@@ -125,6 +181,7 @@ protected func Initialize()
 	g_idle_steps = 0; g_calm_steps = 0; g_flood_cursor = 0;
 	g_recede_level = 0; g_recede_x = 0; g_rain_cursor = 0;
 	g_trench_step = 0; g_sill_cells = 0; g_done = 0;
+	g_peak_done = 0; g_drain_done = 0; g_claim1_done = 0; g_claim2_done = 0;
 
 	// terrace surface (authored shelf ~220; scan is authoritative)
 	var gy = 100;
@@ -157,6 +214,12 @@ protected func Initialize()
 	AddEffect("FrontDirector", 0, 1, 35, 0, 0);
 	if (SF_AUTOPLAY) AddEffect("CrewDriver", 0, 1, 35, 0, 0);
 	return true;
+}
+
+global func SFLatticeFatal(string name)
+{
+	FatalError(Format("Sturmfront timing lattice: %s is not a multiple of 35", name));
+	return false;
 }
 
 func InitializePlayer(int iPlr)
@@ -216,8 +279,9 @@ global func FxFrontDirectorTimer(target, effect, time)
 
 	if (t >= SF_T_FLOOD_START && t < SF_T_FLOOD_START + SF_FLOOD_RISE)
 		SFFloodRiseTick();
-	if (t == SF_T_FLOOD_START + SF_FLOOD_RISE)
+	if (t >= SF_T_FLOOD_START + SF_FLOOD_RISE && !g_peak_done)
 	{
+		g_peak_done = 1;
 		g_recede_level = SF_FLOOD_TOP;   // recession sweeps from the spill head
 		g_recede_x = 0;
 		Log("Sturmfront: flood peaks");
@@ -225,13 +289,23 @@ global func FxFrontDirectorTimer(target, effect, time)
 	}
 	if (t > SF_T_FLOOD_START + SF_FLOOD_RISE && t < SF_T_FLOOD_START + SF_FLOOD_RISE + SF_FLOOD_RECEDE)
 		SFFloodRecedeTick();
-	if (t == SF_T_FLOOD_START + SF_FLOOD_RISE + SF_FLOOD_RECEDE)
+	if (t >= SF_T_FLOOD_START + SF_FLOOD_RISE + SF_FLOOD_RECEDE && !g_drain_done)
 	{
+		g_drain_done = 1;
 		Log("Sturmfront: flood recedes -- drain and salvage");
 		SFDumpCounters("drain-start");
 	}
 
-	if (t == SF_T_CLAIM1 || t == SF_T_CLAIM2) SFClaimSweep();
+	if (t >= SF_T_CLAIM1 && !g_claim1_done)
+	{
+		g_claim1_done = 1;
+		SFClaimSweep();
+	}
+	if (t >= SF_T_CLAIM2 && !g_claim2_done)
+	{
+		g_claim2_done = 1;
+		SFClaimSweep();
+	}
 	if (t == SF_T_EVAL && !g_done) EvaluateOutcome();
 
 	return 1;
@@ -256,7 +330,10 @@ global func SFRainTick()
 
 // front 3 rise: bottom-up row painting inside the canyon slot. Painting
 // on top of standing water stacks (probe-run6); above the rim (440) the
-// column has no side walls, so the water spills onto the flanks natively.
+// column has no side walls, so the water spills onto the west flank
+// natively (east flank stays behind the sealed berm). The west-field
+// puddle settles ~10 px deep over the surface (empirically pinned at
+// peak; liquid rests 1+ px above solid -- claimprobe).
 global func SFFloodRiseTick()
 {
 	var w = Material("Water");
@@ -341,6 +418,21 @@ global func SFIdlePct()
 
 // ---------------- claim rule (rule 1) --------------------------------------
 
+// a flood destroys crops, not just ripe ones (cycle-175 A5): ANY
+// in-ground AGWH under liquid is swept. The anchor cell of a plant on
+// flat ground sits 1-2 px above the ground line, which standing water
+// NEVER wets (liquid rests 1+ px off solid; empirical claimprobe: the
+// west-field crop anchors stayed dry under the full 10-px pool while
+// their stems were submerged) -- so the probe reads the plant's stem up
+// to 12 px above the anchor. Mirror: SturmfrontSmoke.c4s SFClaimSweep.
+global func SFUnderLiquid(object pW)
+{
+	if (GBackLiquid(GetX(pW), GetY(pW))) return true;
+	if (GBackLiquid(GetX(pW), GetY(pW) - 6)) return true;
+	if (GBackLiquid(GetX(pW), GetY(pW) - 12)) return true;
+	return false;
+}
+
 global func SFClaimSweep()
 {
 	var n = 0, rect, x1, x2, pW, pS;
@@ -349,7 +441,7 @@ global func SFClaimSweep()
 		if (rect == 0) { x1 = SF_FIELD_W1; x2 = SF_FIELD_W2; }
 		else { x1 = SF_FIELD_E1; x2 = SF_FIELD_E2; }
 		for (var pW in FindObjects(Find_ID(AGWH), Find_InRect(x1, SF_FIELD_Y1, x2 - x1, SF_FIELD_Y2 - SF_FIELD_Y1)))
-			if (pW->~IsRipe() && GBackLiquid(GetX(pW), GetY(pW)))
+			if (SFUnderLiquid(pW))
 			{
 				RemoveObject(pW);
 				++n;
@@ -438,55 +530,120 @@ global func FxCrewDriverTimer(target, effect, time)
 	if (f > g_flou_prev) g_mill_grinds += f - g_flou_prev;
 	g_flou_prev = f;
 
-	// mill completion frame (the wood-role causality observable)
+	// mill completion frame (the wood-role causality observable). The
+	// Build command parks its workers AT the construction base (they
+	// stood at (788,209) INSIDE the footprint in the first probes); when
+	// con snaps to 100 the full building shape closes around them and
+	// contact-incinerates/suffocates them all ~20 frames later. Evacuate
+	// anyone still inside the footprint AT the completion tick
+	// (SetPosition is atomic -- beats the 20-frame danger window).
 	var pSite = FindObject(AGWM);
 	if (!g_mill_done && pSite && GetCon(pSite) >= 100)
 	{
 		g_mill_done = 1;
 		g_mill_frame = t;
 		Log(Format("SFMT:mill_complete=%d", t));
+		var e, cc = SFCrewList();
+		for (e = 0; e < GetLength(cc); e++)
+			if (Abs(GetX(cc[e]) - SF_MILL_X) < 20)
+			{
+				SetPosition(SF_WRKS_X - 10, SFSurfaceY(SF_WRKS_X - 10) - 12, cc[e]);
+				Log(Format("SFMT:transit=%d", SF_WRKS_X - 10));
+			}
 	}
 
-	// idle instrumentation: calm windows only (proxy c)
+	// idle instrumentation: calm windows only (proxy c). Per-clonk census
+	// (review A1): the shipped any-clonk-empty form made ONE idle clonk
+	// count the whole step idle -- a driver artifact that fails bar c on
+	// honest ripening waits. Here every crew member's step is a sample:
+	// idle_pct = idle crew-steps / total crew-steps.
 	var calm = (t > SF_T_RAIN_END && t < SF_T_STORM_START)
 	        || (t > SF_T_STORM_START + SF_STORM_LENGTH && t < SF_T_FLOOD_START);
 	var crew = SFCrewList();
 	if (calm && GetLength(crew) > 0)
 	{
-		++g_calm_steps;
-		var c, idleAny = false;
+		g_calm_steps += GetLength(crew);
+		var c;
 		for (c = 0; c < GetLength(crew); c++)
-			if (!GetCommand(crew[c])) { idleAny = true; break; }
-		if (idleAny) ++g_idle_steps;
+			if (!GetCommand(crew[c])) ++g_idle_steps;
 	}
 
-	// keep every crew clonk's command stack non-empty (greedy)
+	// SPAWN MARSHAL (t == 35, once): the [Player] Position=70,35 drops
+	// the crew on the west shoulder ledges (x650-665, y228-300) where
+	// MoveTo cannot route (a clonk fell off a ledge and died at ~frame
+	// 385 in the first fixprobe; two more churned assign_timeouts for
+	// the whole run). Pull EVERY clonk to the terrace before the ladder
+	// starts; from there all further moves are zone-transited. Interactive
+	// players get the same assist (harmless).
+	if (t == 35)
+	{
+		var m;
+		for (m = 0; m < GetLength(crew); m++)
+		{
+			SetPosition(SF_WRKS_X - 10, SFSurfaceY(SF_WRKS_X - 10) - 12, crew[m]);
+			Log(Format("SFMT:transit=%d", SF_WRKS_X - 10));
+		}
+	}
+
+	// keep every crew clonk's command stack non-empty (priority ladder:
+	// any idle clonk takes the first actionable job -- no i%4 roles, B3)
 	var i;
 	for (i = 0; i < GetLength(crew); i++)
 	{
 		if (GetCommand(crew[i])) continue;
-		SFAssignNext(crew[i], i % 4);
+		SFAssignNext(crew[i]);
 	}
 	return 1;
 }
 
-// role ladder: 0 trench, 1 mill, 2 wood+metal, 3 sill; farming is the
-// shared fallback (and the only job when a role's switch is skipped)
-global func SFAssignNext(object clnk, int role)
+// priority ladder: 1) BERM, 2) TRENCH, 3) MILL, 4) FARM (the shared
+// fallback). Each assignment arms a job-watch that recovers stuck stacks.
+global func SFAssignNext(object clnk)
 {
 	if (g_t_first_task == 0)
 	{
 		g_t_first_task = FrameCounter();
 		Log(Format("SFMT:t_first_task=%d", g_t_first_task));
 	}
+	SFAssignEffect(clnk);
 	var pBase = FindObject(WRKS);
 	var pSite = FindObject(AGWM);
 
-	if (role == 0 && !SF_SKIP_TRENCH && g_trench_step < 10) return SFTrenchWork(clnk);
-	if (role == 1 && !SF_SKIP_MILL && pSite) return SFMillWork(clnk);
-	if (role == 2 && !SF_SKIP_WOOD && pSite && GetCon(pSite) < 100) return SFWoodWork(clnk, pBase);
-	if (role == 3 && !SF_SKIP_WALL && g_sill_cells < SF_SILL_CELLS) return SFWallWork(clnk);
+	if (!SF_SKIP_WALL && g_sill_cells < SF_BERM_CELLS) return SFWallWork(clnk);
+	if (!SF_SKIP_TRENCH && g_trench_step < 10) return SFTrenchWork(clnk);
+	if (!SF_SKIP_MILL && pSite)
+	{
+		if (SFMillWork(clnk)) return true;
+		// mill has no grind work (complete + no sheaf anywhere): fall
+		// through to farming -- never a return-deadend (A1)
+	}
 	return SFFarmWork(clnk, pBase);
+}
+
+// job-watch: any command stack still non-empty 350 frames (10 x 35)
+// after an assignment is stuck (the 200-cap jam class: C4Object::AddCommand
+// refused at 200 pending) -- recover: clear the stack, re-ladder next tick.
+global func SFAssignEffect(object clnk)
+{
+	RemoveEffect("SFAssign", clnk);
+	AddEffect("SFAssign", clnk, 1, 35, 0, 0);
+	return true;
+}
+
+global func FxSFAssignTimer(object target, int effect, int frame)
+{
+	if (!GetCommand(target))
+	{
+		RemoveEffect("SFAssign", target);
+		return 1;
+	}
+	if (frame >= 350)
+	{
+		SetCommand(target, "None");   // engine path: C4Script.cpp:875-884 -> ClearCommands
+		RemoveEffect("SFAssign", target);
+		Log(Format("SFMT:assign_timeout=%d", FrameCounter()));
+	}
+	return 1;
 }
 
 global func SFClkNear(object clnk, int x, int y, int r)
@@ -508,29 +665,58 @@ global func SFOnRidge(int x)
 	return x >= SF_RIDGE_X1 && x <= SF_RIDGE_X2;
 }
 
-// ---- role 0: the drainage trench (assist: staged DigFreeRect) ----
-// L-shape: a vertical shaft at x464-476 from the east-flank surface down
-// to y515, then a horizontal adit at y492-504 from the canyon (x428)
-// through the flank to the shaft -- fully connected (probe-run5 recipe).
+// ---------------- zone transit (B3: no foot route off the islands) --------
+
+global func SFZoneOf(int x)
+{
+	if (x < 240) return 1;       // west floodplain
+	if (x < 430) return 2;       // canyon -- never a destination
+	if (x < 700) return 3;       // east valley
+	return 4;                    // ridge
+}
+
+// assisted inter-zone movement: SetPosition(x, surface-12) instead of a
+// doomed MoveTo. Returns true when the clonk was transported (the caller
+// must skip its MoveTo this tick -- the clonk is already at the target).
+// Counted via SFMT:transit for the playtest instrument.
+global func SFTransit(object clnk, int tx)
+{
+	if (SFZoneOf(GetX(clnk)) == SFZoneOf(tx)) return false;
+	SetPosition(tx, SFSurfaceY(tx) - 12, clnk);
+	Log(Format("SFMT:transit=%d", tx));
+	return true;
+}
+
+// ---- priority 2 (after the berm): the drainage trench --------------------
+// L-shape: vertical shaft x464-476 from the (dynamic!) east surface down
+// 6 x 12-deep steps, then horizontal adit y492-504 from the canyon (x428)
+// east to the shaft in 4 steps (existing steps 0-9, keep SFMT:trench_step).
+// Dynamic shaft top: the berm raises the east surface from 440 to ~419; a
+// fixed 445 would leave the shaft mouth plugged behind berm cells. The
+// digger stands BESIDE the dig column at (sx+24, ground), never over the
+// mouth (fall-in deaths, B3 root cause 2).
 global func SFTrenchWork(object clnk)
 {
-	var sx = 470, sy = 445;
+	var sx = 470, sy = SFSurfaceY(470);
+	var tx = sx + 24, ty = SFSurfaceY(tx) - 12;
 	if (g_trench_step < 6)
 	{
-		if (!SFClkNear(clnk, sx, sy, 60))
+		if (SFTransit(clnk, tx)) { }
+		else if (!SFClkNear(clnk, tx, ty, 60))
 		{
-			AddCommand(clnk, "MoveTo", 0, sx, sy - 10);
+			AddCommand(clnk, "MoveTo", 0, tx, ty);
 			return true;
 		}
 		DigFreeRect(sx - 6, sy + g_trench_step * 10, 12, 12);
 	}
 	else
 	{
-		// the adit is dug from the shaft (the digger cannot stand inside
-		// the adit -- the assist works from the shaft mouth, documented)
-		if (!SFClkNear(clnk, sx, sy, 80))
+		// the adit is dug from beside the shaft column (the digger cannot
+		// stand inside the adit -- the assist works from the shaft mouth)
+		if (SFTransit(clnk, tx)) { }
+		else if (!SFClkNear(clnk, tx, ty, 80))
 		{
-			AddCommand(clnk, "MoveTo", 0, sx, sy - 10);
+			AddCommand(clnk, "MoveTo", 0, tx, ty);
 			return true;
 		}
 		DigFreeRect(428 + (g_trench_step - 6) * 8, 492, 12, 12);
@@ -541,91 +727,136 @@ global func SFTrenchWork(object clnk)
 	return true;
 }
 
-// ---- role 1: finish the old mill, then grind (real commands) ----
+// ---- priority 3: finish the mill, then grind (real commands) -------------
 global func SFMillWork(object clnk)
 {
+	var pBase = FindObject(WRKS);
 	var pSite = FindObject(AGWM);
 	if (!pSite) return false;
 	if (GetCon(pSite) < 100)
 	{
-		// help build while the wood role hauls components
+		// The wood/metal haul chart is a headless NO-OP in this engine
+		// (the Acquire section search cannot reach container contents:
+		// haulprobe1.log carried_wood stayed 0 forever) and the Build
+		// command raises construction on its own (probe: 40->100 by
+		// Build alone). The brief's haul pairs are kept for SFMT/SF_SKIP
+		// fidelity -- the site ALWAYS gets the Build in the same stack,
+		// so the mill completes regardless (skip-wood frees the clonk
+		// from the cosmetic haul attempts; the mill_* columns coincide
+		// under both switches BY DESIGN).
+		if (!SF_SKIP_WOOD && pBase)
+		{
+			if (ContentsCount(WOOD, pBase) > 0 && ContentsCount(WOOD, pSite) < 7)
+			{
+				if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+				AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, WOOD, 1, 3);
+				AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, WOOD);
+			}
+			else if (ContentsCount(METL, pBase) > 0 && ContentsCount(METL, pSite) < 1)
+			{
+				if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+				AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, METL, 1, 3);
+				AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, METL);
+			}
+		}
+		else if (SFTransit(clnk, SF_MILL_X - 30)) return true;
 		AddCommand(clnk, "Build", pSite, 0, 0, 0, 0, 0, 0, 3);
 		return true;
 	}
-	// full mill: grind via the in-tree command chain, verbatim reuse.
-	// With nothing left to grind anywhere, stand down (farm instead) so
-	// a spent economy does not pollute idle_pct with Acquire churn.
-	if (ObjectCount(AGSH) <= 0) return false;
-	pSite->ProductionOrder(clnk);
+	// Full mill: grind. The in-tree Windmill.ProductionOrder Put/Acquire
+	// chain cannot complete in this engine -- the windmill has no
+	// OCF_Collection/GrabPutGet/Entrance, so the Put command stalls with
+	// the sheaf stuck in the worker's hands (haulprobe4/5/6: carried=1
+	// forever, mill_sheaves=0). The working primitives (haulprobe9-11 +
+	// engine C4Object.cpp:4213/5577): sheafs are banked INTO the mill by
+	// the farm's bank assist (SFFarmWork step 1 -- the same Remove-
+	// Object+CreateContents style the sow assist uses), then this branch
+	// Calls ProductionStart: it consumes the mill's sheaf, enters the
+	// Grinding action at con==100 (incomplete-phase actions are forced
+	// to Idle and would eat the sheaf silently), whose looping action
+	// climbs Action.Time and releases FLOU after grind_time (~160).
+	if (ContentsCount(AGSH, pSite) <= 0) return false;   // farm banks next
+	if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+	AddCommand(clnk, "MoveTo", 0, SF_MILL_X - 30, SFSurfaceY(SF_MILL_X - 30) - 12);
+	AddCommand(clnk, "Call", pSite, 0, 0, 0, 0, "ProductionStart");
 	return true;
 }
 
-// ---- role 2: haul WOOD/METL from the workbench into the site ----
-global func SFWoodWork(object clnk, object pBase)
-{
-	var pSite = FindObject(AGWM);
-	if (!pSite || GetCon(pSite) >= 100) return false;
-	if (pBase && ContentsCount(WOOD, pBase) > 0 && ContentsCount(WOOD, pSite) < 7)
-	{
-		AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, WOOD, 1, 3);
-		AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, WOOD);
-		return true;
-	}
-	if (pBase && ContentsCount(METL, pBase) > 0 && ContentsCount(METL, pSite) < 1)
-	{
-		AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, METL, 1, 3);
-		AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, METL);
-		return true;
-	}
-	AddCommand(clnk, "Build", pSite, 0, 0, 0, 0, 0, 0, 3);
-	return true;
-}
-
-// ---- role 3: raise the east-rim levee (assist: staged Earth pours) ----
-// 16 px wide wall standing on the east flank's canyon edge, x430-445,
-// growing from y439 up to y411: the flood must top 410 instead of 440
-// before it takes the east flank (the west flank stays exposed -- the
-// floodplain bet still bites).
+// ---- priority 1: raise the east-rim full-span berm (assist: Earth pours) -
+// 220 cols (x430-649) x 21 rows (y439 up to 419): the WHOLE east rim is
+// sealed, top row 419 sits above the lake top 420. The west rim stays
+// open -> the west flank floods (that IS the design: west = exposed
+// floodplain, east = protected by the wall role, ridge = always safe).
+// The stand spot is mid-span on the berm top; the pour is scripted
+// (InsertMaterial), so the clonk does not need to walk the rim. Wheat
+// standing in berm columns gets embedded -- accepted (harvest radius 20
+// px from the berm top still reaches it; the berm-before-trench order +
+// the dynamic trench surface keeps this consistent).
 global func SFWallWork(object clnk)
 {
-	if (!SFClkNear(clnk, 438, 445, 50))
+	var tx = 540, ty = SFSurfaceY(tx) - 12;
+	if (SFTransit(clnk, tx)) { }
+	else if (!SFClkNear(clnk, tx, ty, 90))
 	{
-		AddCommand(clnk, "MoveTo", 0, 438, 436);
+		AddCommand(clnk, "MoveTo", 0, tx, ty);
 		return true;
 	}
 	var m = Material("Earth");
 	var i, x, y;
-	for (i = 0; i < 40 && g_sill_cells < SF_SILL_CELLS; i++)
+	for (i = 0; i < 40 && g_sill_cells < SF_BERM_CELLS; i++)
 	{
-		x = 430 + g_sill_cells % 16;
-		y = 439 - g_sill_cells / 16;
+		x = 430 + g_sill_cells % 220;
+		y = 439 - g_sill_cells / 220;
 		if (!GBackSolid(x, y)) InsertMaterial(m, x, y);
 		++g_sill_cells;
 	}
 	if (g_sill_cells % 160 < 40) Log(Format("SFMT:sill_cells=%d", g_sill_cells));
-	if (g_sill_cells >= SF_SILL_CELLS) Log("Sturmfront: the sill stands -- the east levy is raised");
+	if (g_sill_cells % 160 < 40) Log(Format("SFMT:berm_cells=%d", g_sill_cells));
+	if (g_sill_cells >= SF_BERM_CELLS) Log("Sturmfront: the east levy stands -- the flood takes the west bank first");
 	return true;
 }
 
-// ---- shared: sow / harvest / bank (rule 2: dry feet) ----
+// ---- shared fallback: sow / harvest / bank (rule 2: dry feet) ------------
 global func SFFarmWork(object clnk, object pBase)
 {
-	// 1) bank carried sheaves (real command)
-	if (pBase && ContentsCount(AGSH, clnk) > 0)
+	// 1) bank carried sheaves -- SCRIPTED ASSIST: no container-Put works
+	//    headless in this engine (the Put needs a collection/entrance
+	//    the containers lack; haulprobe1/4-6), so the carried sheaf is
+	//    moved with the same RemoveObject+CreateContents pair the sow
+	//    assist uses. Completed mill first (up to its 5-cap, Windmill
+	//    RejectCollect): the delivered sheaf is what the mill branch
+	//    grinds. Leftover sheafs go to the workbench (both count in
+	//    GranaryUnits).
+	if (ContentsCount(AGSH, clnk) > 0)
 	{
-		AddCommand(clnk, "Put", pBase, 0, 0, 0, 0, AGSH);
+		var pSite = FindObject(AGWM);
+		if (pSite && GetCon(pSite) >= 100 && ContentsCount(AGSH, pSite) < 5)
+		{
+			var pS = clnk->FindContents(AGSH);
+			if (pS) RemoveObject(pS);
+			CreateContents(AGSH, pSite, 1);
+			return true;
+		}
+		if (pBase)
+		{
+			var pS2 = clnk->FindContents(AGSH);
+			if (pS2) RemoveObject(pS2);
+			CreateContents(AGSH, pBase, 1);
+			return true;
+		}
 		return true;
 	}
 	// 2) harvest ripe wheat (walk there, then the native Harvest at feet)
 	var pW = SFFindRipeWheat();
 	if (pW)
 	{
-		if (!SFClkNear(clnk, GetX(pW), GetY(pW), 25))
+		var wx = GetX(pW), wy = GetY(pW);
+		if (SFTransit(clnk, wx)) return true;
+		if (!SFClkNear(clnk, wx, wy, 25))
 		{
-			AddCommand(clnk, "MoveTo", 0, GetX(pW), GetY(pW));
+			AddCommand(clnk, "MoveTo", 0, wx, wy);
 			return true;
 		}
-		var wx = GetX(pW);
 		pW->Harvest(clnk);
 		if (SFOnRidge(wx)) ++g_harvest_ridge;
 		else ++g_harvest_fp;
@@ -633,11 +864,14 @@ global func SFFarmWork(object clnk, object pBase)
 		Log(Format("SFMT:harvest_ridge=%d", g_harvest_ridge));
 		return true;
 	}
-	// 3) sow a dry plot (dry-feet rule: the surface cell must not be liquid)
+	// 3) sow a dry plot (dry-feet rule: the surface cell must not be
+	// liquid; probe 3 px down too -- a flood puddle rests 1+ px above the
+	// ground, so a surface-only probe misses a standing pool)
 	var px = SFNextDryPlot();
 	if (px > 0 && pBase && ContentsCount(AGWS, pBase) > 0)
 	{
 		var sy = SFSurfaceY(px);
+		if (SFTransit(clnk, px)) return true;
 		if (!SFClkNear(clnk, px, sy, 25))
 		{
 			AddCommand(clnk, "MoveTo", 0, px, sy - 12);
@@ -650,8 +884,28 @@ global func SFFarmWork(object clnk, object pBase)
 		return true;
 	}
 	// 4) fallback: stand by the workbench (counts as idle if the stack
-	//    empties -- surfaced honestly by idle_pct)
-	if (pBase) AddCommand(clnk, "MoveTo", 0, GetX(pBase) - 30, GetY(pBase));
+	//    empties -- surfaced honestly by idle_pct). Stand target is BELOW
+	//    the 700-zone boundary panes: x710 (zone 4) on the terrace
+	//    surface -- the old (WRKS_x - 30 = 690, GetY(pBase)) target sat
+	//    on the zone-3 side of the boundary, so the transit never fired
+	//    and the mid-air y (the WRKS anchor floats ~26 px off the ground)
+	//    left the clonks climbing the toe face forever (assign_timeout
+	//    churn, DIA-timeout x636/y316).
+	//    Stand positions are SCATTERED across the terrace (one per crew
+	//    member, 45 px apart): seeds 176/177 showed a storm lightning
+	//    blast on the single standby pixel incinerating all four clonks
+	//    AND the workbench in one tick (fixprobe-176/177: 4 simultaneous
+	//    eliminations ~1 s into the storm) -- one pixel per stand means
+	//    one blast cannot end the run.
+	if (pBase)
+	{
+		var c = 0, ci, cl = SFCrewList();
+		for (ci = 0; ci < GetLength(cl); ci++)
+			if (cl[ci] == clnk) { c = ci; break; }
+		var sx = SF_WRKS_X - 10 + c * 45;   // 710 / 755 / 800 / 845, all zone 4
+		if (SFTransit(clnk, sx)) return true;
+		AddCommand(clnk, "MoveTo", 0, sx, SFSurfaceY(sx) - 12);
+	}
 	return true;
 }
 
@@ -673,7 +927,9 @@ global func SFNextDryPlot()
 		else if (idx < n_field) px = g_FieldPlots[idx];
 		else px = SF_RIDGE_PLOT1 + (idx - n_field) * 15;
 		sy = SFSurfaceY(px);
-		if (GBackLiquid(px, sy - 1)) continue;   // dry-feet rule (rule 2)
+		if (GBackLiquid(px, sy - 1)) continue;            // pooled at surface
+		if (GBackLiquid(px, sy - 2)) continue;            // 3-4 px standing pool
+		if (GBackLiquid(px, sy - 3)) continue;            // flood puddle (see 3)
 		var occupied = FindObjects(Find_ID(AGWH), Find_InRect(px - 8, sy - 22, 16, 24));
 		if (GetLength(occupied) > 0) continue;
 		g_plant_cursor = idx + 1;
