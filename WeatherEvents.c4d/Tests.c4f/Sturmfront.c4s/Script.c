@@ -107,14 +107,25 @@ static const SF_T_CLAIM2       = 32480; // 928 x 35, 315 after drain-start
 static const SF_T_EVAL         = 33600; // 960 x 35
 
 // ---------------- economy ------------------------------------------------
-static const SF_GRANARY_QUOTA  = 10;    // calibrated 2026-09-27 from the cycle-175 matrix
-                                        // (parse-table.md): baselines 12/7/10, ridge-only 3;
-                                        // 10 = best separator (177 knife-edge WIN, 176
-                                        // fire-loss stays a loss, ridge-only margin 7).
-                                        // NOTE: provisional -- the mill-accounting anomaly
-                                        // (baseline 12 vs no-mill variant 43 on identical
-                                        // 22-harvest economies) must be resolved before any
-                                        // quota is final; revisit with it.
+static const SF_GRANARY_QUOTA  = 10;    // CONFIRMED 2026-09-28 from the POST-NR2 matrix
+                                        // (parse-table.md, after the re-review grind-leak +
+                                        // evacuation fixes landed): baselines granary
+                                        // 14/12/16 -- all WIN at quota 10 (margins 2-6),
+                                        // ridge-only 4, mill-active 11-14, no-mill control
+                                        // 43. NR2 is closed: grinds are now 1:1 (one FLOU
+                                        // per ProductionStart -- haulprobe9 / rework-review
+                                        // evidence), so the baselines' granary is real
+                                        // production, and 176's fire-loss plus the ridge
+                                        // variant still sit far below the line: 10 remains
+                                        // the best separator (ridge-only margin 6).
+                                        // Residual note (OPEN, filed with the rework
+                                        // reviews): mill-active runs still bank ~11-14
+                                        // versus the no-mill control's 43 -- a
+                                        // banking/accounting gap (carried/loose sheaves
+                                        // outside GranaryUnits' three countable homes) not
+                                        // yet accounted for. The quota holds as the best
+                                        // separator REGARDLESS -- it does not depend on
+                                        // that gap closing.
 static const SF_KIT_SEEDS      = 20;    // 3 field cycles need 18 (D3)
 static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
