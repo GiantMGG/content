@@ -38,17 +38,26 @@ public func Execute()
 
 	if (rising)
 	{
-		// Cast a small amount of Water along the bottom edge.
+		// Cast a small amount of Water along the bottom edge. CastPXS
+		// takes a material NAME string, not a Material() int (the int
+		// form logged one [error] per call -- cycle-175 fix). NOTE: this
+		// kills the error spam; it does NOT deliver water. CastPXS water
+		// never integrates into the landscape at this engine tip (probe
+		// evidence .opencode/scratch/175/probe/EVIDENCE.md, runs 3-4;
+		// roadmap chore castpxs-water-no-integration tracks the engine
+		// side). Sturmfront-style scripted floods deliver via
+		// InsertMaterial instead.
 		for (var x = 0; x < wdt; x += 20)
-			CastPXS(waterMat, 30, 20, x, hgt - 5);
+			CastPXS("Water", 30, 20, x, hgt - 5);
 	}
 	else
 	{
-		// Recede: extract liquid from the bottom band.
+		// Recede: extract liquid from the bottom band (ExtractLiquid
+		// takes exactly (x, y) -- the former third argument was ignored).
 		for (var x = 0; x < wdt; x += 20)
 		{
 			if (GetMaterial(x, hgt - 5) == waterMat)
-				ExtractLiquid(x, hgt - 5, 5);
+				ExtractLiquid(x, hgt - 5);
 		}
 	}
 }
