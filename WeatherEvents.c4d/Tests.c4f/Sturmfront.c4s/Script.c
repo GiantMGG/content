@@ -50,14 +50,15 @@
       are never counted in the idle census (the calm expression excludes
       the storm window);
     - claim bite: the flood's economic bite is measured SMALL
-      (flood_claimed <= 2 max, var-wall; 1/0/0 in baselines) -- crops
-      that would straddle the flood would need sowing in [27960, 31500],
-      which the greedy driver's early-sowing cycle never does; the
-      floodplain-vs-ridge dilemma resolves to harvest-before-the-flood.
-      Recorded as a cycle-175 finding, not engineered around (a late-sow
-      reserve wave was tried and removed -- it never fired once in 3
-      seeds, and its hold-back only starved the granary while serving
-      nothing);
+      (flood_claimed <= 1 max across ALL 9 POST-fix runs -- baselines
+      1/0/1, post-fix parse-table; the pre-fix var-wall draw of 2 is
+      superseded) -- crops that would straddle the flood would need
+      sowing in [27960, 31500], which the greedy driver's early-sowing
+      cycle never does; the floodplain-vs-ridge dilemma resolves to
+      harvest-before-the-flood. Recorded as a cycle-175 finding, not
+      engineered around (a late-sow reserve wave was tried and removed --
+      it never fired once in 3 seeds, and its hold-back only starved the
+      granary while serving nothing);
     - sowing: RemoveObject(seed) + CreateObject(AGWH) +
       SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
       soil check is bypassed (EventSmoke re-set pattern, deterministic
@@ -112,20 +113,23 @@ static const SF_GRANARY_QUOTA  = 10;    // CONFIRMED 2026-09-28 from the POST-NR
                                         // evacuation fixes landed): baselines granary
                                         // 14/12/16 -- all WIN at quota 10 (margins 2-6),
                                         // ridge-only 4, mill-active 11-14, no-mill control
-                                        // 43. NR2 is closed: grinds are now 1:1 (one FLOU
-                                        // per ProductionStart -- haulprobe9 / rework-review
-                                        // evidence), so the baselines' granary is real
-                                        // production, and 176's fire-loss plus the ridge
-                                        // variant still sit far below the line: 10 remains
-                                        // the best separator (ridge-only margin 6).
-                                        // Residual note (OPEN, filed with the rework
-                                        // reviews): mill-active runs still bank ~11-14
-                                        // versus the no-mill control's 43 -- a
-                                        // banking/accounting gap (carried/loose sheaves
-                                        // outside GranaryUnits' three countable homes) not
-                                        // yet accounted for. The quota holds as the best
-                                        // separator REGARDLESS -- it does not depend on
-                                        // that gap closing.
+                                        // 43. NR2 is closed: grinds are 1:1 (mill_grinds ==
+                                        // FLOU, diag evidence) -- but ~2/3 of every harvest
+                                        // lies LOOSE at the plots, never banked: 1-slot
+                                        // clonks (Clonk.c4d MaxContentsCount()==1) make
+                                        // Wheat.Harvest's SECOND Collect overflow (one sheaf
+                                        // carried, one falls loose per plant -- slotprobe.log,
+                                        // the 1-slot harvest mechanism), and there is no
+                                        // loose-pickup assist (mill-active clonks walk away
+                                        // before recovering them). diag-gap-175.log closes the
+                                        // arithmetic exactly: 36 units = 11 FLOU + 13 loose
+                                        // on the ground + 1 flood-claimed + 11 fire-lost --
+                                        // the units EXIST as loose ground objects, none burn
+                                        // (the Flash reviewer's stacked-Call burn theory is
+                                        // refuted by these probes). Mill-active granary thus
+                                        // UNDERCOUNTS the true harvest; 10 remains the best
+                                        // separator regardless (ridge-only margin 6; 176's
+                                        // fire-loss sits below the line).
 static const SF_KIT_SEEDS      = 20;    // 3 field cycles need 18 (D3)
 static const SF_KIT_WOOD       = 16;
 static const SF_KIT_METAL      = 2;
