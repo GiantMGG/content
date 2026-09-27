@@ -14,8 +14,8 @@
      70        forecast
      4200-6300    front 1 rain    -- scripted InsertMaterial drizzle
      6300-21000   calm 1          -- sow / finish mill / trench / berm
-     21000-23100  front 2 storm   -- LaunchWeatherEvent(STRM,60,2100)
-     23100-31500  calm 2          -- bank crunch (knife-edge cycle 3)
+     21000-22400  front 2 storm   -- LaunchWeatherEvent(STRM,40,1400) (R3)
+     22400-31500  calm 2          -- bank crunch (knife-edge cycle 3)
      31500-31850  front 3 rise    -- scripted canyon row painting (10 x 35)
      31850        flood peaks     -- claim sweep 1 (spill head reached)
      31850-32165  recession       -- ExtractLiquid(x,y) surface sweeps
@@ -50,13 +50,14 @@
       are never counted in the idle census (the calm expression excludes
       the storm window);
     - claim bite: the flood's economic bite is measured SMALL
-      (flood_claimed <= 1 across seeds) -- crops that would straddle the
-      flood would need sowing in [27960, 31500], which the greedy
-      driver's early-sowing cycle never does; the floodplain-vs-ridge
-      dilemma resolves to harvest-before-the-flood. Recorded as a
-      cycle-175 finding, not engineered around (a late-sow reserve wave
-      was tried and removed -- it never fired once in 3 seeds, and its
-      hold-back only starved the granary while serving nothing);
+      (flood_claimed <= 2 max, var-wall; 1/0/0 in baselines) -- crops
+      that would straddle the flood would need sowing in [27960, 31500],
+      which the greedy driver's early-sowing cycle never does; the
+      floodplain-vs-ridge dilemma resolves to harvest-before-the-flood.
+      Recorded as a cycle-175 finding, not engineered around (a late-sow
+      reserve wave was tried and removed -- it never fired once in 3
+      seeds, and its hold-back only starved the granary while serving
+      nothing);
     - sowing: RemoveObject(seed) + CreateObject(AGWH) +
       SetAction("Seedling") -- NOT Plant(): the WheatSeed Earth/Tunnel
       soil check is bypassed (EventSmoke re-set pattern, deterministic
@@ -137,6 +138,13 @@ static const SF_FLOOD_TOP = 420;   // paint up to here (spill head): the west
                                    // flank sheet is rows 420-439 = 20 px deep
 static const SF_WRKS_X = 720;      // terrace furniture
 static const SF_MILL_X = 790;
+static const SF_MILL_STAGE = 740;  // mill work staging/transit x: >= 40 px away
+                                   // from the mill so the completed shape's
+                                   // ContactIncinerate footprint (x 776..804)
+                                   // cannot reach a queued worker even on the
+                                   // off-vigil frame (re-review B2: the old
+                                   // x760 staging was 30 px out -- outside the
+                                   // old radius-20 guard)
 static const SF_RIDGE_PLOT1 = 740; // the pre-sown family plot
 static const SF_RIDGE_PLOT2 = 755;
 
@@ -234,6 +242,13 @@ protected func Initialize()
 
 	// the old windmill: a 40% site on the terrace (Stormwatch ruin pattern)
 	CreateConstruction(AGWM, SF_MILL_X, gy, NO_OWNER, 40, 1);
+
+	// per-frame mill-completion evacuation watcher (re-review NR1/B2):
+	// the site exists from frame 0; the effect ticks every frame and
+	// evacuates crew the INSTANT con snaps to 100 -- frame-granular, not
+	// the 35-frame/lattice coin-flip (see FxSFEvacWatchTimer).
+	var pSite = FindObject(AGWM);
+	if (pSite) AddEffect("SFEvacWatch", pSite, 1, 1, 0, 0);
 
 	// the family plot: 2 pre-sown ridge seedlings (EventSmoke re-set pattern)
 	var j, pW;
@@ -635,22 +650,21 @@ global func FxCrewDriverTimer(target, effect, time)
 	// Build command parks its workers AT the construction base (they
 	// stood at (788,209) INSIDE the footprint in the first probes); when
 	// con snaps to 100 the full building shape closes around them and
-	// contact-incinerates/suffocates them all ~20 frames later. Evacuate
-	// anyone still inside the footprint AT the completion tick
-	// (SetPosition is atomic -- beats the 20-frame danger window).
+	// contact-incinerates/suffocates them all ~20 frames later (Windmill
+	// DefCore ContactIncinerate=4; footprint x 776..804). NB: this
+	// lattice sample (35 frames) only DETECTS the frame -- the
+	// EVACUATION itself is the per-frame SFEvacWatch effect armed on the
+	// site at Initialize (context: the old radius-20 loop here sampled
+	// con on the driver lattice against a ~20-frame kill fuse, a ~57%
+	// coin-flip that wiped the var-trench crew at mill_complete=1225 with
+	// zero evacuation transits while the shipped comment falsely claimed
+	// "SetPosition is atomic -- beats the 20-frame danger window").
 	var pSite = FindObject(AGWM);
 	if (!g_mill_done && pSite && GetCon(pSite) >= 100)
 	{
 		g_mill_done = 1;
 		g_mill_frame = t;
 		Log(Format("SFMT:mill_complete=%d", t));
-		var e, cc = SFCrewList();
-		for (e = 0; e < GetLength(cc); e++)
-			if (Abs(GetX(cc[e]) - SF_MILL_X) < 20)
-			{
-				SetPosition(SF_WRKS_X - 10, SFSurfaceY(SF_WRKS_X - 10) - 12, cc[e]);
-				Log(Format("SFMT:transit=%d", SF_WRKS_X - 10));
-			}
 	}
 
 	// idle instrumentation: calm windows only (proxy c). Per-clonk census
@@ -803,14 +817,6 @@ global func SFOnRidge(int x)
 	return x >= SF_RIDGE_X1 && x <= SF_RIDGE_X2;
 }
 
-// the west floodplain zone (x < 240): the un-bermed field the flood
-// takes -- the late-sow reserve wave sows ONLY here (fix 1), so the
-// flood can claim it while the east/ridge crops stay safe.
-global func SFOnWestField(int x)
-{
-	return x < 240;
-}
-
 // true while the storm window is active (21000..22400 after the R3
 // mitigation): the driver must not send clonks across open ground in
 // lightning -- work happens in the calm windows (spec + announce).
@@ -837,6 +843,35 @@ global func SFSafeHaven(int i)
 	if (i == 1) return 915;
 	if (i == 2) return 25;
 	return 540;
+}
+
+// SFEvacWatch: per-frame mill-completion evacuation (re-review NR1/B2).
+// Armed on the construction site at Initialize (AddEffect("SFEvacWatch",
+// pSite, 1, 1) -- interval 1 runs EVERY frame). The 35-frame driver
+// lattice samples con once per 35 ticks, but the Build snap (99->100)
+// lands on an arbitrary frame and the completed shape kills occupants on
+// a ~20-frame fuse (Windmill DefCore ContactIncinerate=4; footprint
+// x 776..804) -- the old lattice-sampled radius-20 guard around x790
+// missed the driver's own x760 staging point (30 px out) and wiped the
+// var-trench crew at mill_complete=1225 with zero evacuation transits
+// (baselines survived 3/3 by phase luck; the reviewers' arithmetic puts
+// the survival chance at ~57%). This effect checks con on EVERY frame
+// and the frame con reaches 100, transports every crew clonk within
+// 60 px of the mill (covers the staging point AND the footprint) to
+// their scattered haven (>= 80 px away), logs one SFMT:mill_evac per
+// evacuated clonk, and removes itself.
+global func FxSFEvacWatchTimer(target, effect, time)
+{
+	if (GetCon(target) < 100) return 1;          // not complete -- keep watching
+	var e, cc = SFCrewList();
+	for (e = 0; e < GetLength(cc); e++)
+		if (Abs(GetX(cc[e]) - SF_MILL_X) < 60)
+		{
+			var hx = SFSafeHaven(e % 4);
+			SetPosition(hx, SFSurfaceY(hx) - 12, cc[e]);
+			Log("SFMT:mill_evac=1");
+		}
+	return -1;                                   // done -- remove the effect
 }
 
 // ---------------- zone transit (B3: no foot route off the islands) --------
@@ -922,18 +957,18 @@ global func SFMillWork(object clnk)
 		{
 			if (ContentsCount(WOOD, pBase) > 0 && ContentsCount(WOOD, pSite) < 7)
 			{
-				if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+				if (SFTransit(clnk, SF_MILL_STAGE)) return true;
 				AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, WOOD, 1, 3);
 				AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, WOOD);
 			}
 			else if (ContentsCount(METL, pBase) > 0 && ContentsCount(METL, pSite) < 1)
 			{
-				if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+				if (SFTransit(clnk, SF_MILL_STAGE)) return true;
 				AddCommand(clnk, "Acquire", 0, 0, 0, pBase, 0, METL, 1, 3);
 				AddCommand(clnk, "Put", pSite, 0, 0, 0, 0, METL);
 			}
 		}
-		else if (SFTransit(clnk, SF_MILL_X - 30)) return true;
+		else if (SFTransit(clnk, SF_MILL_STAGE)) return true;
 		AddCommand(clnk, "Build", pSite, 0, 0, 0, 0, 0, 0, 3);
 		return true;
 	}
@@ -949,9 +984,20 @@ global func SFMillWork(object clnk)
 	// Grinding action at con==100 (incomplete-phase actions are forced
 	// to Idle and would eat the sheaf silently), whose looping action
 	// climbs Action.Time and releases FLOU after grind_time (~160).
+	// RE-REVIEW NR2 (sheaf leak): ProductionStart UNCONDITIONALLY
+	// consumes one hopper sheaf (Windmill.c4d/Script.c:68 RemoveObject
+	// (FindContents(AGSH))) even when the mill is ALREADY Grinding -- and
+	// a same-action SetAction preserves Action.Time (C4Object.cpp:4211:
+	// "Reset action time on change" only on CHANGE), so the call does
+	// NOT restart the ongoing grind and the consumed sheaf produces
+	// NOTHING. Measured: 44 units in -> 12 FLOU + 31 burned + 1 claimed
+	// across every mill-active run (var-mill's no-grind control: 43
+	// banked). Guard: only queue the grind while the mill is Idle --
+	// otherwise fall through the ladder to farm (the A1 contract).
 	if (ContentsCount(AGSH, pSite) <= 0) return false;   // farm banks next
-	if (SFTransit(clnk, SF_MILL_X - 30)) return true;
-	AddCommand(clnk, "MoveTo", 0, SF_MILL_X - 30, SFSurfaceY(SF_MILL_X - 30) - 12);
+	if (GetAction(pSite) == "Grinding") return false;    // already grinding -- stand down
+	if (SFTransit(clnk, SF_MILL_STAGE)) return true;
+	AddCommand(clnk, "MoveTo", 0, SF_MILL_STAGE, SFSurfaceY(SF_MILL_STAGE) - 12);
 	AddCommand(clnk, "Call", pSite, 0, 0, 0, 0, "ProductionStart");
 	return true;
 }
