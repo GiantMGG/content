@@ -36,6 +36,13 @@
       terrace face and the open canyon kill headless clonks; interactive
       players bridge with the kit's CNKT/LOAM -- kept for them, the
       driver transits instead). Counted via SFMT:transit;
+    - assist gating (critic pass): EVERY teleport assist -- the zone
+      transit, the storm-haven transport, and the t=35 spawn-marshal
+      pull -- is SF_AUTOPLAY-gated, so a human (auto-play off) never
+      sees the crew teleport; the one deliberate exception is the
+      SFEvacWatch mill-completion evacuation, which stays UNGATED: it
+      guards against the engine's completion-snap kill (a defect, not
+      an assist) and a nudge beats a death there;
     - storm: the driver HUNKERS -- while SFStormActive() no jobs are
       assigned; at the storm's first tick every crew member transports
       to one of four scattered SAFE havens (SFSafeHaven: terrace east,
@@ -319,6 +326,13 @@ global func FxFrontDirectorTimer(target, effect, time)
 		Log("Sturmfront: forecast -- rain, then storm, then flood");
 	}
 
+	if (t == SF_T_RAIN_START)
+	{
+		// critic pass: front 1 arrived SILENT (the forecast at t=70 only
+		// promises rain -- the onset itself had no announce)
+		SFAnnounce("Rain is falling -- bank your harvest and mind the trench");
+		Log("Sturmfront: rain begins");
+	}
 	if (t >= SF_T_RAIN_START && t < SF_T_RAIN_END) SFRainTick();
 	if (t == SF_T_RAIN_END)
 	{
@@ -340,6 +354,13 @@ global func FxFrontDirectorTimer(target, effect, time)
 		SFDumpCounters("calm2-start");
 	}
 
+	if (t == SF_T_FLOOD_START)
+	{
+		// critic pass: front 3 arrived SILENT (the peak/claim sweeps only
+		// Log); the river's rise must be heard before the water spreads
+		SFAnnounce("The river is rising -- the west bank will flood!");
+		Log("Sturmfront: flood rise begins");
+	}
 	if (t >= SF_T_FLOOD_START && t < SF_T_FLOOD_START + SF_FLOOD_RISE)
 		SFFloodRiseTick();
 	if (t >= SF_T_FLOOD_START + SF_FLOOD_RISE && !g_peak_done)
@@ -720,6 +741,10 @@ global func FxCrewDriverTimer(target, effect, time)
 			var h, hc = SFCrewList();
 			for (h = 0; h < GetLength(hc); h++)
 			{
+				// ASSIST GATE (critic pass): the haven transport is
+				// instrument-only -- a human shelters in place and never
+				// sees the crew teleport across the map at storm onset
+				if (!SF_AUTOPLAY) continue;
 				var hx = SFSafeHaven(h % 4);
 				SetPosition(hx, SFSurfaceY(hx) - 12, hc[h]);
 				Log(Format("SFMT:transit=%d", hx));
@@ -735,8 +760,9 @@ global func FxCrewDriverTimer(target, effect, time)
 	// MoveTo cannot route (a clonk fell off a ledge and died at ~frame
 	// 385 in the first fixprobe; two more churned assign_timeouts for
 	// the whole run). Pull EVERY clonk to the terrace before the ladder
-	// starts; from there all further moves are zone-transited. Interactive
-	// players get the same assist (harmless).
+	// starts; from there all further moves are zone-transited.
+	// ASSIST GATE (critic pass): the pull is instrument-only -- a human
+	// plays from the spawn ledges and never sees the crew teleport.
 	if (t == 35)
 	{
 		// boot evidence (one-shot): the four storm havens each resolve to
@@ -745,11 +771,12 @@ global func FxCrewDriverTimer(target, effect, time)
 		for (hq = 0; hq < 4; hq++)
 			Log(Format("SFMT:haven_%d_surf=%d", hq, SFSurfaceY(SFSafeHaven(hq))));
 		var m;
-		for (m = 0; m < GetLength(crew); m++)
-		{
-			SetPosition(SF_WRKS_X - 10, SFSurfaceY(SF_WRKS_X - 10) - 12, crew[m]);
-			Log(Format("SFMT:transit=%d", SF_WRKS_X - 10));
-		}
+		if (SF_AUTOPLAY)
+			for (m = 0; m < GetLength(crew); m++)
+			{
+				SetPosition(SF_WRKS_X - 10, SFSurfaceY(SF_WRKS_X - 10) - 12, crew[m]);
+				Log(Format("SFMT:transit=%d", SF_WRKS_X - 10));
+			}
 	}
 
 	// keep every crew clonk's command stack non-empty (priority ladder:
@@ -875,6 +902,13 @@ global func SFSafeHaven(int i)
 // 60 px of the mill (covers the staging point AND the footprint) to
 // their scattered haven (>= 80 px away), logs one SFMT:mill_evac per
 // evacuated clonk, and removes itself.
+// UNGATED BY SF_AUTOPLAY (deliberate exception, critic pass): the
+// transit/haven/marshal teleports are instrument assists and hide
+// behind SF_AUTOPLAY -- but THIS one guards against the engine's
+// completion-snap kill, a DEFECT not an assist, and a nudge beats a
+// death for a human player too. If the engine ever resolves con snaps
+// death-free (or clonks stop being Build-parked inside the footprint),
+// this effect is the first thing to delete.
 global func FxSFEvacWatchTimer(target, effect, time)
 {
 	if (GetCon(target) < 100) return 1;          // not complete -- keep watching
@@ -903,8 +937,12 @@ global func SFZoneOf(int x)
 // doomed MoveTo. Returns true when the clonk was transported (the caller
 // must skip its MoveTo this tick -- the clonk is already at the target).
 // Counted via SFMT:transit for the playtest instrument.
+// ASSIST GATE (critic pass): the transport is instrument-only -- with
+// auto-play off a human never sees the crew teleport (return false and
+// let the caller's own MoveTo carry them, as a player's clonk would).
 global func SFTransit(object clnk, int tx)
 {
+	if (!SF_AUTOPLAY) return false;
 	if (SFZoneOf(GetX(clnk)) == SFZoneOf(tx)) return false;
 	SetPosition(tx, SFSurfaceY(tx) - 12, clnk);
 	Log(Format("SFMT:transit=%d", tx));
