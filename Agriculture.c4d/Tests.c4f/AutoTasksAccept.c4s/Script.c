@@ -35,7 +35,7 @@ static g_at_saw_cycles, g_at_saw_trees;            // Saw re-arms / claims
 static g_at_quarry_cycles;                         // Quarry handoffs
 static g_at_reap_deposits, g_at_oasis_deposits;    // Deposit tallies
 static g_at_stall_saw, g_at_stall_reap, g_at_stall_quarry; // watchdog budgets
-static g_at_r3_ticks, g_at_saw_assist;             // R3 wedged-log entrance assist
+static g_at_saw_delivers;                          // saw-log deliveries into the mill (AMENDMENT 1)
 
 // FINDING 2: the JobWatch watchdog is a BOUNDED stall absorber, not a second
 // loop sustainer (an unbounded watchdog would mask mutation M1). At most
@@ -277,37 +277,9 @@ global func FxJobWatchTimer(target, effect, time)
 				Log("ATMT:watch_reissue=saw");
 			}
 			else Log("ATMT:watch_budget=saw");
-	// R3 wedged-log entrance assist (plan Task-2 verification, spec R3). A
-	// felled log pushed at the mill rests ~8px short of the entrance x-range
-	// (SW4 probe: log center 141 vs entrance [149,170]) and the PushTo ->
-	// MoveTo-PushTarget loop spins forever, so the stack NEVER empties and
-	// the watchdog above can't help. After >= 210 ticks with a felled,
-	// ungrabbed, uncontained log within 80px of the mill, script-Enter it
-	// into the mill (the saw chain then completes: ContainedUp saws it into
-	// 7x WOOD and ejects them near the mill). Idempotent: a log entered
-	// early is the same outcome as a completed push.
-	if (g_at_clonk_saw && g_at_sawm)
-	{
-		var lg, have = 0;
-		for (lg in FindObjects(Find_ID(TRE1)))
-			if (!Contained(lg) && !lg->~IsStanding())
-				if (Abs(GetX(lg) - GetX(g_at_sawm)) <= 80)
-					have = 1;
-		if (have) g_at_r3_ticks++; else g_at_r3_ticks = 0;
-		if (have && g_at_r3_ticks >= 6) // 210 ticks at 35/effect
-		{
-			for (lg in FindObjects(Find_ID(TRE1)))
-				if (!Contained(lg) && !lg->~IsStanding())
-					if (Abs(GetX(lg) - GetX(g_at_sawm)) <= 80)
-					{
-						lg->Enter(g_at_sawm);
-						g_at_r3_ticks = 0;
-						++g_at_saw_assist;
-						Log(Format("ATMT:saw_assist=%d", g_at_saw_assist));
-						break;
-					}
-		}
-	}
+	// (AMENDMENT 1: the R3 wedged-log entrance assist was removed — its wedge
+	// (stock PushTo -> MoveTo-PushTarget into the mill hull) cannot occur
+	// without the Production PushTo leg, which JobSaw no longer issues.)
 	// Quarry pair
 	if (g_at_clonk_quarry)
 		if (!GetCommand(g_at_clonk_quarry, 0, 0))
