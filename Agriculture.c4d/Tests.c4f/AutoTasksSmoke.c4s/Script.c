@@ -322,11 +322,21 @@ global func FxJobWatchTimer(target, effect, time)
 }
 // SHARED-CORE-END -------------------------------------------------------------
 
-// ---- task-2 one-cycle probe driver (Tasks 4/5 replace this section) --------
-// Assign all three jobs, add the watchdog + a 35-tick probe. The probe's
-// counts with no sync assists anywhere: every census/bank/deposit > 0 below
-// was walked by the real chain (ATWoodCensus near the mill; SNDS at the Oasis;
-// sheaves banked in the Granary).
+// ---- task-4 350-tick step ladder (plan Task 4; replaces the task-2 probe) --
+// Global-effect ladder on a 35-tick interval (FirstLightClimate.c4s shape;
+// strict-3 object slots take nil, not 0). Every timer fires
+//   ATS:step=<timer> t=<time> <desc>
+// every failure is
+//   FatalError("AutoTasksSmoke FAIL: step <N> <what>")
+// with <N> one of 1, 2a, 2b, 2c, 2d, 3, 4 — the FatalError tags are
+// load-bearing: mutation M2's RED proof greps "step 2c" (plan 5e). An
+// effect-timer FatalError exits 0 but logs "[error] User error: ..." which
+// the smoke entry's FAIL regex catches (AGENTS.md smoke contract).
+
+// Monotone reap-walk stage latches for the step-3 poll (plan adaptation 1:
+// no stage_sickle — the committed JobReap has no Acquire legs, so the reap
+// clonk never carries a sickle by construction).
+static g_stage_plot, g_stage_sheaf;
 
 protected func Initialize()
 {
@@ -335,35 +345,183 @@ protected func Initialize()
 	JobAssign(g_at_clonk_saw, "saw");
 	JobAssign(g_at_clonk_quarry, "quarry");
 	// Strict-3 engine calls take nil (not 0) in object slots (C4AulExec
-	// CheckOpPar: non-strict scripts pass empty values leniently, strict-3
-	// converts strictly). FirstLightClimate's shape uses 0 — that file is
-	// #strict 2. AddEffect args: name, target, prio, interval, cmdTarget, ...
+	// CheckOpPar). AddEffect args: name, target, prio, interval, cmdTarget, ...
+	AddEffect("RunTest", nil, 1, 35, nil, 0);
 	AddEffect("JobWatch", nil, 1, 35, nil, 0);
-	AddEffect("ATProbe", nil, 1, 35, nil, 0);
 	return true;
 }
 
-global func FxATProbeStart(target, effect, temp) { return 1; }
+global func FxRunTestStart(target, effect, temp) { return 1; }
 
-global func FxATProbeTimer(target, effect, time)
+global func FxRunTestTimer(target, effect, time)
 {
-	// P1 (isolated MoveTo) proved unowned-CLNK walking works — the stall is
-	// job-command-specific. Full reap state per step: ripe-wheat census, head
-	// command (nil-guarded — %s with nil errors), position, carried sheaves.
-	var at_ripes = 0, at_w;
-	for (at_w in FindObjects(Find_ID(AGWH)))
-		if (at_w->IsRipe()) at_ripes++;
-	var at_rcmd = GetCommand(g_at_clonk_reap, 0, 0);
-	if (!at_rcmd) at_rcmd = "-";
-	var at_scmd = GetCommand(g_at_clonk_saw, 0, 0);
-	if (!at_scmd) at_scmd = "-";
-	Log(Format("ATPROBE:step=%d saw_cycles=%d saw_census=%d snds_oass=%d reap_banked=%d ripes=%d reap_x=%d reap_ags=%d reap_cmd=%s",
-	           time / 35, g_at_saw_cycles, ATWoodCensus(),
-	           ContentsCount(SNDS, g_at_oass), ContentsCount(AGSH, g_at_grny),
-	           at_ripes, GetX(g_at_clonk_reap),
-	           ContentsCount(AGSH, g_at_clonk_reap), at_rcmd));
-	Log(Format("ATPROBE:S step=%d saw_x=%d saw_ags=%d saw_cmd=%s",
-	           time / 35, GetX(g_at_clonk_saw),
-	           ContentsCount(WOOD, g_at_sawm), at_scmd));
+	// ---- timer 1 (t35) — step 1: fixtures + live crew stacks. -------------
+	if (time == 35)
+	{
+		Log("ATS:step=1 t=35 fixtures");
+		if (!g_at_clonk_reap || !g_at_clonk_saw || !g_at_clonk_quarry)
+			FatalError("AutoTasksSmoke FAIL: step 1 crew dead");
+		// Stations present (ATFixtures pinned them at t0 — re-assert the
+		// world they live in).
+		if (!FindObject(GRNY) || !FindObject(SAWM) || !FindObject(QRRY)
+		 || !FindObject(OASS))
+			FatalError("AutoTasksSmoke FAIL: step 1 station missing");
+		if (GetCon(FindObject(SAWM)) < 100)
+			FatalError("AutoTasksSmoke FAIL: step 1 sawm con < 100");
+		// 4 ripe wheat plots (IsRipe = action "Ready").
+		var w, ripes = 0;
+		for (w in FindObjects(Find_ID(AGWH)))
+			if (w->IsRipe()) ripes++;
+		if (ripes < 4)
+			FatalError(Format("AutoTasksSmoke FAIL: step 1 ripes %d < 4", ripes));
+		// >= 11 standing TRE1 (standing = IsStanding, Tree.c4d/Script.c:138).
+		var t, standing = 0;
+		for (t in FindObjects(Find_ID(TRE1)))
+			if (t->~IsStanding()) standing++;
+		if (standing < 11)
+			FatalError(Format("AutoTasksSmoke FAIL: step 1 standing %d < 11", standing));
+		// Each crew stack non-empty (the job's re-arm Call at the stack
+		// bottom guarantees this while the loop lives).
+		if (!GetCommand(g_at_clonk_reap, 0, 0)
+		 || !GetCommand(g_at_clonk_saw, 0, 0)
+		 || !GetCommand(g_at_clonk_quarry, 0, 0))
+			FatalError("AutoTasksSmoke FAIL: step 1 empty crew stack");
+		return true;
+	}
+
+	// ---- timer 2 (t70) — step 2: sync pins (a) mint, (b) quarry, (c) cap.
+	if (time == 70)
+	{
+		Log("ATS:step=2 t=70 sync pins");
+
+		// (2a) mint — Enter the reserved tree into the mill. Position-based
+		// lookup (the fixture is the only TRE1 at AT_MINT_TREE_X — felled
+		// logs rest near the mill, the R3 box is |x-150|<=80). Call form
+		// verified against the engine reg (Enter, C4Script.cpp:7307) and the
+		// shared-core R3 assist (lg->Enter(g_at_sawm)). Completion (sawing ->
+		// WOOD ejected near the mill) is asserted at timer 7 (t245).
+		var mint;
+		for (mint in FindObjects(Find_ID(TRE1)))
+			if (GetX(mint) == AT_MINT_TREE_X) break;
+		if (!mint || GetX(mint) != AT_MINT_TREE_X)
+			FatalError("AutoTasksSmoke FAIL: step 2a mint tree missing");
+		if (!mint->Enter(g_at_sawm))
+			FatalError("AutoTasksSmoke FAIL: step 2a Enter refused");
+		Log("ATS:mint_entered");
+
+		// (2b) quarry sync pin — DesertSmoke verbatim shape
+		// (DesertSmoke.c4s/Script.c:125-133). Plan adaptation 3: the job's
+		// t0 mint consumed the one-shot vein pixel ("vein exhausted" —
+		// part-1 finding; Quarry() returns 0 after), so first re-draw the
+		// exact quad ATFixtures painted, then Quarry() must mint again.
+		DrawMaterialQuad("Sandstone", 680, g_at_gy + 4, 720, g_at_gy + 4,
+		                 720, g_at_gy + 24, 680, g_at_gy + 24, false);
+		if (!g_at_qrry->Quarry())
+			FatalError("AutoTasksSmoke FAIL: step 2b Quarry() no mint");
+		if (ContentsCount(SNDS, g_at_qrry) < 1)
+			FatalError("AutoTasksSmoke FAIL: step 2b no SNDS in quarry");
+		// Handoff pair to the quarry clonk + direct OASS deposit. The clonk
+		// is mid-haul and may already carry the t0 SNDS — the final assert
+		// holds for whichever SNDS got banked.
+		var b = g_at_qrry->FindContents(SNDS);
+		if (b) RemoveObject(b);
+		CreateContents(SNDS, g_at_clonk_quarry, 1);
+		g_at_oass->Deposit(g_at_clonk_quarry);
+		if (ContentsCount(SNDS, g_at_oass) < 1)
+			FatalError("AutoTasksSmoke FAIL: step 2b no SNDS at oasis");
+
+		// (2c) cap — delta-fill GRNY to exactly 10 sheaves (the reap clonk
+		// may have banked some already), hand the reap clonk a spare sheaf,
+		// and prove Deposit is REFUSED. THIS IS MUTATION M2'S TARGET ASSERT
+		// (plan 5e greps "AutoTasksSmoke FAIL: step 2c"). Holds in both
+		// carry states: if the clonk already holds its own sheaf the
+		// CreateContents is silently refused and the clonk-assert sees that
+		// sheaf instead (CLNK RejectCollect caps non-special items at 1).
+		CreateContents(AGSH, g_at_grny, 10 - ContentsCount(AGSH, g_at_grny));
+		CreateContents(AGSH, g_at_clonk_reap, 1);
+		g_at_grny->Deposit(g_at_clonk_reap);
+		if (ContentsCount(AGSH, g_at_grny) != 10)
+			FatalError(Format("AutoTasksSmoke FAIL: step 2c grny %d != 10 (cap broken)",
+			                  ContentsCount(AGSH, g_at_grny)));
+		if (ContentsCount(AGSH, g_at_clonk_reap) < 1)
+			FatalError("AutoTasksSmoke FAIL: step 2c sheaf lost on refusal");
+		// Non-vacuity (plan adaptation 2): drain what was just created so a
+		// later step-4 "sheaves banked >= 1" cannot be satisfied by the
+		// pre-fill. AGSH items are indistinguishable, so the drain removes
+		// everything in GRNY including any real walked deposits — the cycle
+		// pin at t315 then requires the reap loop to re-bank from scratch.
+		var sh, i, n = ContentsCount(AGSH, g_at_grny);
+		for (i = 0; i < n; i++)
+		{
+			sh = g_at_grny->FindContents(AGSH);
+			if (sh) RemoveObject(sh);
+		}
+		Log("ATS:prefill_drained");
+		return true;
+	}
+
+	// ---- timer 3 (t105) — step 2d: cancel the quarry job. ---------------
+	if (time == 105)
+	{
+		Log("ATS:step=3 t=105 cancel quarry");
+		// Capture before the cancel: JobCancel clears the crew static, so
+		// GetCommand via the static would nil-test the wrong thing.
+		var qc = g_at_clonk_quarry;
+		g_at_qrry->ContextJobStop(g_at_clonk_quarry);
+		if (GetCommand(qc, 0, 0))
+			FatalError("AutoTasksSmoke FAIL: step 2d cancel left a command");
+		// Cancel blast-radius pin: the other two loops must be untouched.
+		if (!GetCommand(g_at_clonk_reap, 0, 0) || !GetCommand(g_at_clonk_saw, 0, 0))
+			FatalError("AutoTasksSmoke FAIL: step 2d cancel hit another job");
+		return true;
+	}
+
+	// ---- timers 4-8 (t140-280) — step 3: reap walk poll. -----------------
+	if (time >= 140 && time <= 280)
+	{
+		Log(Format("ATS:step=%d t=%d reap poll", time / 35, time));
+		// The reap loop must live every tick (re-arm Call at the stack
+		// bottom; no Acquire legs to kill it).
+		if (!GetCommand(g_at_clonk_reap, 0, 0))
+			FatalError("AutoTasksSmoke FAIL: step 3 reap stack died");
+		// Monotone stage latches (checked cumulatively at timer 8). No
+		// stage_sickle — plan adaptation 1: JobReap has no Acquire legs, so
+		// the reap clonk never carries a sickle by construction.
+		var w, ripes = 0;
+		for (w in FindObjects(Find_ID(AGWH)))
+			if (w->IsRipe()) ripes++;
+		if (ripes < 4) g_stage_plot = true;          // a plot got harvested
+		if (ContentsCount(AGSH, g_at_clonk_reap) >= 1) g_stage_sheaf = true; // sheaf on the clonk observed
+		// timer 7 (t245): 2a completion — the minted tree was sawed and
+		// ejected near the mill (ContentsCheck 35 + Saw 35 pacing).
+		if (time == 245)
+			if (ATWoodCensus() < 1)
+				FatalError(Format("AutoTasksSmoke FAIL: step 2a census %d", ATWoodCensus()));
+		// timer 8 (t280): all remaining stage latches set.
+		if (time == 280)
+		{
+			if (!g_stage_plot)
+				FatalError("AutoTasksSmoke FAIL: step 3 no plot harvested");
+			if (!g_stage_sheaf)
+				FatalError("AutoTasksSmoke FAIL: step 3 no sheaf carried");
+		}
+		return true;
+	}
+
+	// ---- timer 9 (t315) — step 4: cycle pin. -----------------------------
+	if (time == 315)
+	{
+		Log("ATS:step=9 t=315 cycle pin");
+		// Non-vacuous after the 2c drain: the reap counter bumps only on
+		// real walked deposits (this one ran at least twice before t70) and
+		// a real post-drain deposit must have re-banked a sheaf by now.
+		if (g_at_reap_deposits < 1)
+			FatalError("AutoTasksSmoke FAIL: step 4 no reap deposit counted");
+		if (ContentsCount(AGSH, g_at_grny) < 1)
+			FatalError("AutoTasksSmoke FAIL: step 4 no sheaf banked after drain");
+		Log("AutoTasksSmoke PASS");
+		GameOver();
+		return true;
+	}
 	return true;
 }
