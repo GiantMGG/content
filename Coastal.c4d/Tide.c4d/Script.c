@@ -45,7 +45,8 @@ public func Execute()
 		for (var x = 0; x < wdt; x += 20)
 		{
 			if (GetMaterial(x, hgt - 5) == waterMat)
-				ExtractLiquid(x, hgt - 5, 5);
+				// ExtractLiquid takes exactly (x, y) -- the former third argument was ignored.
+				ExtractLiquid(x, hgt - 5);
 		}
 	}
 }
