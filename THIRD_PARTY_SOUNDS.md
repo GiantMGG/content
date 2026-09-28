@@ -20,6 +20,9 @@ with its upstream source, license, and checksum.
 | ArenaChampions.c4f/Objects.c4d/TeamChest.c4d/ChestOpen.wav | Audio/handleCoins.ogg | Kenney RPG Audio pack (`kenney_rpg-audio.zip`), https://kenney.nl/assets/rpg-audio | CC0 | 1e41e1566b43fbb9e80fa974de52e96840f3d047430ada1298cf3b41afe2180f | 2026-09-25 |
 | ArenaChampions.c4f/Objects.c4d/Boundary.c4d/TideAlert.wav | Audio/bong_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | f065fefe2483ebc362eeba926488a2e24b85ce4331999cdc1d41beaeea49acde | 2026-09-25 |
 | ArenaChampions.c4f/Objects.c4d/KillTarget.c4d/VictorySting.wav | Audio/confirmation_001.ogg | Kenney Interface Sounds pack (`kenney_interface-sounds.zip`), https://kenney.nl/assets/interface-sounds | CC0 | 45df1829f45b81890562a019e316623781c6cf6ef53b272ef9d5991885ba9e2f | 2026-09-25 |
+| SiegeEngines.c4d/System.c4d/SiegeTarget.c4d/SiegeCrack.wav | Audio/impactWood_medium_000.ogg | Kenney Impact Sounds pack (`kenney_impact-sounds.zip`), https://kenney.nl/assets/impact-sounds | CC0 | 10e747cd21f5162c8a2f1aea27ab79150bbc45f0965b0500a049db56b2f29858 | 2026-09-29 |
+| SiegeEngines.c4d/System.c4d/SiegeTarget.c4d/SiegeBreak.wav | Audio/impactSoft_heavy_002.ogg | Kenney Impact Sounds pack (`kenney_impact-sounds.zip`), https://kenney.nl/assets/impact-sounds | CC0 | 2770d026770a3c7b6574a2c3f09355d28b49b501cad9d755243293a61b7f7a77 | 2026-09-29 |
+| Knights.c4f/SiegeOfHighKeep.c4s/BoilingOilCauldron.c4d/OilSizzle.wav and SiegeEngines.c4d/Tests.c4f/SiegeSmoke.c4s/BoilingOilCauldron.c4d/OilSizzle.wav (byte-identical copies) | water_boiling.ogg | "30 CC0 SFX loops" by rubberduck (`sfx_loops.zip`), https://opengameart.org/content/30-cc0-sfx-loops | CC0 | 4314155e1f2a176dd405cd57da1f3e05d30c6d1cc4cad73d348c8f7012fe31a9 | 2026-09-29 |
 
 License notes:
 
@@ -51,6 +54,9 @@ ffmpeg -i <name>.tmp.wav -af volumedetect -f null -
 #   ChestOpen:       max_volume = -1.4 dB
 #   TideAlert:       max_volume = -0.9 dB
 #   VictorySting:    max_volume = -0.9 dB
+#   SiegeCrack:      max_volume = -1.0 dB   (2026-09-29 siege batch)
+#   SiegeBreak:      max_volume = -0.9 dB
+#   OilSizzle:       max_volume = -15.6 dB
 
 # Step 3 — apply gain so the final peak lands on -1.5 dBFS
 #   (gain = -1.5 dB - measured peak):
@@ -64,6 +70,9 @@ ffmpeg -y -i <name>.tmp.wav -af "volume=+0.7dB" <name>.wav   # RespawnChime
 ffmpeg -y -i <name>.tmp.wav -af "volume=-0.1dB" <name>.wav   # ChestOpen
 ffmpeg -y -i <name>.tmp.wav -af "volume=-0.6dB" <name>.wav   # TideAlert
 ffmpeg -y -i <name>.tmp.wav -af "volume=-0.6dB" <name>.wav   # VictorySting
+ffmpeg -y -i <name>.tmp.wav -af "volume=-0.5dB" <name>.wav   # SiegeCrack
+ffmpeg -y -i <name>.tmp.wav -af "volume=-0.6dB" <name>.wav   # SiegeBreak
+ffmpeg -y -i <name>.tmp.wav -af "volume=+14.1dB" <name>.wav  # OilSizzle
 ```
 
 Verified output format (ffprobe, all files):
@@ -75,3 +84,4 @@ Upstream downloads:
 - `kenney_impact-sounds.zip`: https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip
 - `kenney_interface-sounds.zip`: https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
 - `water-splash-slime-sfx.zip`: https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip
+- `sfx_loops.zip`: https://opengameart.org/sites/default/files/sfx_loops.zip
