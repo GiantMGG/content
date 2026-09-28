@@ -12,7 +12,7 @@
 // scan-derived, everything else anchors to it).
 
 static const AT_SAWM_X = 150;        // sawmill station
-static const AT_MINT_TREE_X = 185;   // reserved mint tree (pre-marked)
+static const AT_MINT_TREE_X = 284;   // reserved mint tree (pre-marked; moved from 185 in task-2 — its trunk overlapped the SAWM footprint)
 static const AT_GRNY_X = 450;        // granary station
 static const AT_QRRY_X = 700;        // quarry station
 static const AT_OASS_X = 950;        // oasis station
@@ -35,6 +35,7 @@ static g_at_saw_cycles, g_at_saw_trees;            // Saw re-arms / claims
 static g_at_quarry_cycles;                         // Quarry handoffs
 static g_at_reap_deposits, g_at_oasis_deposits;    // Deposit tallies
 static g_at_stall_saw, g_at_stall_reap, g_at_stall_quarry; // watchdog budgets
+static g_at_r3_ticks, g_at_saw_assist;             // R3 wedged-log entrance assist
 
 // FINDING 2: the JobWatch watchdog is a BOUNDED stall absorber, not a second
 // loop sustainer (an unbounded watchdog would mask mutation M1). At most
@@ -113,8 +114,14 @@ global func ATFixtures()
 	//    at ~126px). 18-20px gaps leave ~12-14px trunk clearance for pushed
 	//    logs; two clusters keep every tree within 500px of the mill and the
 	//    push legs short. The y anchor is the surface (see the top comment:
-	//    Chop's approach target must be reachable, P3-chop probe).
-	var at_forest = [48, 66, 84, 102, 120, 138, 172, 190, 208, 226];
+	//    Chop's approach target must be reachable, P3-chop probe). Task-2
+	//    bisect (BI4/BI5/BI6 + SW-probes): legs 120/138/172/190 jam — their
+	//    Chop approach (Target+-6, surface y) lands INSIDE the SAWM footprint
+	//    x=[114,186] (SAWM Width=72 Offset=-36), the clonk climbs the mill and
+	//    spins Grab/PushTo/Wait forever. Re-laid: left cluster keeps the
+	//    working legs 30-102 (approach <= 108 < 114); the four invasive legs
+	//    move to the right cluster clear of the mill (approach >= 188 > 186).
+	var at_forest = [30, 48, 66, 84, 102, 194, 212, 230, 248, 266];
 	for (i = 0; i < GetLength(at_forest); i++)
 	{
 		var tree = CreateObject(TRE1, at_forest[i], g_at_gy, NO_OWNER);
@@ -123,6 +130,8 @@ global func ATFixtures()
 
 	// 5. Reserved mint tree + pre-claim (Sawmill :58 shape: the marker makes
 	//    FindTreeToChop skip it, so the saw job never touches the mint fixture).
+	//    Task-2: moved from x=185 (trunk overlapped the SAWM footprint) to
+	//    x=284, clear right of the right forest cluster.
 	var mint = CreateObject(TRE1, AT_MINT_TREE_X, g_at_gy, NO_OWNER);
 	if (!mint) FatalError("AutoTasksSmoke FAIL: mint tree");
 	AddEffect("IntSawmillTreeMarker", mint, 1, 5000, g_at_sawm, 0, 0);
@@ -150,9 +159,13 @@ global func ATFixtures()
 	}
 	Log("ATFIX:wheat n=4");
 
-	// 9. Loose sickles at x 420/440 (drop to the surface).
-	var sk1 = CreateObject(AGSK, 420, g_at_gy - 10, NO_OWNER);
-	var sk2 = CreateObject(AGSK, 440, g_at_gy - 10, NO_OWNER);
+	// 9. Loose sickles at x 620/640 (drop to the surface). Task-2 fix: the
+	//    JobReap first leg (MoveTo GRNY 450) passed over the original x=420/440
+	//    spawns, the unowned clonk auto-picked a sickle, and CLNK
+	//    RejectCollect (MaxContentsCount 1) then refused the sheaves — the
+	//    carried=0 banked=0 shape. BI6 proved 620/640 restores banked=4.
+	var sk1 = CreateObject(AGSK, 620, g_at_gy - 10, NO_OWNER);
+	var sk2 = CreateObject(AGSK, 640, g_at_gy - 10, NO_OWNER);
 	if (!sk1 || !sk2) FatalError("AutoTasksSmoke FAIL: sickles missing");
 	Log("ATFIX:sickles n=2");
 
@@ -172,8 +185,11 @@ global func ATFixtures()
 	Log("ATFIX:oass ok");
 
 	// 12. Crew: one unowned CLNK per job (SpawnerSmoke.c4s/Script.c:22 shape).
+	//     Task-2: the saw clonk moved from x=170 (inside the SAWM footprint
+	//     [114,186] — it spawned embedded in the mill) to x=300, clear of the
+	//     mill and both forest clusters.
 	g_at_clonk_reap = CreateObject(CLNK, 400, g_at_gy - 8, NO_OWNER);
-	g_at_clonk_saw = CreateObject(CLNK, 170, g_at_gy - 8, NO_OWNER);
+	g_at_clonk_saw = CreateObject(CLNK, 300, g_at_gy - 8, NO_OWNER);
 	g_at_clonk_quarry = CreateObject(CLNK, 660, g_at_gy - 8, NO_OWNER);
 	if (!g_at_clonk_reap || !g_at_clonk_saw || !g_at_clonk_quarry)
 		FatalError("AutoTasksSmoke FAIL: crew not spawned");
@@ -261,6 +277,37 @@ global func FxJobWatchTimer(target, effect, time)
 				Log("ATMT:watch_reissue=saw");
 			}
 			else Log("ATMT:watch_budget=saw");
+	// R3 wedged-log entrance assist (plan Task-2 verification, spec R3). A
+	// felled log pushed at the mill rests ~8px short of the entrance x-range
+	// (SW4 probe: log center 141 vs entrance [149,170]) and the PushTo ->
+	// MoveTo-PushTarget loop spins forever, so the stack NEVER empties and
+	// the watchdog above can't help. After >= 210 ticks with a felled,
+	// ungrabbed, uncontained log within 80px of the mill, script-Enter it
+	// into the mill (the saw chain then completes: ContainedUp saws it into
+	// 7x WOOD and ejects them near the mill). Idempotent: a log entered
+	// early is the same outcome as a completed push.
+	if (g_at_clonk_saw && g_at_sawm)
+	{
+		var lg, have = 0;
+		for (lg in FindObjects(Find_ID(TRE1)))
+			if (!Contained(lg) && !lg->~IsStanding())
+				if (Abs(GetX(lg) - GetX(g_at_sawm)) <= 80)
+					have = 1;
+		if (have) g_at_r3_ticks++; else g_at_r3_ticks = 0;
+		if (have && g_at_r3_ticks >= 6) // 210 ticks at 35/effect
+		{
+			for (lg in FindObjects(Find_ID(TRE1)))
+				if (!Contained(lg) && !lg->~IsStanding())
+					if (Abs(GetX(lg) - GetX(g_at_sawm)) <= 80)
+					{
+						lg->Enter(g_at_sawm);
+						g_at_r3_ticks = 0;
+						++g_at_saw_assist;
+						Log(Format("ATMT:saw_assist=%d", g_at_saw_assist));
+						break;
+					}
+		}
+	}
 	// Quarry pair
 	if (g_at_clonk_quarry)
 		if (!GetCommand(g_at_clonk_quarry, 0, 0))
