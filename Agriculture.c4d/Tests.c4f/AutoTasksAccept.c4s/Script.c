@@ -294,48 +294,108 @@ global func FxJobWatchTimer(target, effect, time)
 }
 // SHARED-CORE-END -------------------------------------------------------------
 
-// ---- task-2 one-cycle probe driver (Tasks 4/5 replace this section) --------
-// Assign all three jobs, add the watchdog + a 35-tick probe. The probe's
-// counts with no sync assists anywhere: every census/bank/deposit > 0 below
-// was walked by the real chain (ATWoodCensus near the mill; SNDS at the Oasis;
-// sheaves banked in the Granary).
+// ---- task-5 acceptance driver (plan Task 5; replaces the task-2 probe) ----
+// 10,500-tick (5-minute) proof for the roadmap check: "a clonk told to chop
+// wood keeps chopping and delivering for 5 minutes in a scripted run". A
+// 35-tick global-effect driver (FirstLightClimate.c4s shape; strict-3 object
+// slots take nil). Timer gates: wheat keeper every tick, vein keeper every
+// 10th (~every 350 ticks), sampler every 3rd, final asserts at timer 295
+// (t = 10,325) — never early, the check IS the full 5 minutes.
+// Shipped bar comments cite scratch/180/task5-calibration.md (evidence).
+
+// Rotating planting cursor into AT_FIELD_PLOTS for the wheat keeper.
+static g_wheat_cursor;
 
 protected func Initialize()
 {
 	ATFixtures();
+	// C4Aul gotcha (measured, seed-181 calibration): a bare static is nil,
+	// and the strict-3 "%" operator throws "got nil, but expected int"
+	// EVERY evaluation — so the cursor must be typed int before any
+	// arithmetic (the ++ behind the failing % could never start it).
+	g_wheat_cursor = 0;
 	JobAssign(g_at_clonk_reap, "reap");
 	JobAssign(g_at_clonk_saw, "saw");
 	JobAssign(g_at_clonk_quarry, "quarry");
-	// Strict-3 engine calls take nil (not 0) in object slots (C4AulExec
-	// CheckOpPar: non-strict scripts pass empty values leniently, strict-3
-	// converts strictly). FirstLightClimate's shape uses 0 — that file is
-	// #strict 2. AddEffect args: name, target, prio, interval, cmdTarget, ...
 	AddEffect("JobWatch", nil, 1, 35, nil, 0);
-	AddEffect("ATProbe", nil, 1, 35, nil, 0);
+	AddEffect("RunAccept", nil, 1, 35, nil, 0);
 	return true;
 }
 
-global func FxATProbeStart(target, effect, temp) { return 1; }
+global func FxRunAcceptStart(target, effect, temp) { return 1; }
 
-global func FxATProbeTimer(target, effect, time)
+global func FxRunAcceptTimer(target, effect, time)
 {
-	// P1 (isolated MoveTo) proved unowned-CLNK walking works — the stall is
-	// job-command-specific. Full reap state per step: ripe-wheat census, head
-	// command (nil-guarded — %s with nil errors), position, carried sheaves.
-	var at_ripes = 0, at_w;
-	for (at_w in FindObjects(Find_ID(AGWH)))
-		if (at_w->IsRipe()) at_ripes++;
-	var at_rcmd = GetCommand(g_at_clonk_reap, 0, 0);
-	if (!at_rcmd) at_rcmd = "-";
-	var at_scmd = GetCommand(g_at_clonk_saw, 0, 0);
-	if (!at_scmd) at_scmd = "-";
-	Log(Format("ATPROBE:step=%d saw_cycles=%d saw_census=%d snds_oass=%d reap_banked=%d ripes=%d reap_x=%d reap_ags=%d reap_cmd=%s",
-	           time / 35, g_at_saw_cycles, ATWoodCensus(),
-	           ContentsCount(SNDS, g_at_oass), ContentsCount(AGSH, g_at_grny),
-	           at_ripes, GetX(g_at_clonk_reap),
-	           ContentsCount(AGSH, g_at_clonk_reap), at_rcmd));
-	Log(Format("ATPROBE:S step=%d saw_x=%d saw_ags=%d saw_cmd=%s",
-	           time / 35, GetX(g_at_clonk_saw),
-	           ContentsCount(WOOD, g_at_sawm), at_scmd));
+	// ---- wheat keeper (every timer): the field stays >= 4 ripe. ----------
+	// Mirrors the reap-side fixture maintenance (EventSmoke SetAction idiom);
+	// without it the initial 4 plots are consumed in ~2,000 ticks and the
+	// reap loop idles, starving the tally bars.
+	var w, ripes = 0;
+	for (w in FindObjects(Find_ID(AGWH)))
+		if (w->IsRipe()) ripes++;
+	if (ripes < 4)
+	{
+		var plot_x = AT_FIELD_PLOTS[g_wheat_cursor % GetLength(AT_FIELD_PLOTS)];
+		g_wheat_cursor++;
+		w = CreateObject(AGWH, plot_x, g_at_gy, NO_OWNER);
+		if (w) w->SetAction("Ready");
+	}
+
+	// ---- vein keeper (every 10th timer ~ 350 ticks): keep the quarry vein
+	// mintable. The vein is one-shot: one mint consumes the probe cell and
+	// "The quarry's sandstone vein is exhausted." logs forever (part-1 probe;
+	// Quarry() only ever probes/excavates (0,4), never digs deeper). The
+	// stock QRRY Timer=350 TimerCall=Quarry self-mint plus the job's direct
+	// Quarry() call each consume the cell, so re-draw the exact ATFixtures
+	// quad to sustain the haul loop the full 5 minutes. Orchestrator
+	// decision: fixture maintenance mirroring the wheat keeper; touches no
+	// engine or Desert.c4d code.
+	if ((time / 35) % 10 == 0)
+		DrawMaterialQuad("Sandstone", 680, g_at_gy + 4, 720, g_at_gy + 4,
+		                 720, g_at_gy + 24, 680, g_at_gy + 24, false);
+
+	// ---- sampler (every 3rd timer, t = 105*k): the banked final-metrics
+	// line (plan's format verbatim).
+	if ((time / 35) % 3 == 0)
+		Log(Format("ATMT:reap=%d saw_cycles=%d saw_census=%d snds=%d quarry_cycles=%d",
+		           ContentsCount(AGSH, g_at_grny) + ContentsCount(AGAP, g_at_grny),
+		           g_at_saw_cycles, ATWoodCensus(),
+		           ContentsCount(SNDS, g_at_oass), g_at_quarry_cycles));
+
+	// ---- timer 295 (t = 10,325) — final asserts, never early. ------------
+	// Seven bars; shipped T = int(0.8 * min-observed) across calibration
+	// seeds 181/182/183, never below the spec bar (scratch/180/
+	// task5-calibration.md: min 11/11/77/10/10/30/30, floors 8/8/61/8/8/
+	// 24/24). M1 (re-arm deleted) keeps cycles <= 3 < 8: RED.
+	if (time == 10325)
+	{
+		// bar 1: saw loops re-armed-and-claimed, T=8 (calibration floor;
+		// spec 5).
+		if (g_at_saw_cycles < 8)
+			FatalError("AutoTasksAccept FAIL: saw cycles");
+		// bar 2: distinct claimed trees, T=8 (calibration floor; spec 4).
+		if (g_at_saw_trees < 8)
+			FatalError("AutoTasksAccept FAIL: saw trees");
+		// bar 3: near-mill loose-WOOD census, T=61 (calibration floor;
+		// spec 28; 7 WOOD per delivered tree, 11 deliveries observed).
+		if (ATWoodCensus() < 61)
+			FatalError(Format("AutoTasksAccept FAIL: saw census %d", ATWoodCensus()));
+		// bar 4: GRNY tally (AGSH+AGAP banked), T=8 (calibration floor =
+		// spec 8; GRNY self-caps at 10, observed 10).
+		if (ContentsCount(AGSH, g_at_grny) + ContentsCount(AGAP, g_at_grny) < 8)
+			FatalError("AutoTasksAccept FAIL: reap tally");
+		// bar 5: real walked bankings, T=8 (calibration floor; spec 6).
+		if (g_at_reap_deposits < 8)
+			FatalError("AutoTasksAccept FAIL: reap deposits");
+		// bar 6: SNDS blocks at the oasis, T=24 (calibration floor; spec 8).
+		if (ContentsCount(SNDS, g_at_oass) < 24)
+			FatalError("AutoTasksAccept FAIL: quarry snds");
+		// bar 7: real oasis bankings, T=24 (calibration floor; spec 8).
+		if (g_at_oasis_deposits < 24)
+			FatalError("AutoTasksAccept FAIL: quarry deposits");
+		Log("AutoTasksAccept PASS");
+		GameOver();
+		return true;
+	}
 	return true;
 }
