@@ -37,7 +37,8 @@ public func Execute()
 		{
 			if (GetMaterial(x, y) == Material("Water"))
 			{
-				ExtractLiquid(x, y, 1);
+				// ExtractLiquid takes exactly (x, y) -- the former third argument was ignored.
+				ExtractLiquid(x, y);
 				++evaporated;
 				break;  // one pixel per column per tick
 			}
