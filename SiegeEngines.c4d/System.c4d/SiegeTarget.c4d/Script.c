@@ -6,6 +6,7 @@
    survives save/load (C4Object serialises Locals). */
 local iSiegeDamage;
 local fSiegeDestroyed;
+local iSiegeTier;  // 0 none, 1 Crack1, 2 Crack2, 3 destroyed
 
 /* Opt-in marker. Any structure that #include STGT is siege-damageable. */
 public func IsSiegeTarget() { return true; }
@@ -16,6 +17,9 @@ public func MaxSiegeHP() { return 150; }
 
 /* Wooden-structure hook. Override to true on wooden gates so FPOT does x3. */
 public func IsWoodenStructure() { return false; }
+
+/* Current crack tier: 0 none, 1 Crack1, 2 Crack2, 3 destroyed. */
+public func GetSiegeTier() { return iSiegeTier; }
 
 /* Apply siege damage. Called by ammunition Hit() as:
      pTarget->~SiegeDamage(iDmg, GetController(), GetID());
@@ -30,17 +34,28 @@ public func SiegeDamage(int iDmg, int iByPlayer, id idAmmo) {
 		if (~IsWoodenStructure())
 			iDmg *= 3;
 	// Accumulate
+	var iPrev = iSiegeDamage;
 	iSiegeDamage += iDmg;
 	// Crack-state graphics (thresholds based on MaxSiegeHP)
 	var iMax = MaxSiegeHP();
-	if (iSiegeDamage >= iMax * 2 / 3)
+	if (iSiegeDamage >= iMax * 2 / 3) {
 		SetGraphics("Crack2", this(), GetID(), 1, 3);
-	else if (iSiegeDamage >= iMax / 3)
+		iSiegeTier = 2;
+		if (iPrev < iMax * 2 / 3 && SoundExists("SiegeCrack")) Sound("SiegeCrack");
+	} else if (iSiegeDamage >= iMax / 3) {
 		SetGraphics("Crack1", this(), GetID(), 1, 3);
+		iSiegeTier = 1;
+		if (iPrev < iMax / 3 && SoundExists("SiegeCrack")) Sound("SiegeCrack");
+	} else {
+		iSiegeTier = 0;
+	}
 	// Destruction threshold: SBLD ignores 50% of MaxSiegeHP
 	var iEffMax = iMax;
 	if (idAmmo == SBLD) iEffMax = iMax / 2;
-	if (iSiegeDamage >= iEffMax) OnSiegeDestroyed(iByPlayer);
+	if (iSiegeDamage >= iEffMax) {
+		iSiegeTier = 3;
+		OnSiegeDestroyed(iByPlayer);
+	}
 }
 
 /* Decrement accumulated siege damage, re-evaluate crack overlays.
@@ -52,10 +67,16 @@ public func SiegeRepair(int iAmt, int iByPlayer) {
 	if (fSiegeDestroyed) return;
 	iSiegeDamage = Max(0, iSiegeDamage - iAmt);
 	// Re-evaluate crack overlays (clear at < 1/3, Crack1 at < 2/3)
-	if (iSiegeDamage < MaxSiegeHP() / 3)
-		SetGraphics(0, this(), GetID(), 1, 3);  // clear overlay slot 1
-	else if (iSiegeDamage < MaxSiegeHP() * 2 / 3)
+	if (iSiegeDamage < MaxSiegeHP() / 3) {
+		// Really clear overlay slot 1: mode GFXOV_MODE_Object with no overlay
+		// object routes through RemoveGraphicsOverlay (C4Script.cpp:4764-4766).
+		// The old mode-3 call drew a base-picture overlay instead of clearing.
+		SetGraphics(0, this(), GetID(), 1, GFXOV_MODE_Object);
+		iSiegeTier = 0;
+	} else if (iSiegeDamage < MaxSiegeHP() * 2 / 3) {
 		SetGraphics("Crack1", this(), GetID(), 1, 3);
+		iSiegeTier = 1;
+	}
 	// SolidMask is never cleared until OnSiegeDestroyed, so no re-arming here.
 }
 
@@ -65,8 +86,11 @@ public func SiegeRepair(int iAmt, int iByPlayer) {
 public func OnSiegeDestroyed(int iByPlayer) {
 	if (fSiegeDestroyed) return;
 	fSiegeDestroyed = true;
+	if (SoundExists("SiegeBreak")) Sound("SiegeBreak");
 	CastObjects(ROCK, 8, 20);
 	SetGraphics("Ruin", this(), GetID(), 0, 5);
 	SetSolidMask(0, 0, 0, 0);
-	Schedule("RemoveObject()", 1, 0, this());
+	// 35-frame linger: the ruin art + break sound become perceivable
+	// (SolidMask is already clear, so passage is immediate).
+	Schedule("RemoveObject()", 35, 0, this());
 }

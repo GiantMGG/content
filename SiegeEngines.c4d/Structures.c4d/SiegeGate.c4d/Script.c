@@ -19,7 +19,7 @@ protected func ControlLeft(object pClonk) {
 	[$TxtOpen$|Image=SGAT:0]
 	if (GetAction() eq "Open") return 1;
 	SetAction("Open");
-	Sound("Gate");
+	if (SoundExists("GateOpen")) Sound("GateOpen");
 	return 1;
 }
 
