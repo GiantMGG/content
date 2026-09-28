@@ -1,0 +1,37 @@
+[Head]
+Title=AutoTasksAccept
+Version=1
+MaxPlayer=0
+Origin=Agriculture.c4d\Tests.c4f\AutoTasksAccept.c4s
+
+[Definitions]
+Definition1=Objects.c4d
+Definition2=Agriculture.c4d
+Definition3=Desert.c4d
+; Definition4=Wildlife.c4d is REQUIRED: Desert.c4d/Scorpion.c4d and Camel.c4d
+; #include the WLFA framework (Scorpion.c4d/Script.c:6), which lives in the
+; Wildlife pack. Without it both scenarios boot with 5 script [error] lines.
+Definition4=Wildlife.c4d
+
+[Game]
+StructNeedEnergy=0
+Rules=COAN=1
+
+[Landscape]
+Map.bmp=Map.bmp
+MapWidth=100
+MapHeight=40
+MapZoom=10
+Material=Earth
+Sky=Clouds2
+BottomOpen=0
+
+[Weather]
+Climate=0,0
+Rain=0
+Wind=0,0
+
+[Disasters]
+Meteorite=0
+Volcano=0
+Earthquake=0
