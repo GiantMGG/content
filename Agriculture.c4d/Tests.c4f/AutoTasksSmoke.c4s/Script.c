@@ -1,8 +1,9 @@
 /*-- AutoTasksSmoke.c4s — standing-jobs scaffold (cycle 180 auto-tasks-mvp).
    Byte-identical mirror twin in AutoTasksAccept.c4s (plan R4): the
-   SHARED-CORE region below is diffed by the mirror-drift check. Task 1
-   scope: skeletons + fixtures only. No job assignment, no effects yet
-   (Tasks 2/4/5 add them below the SHARED-CORE markers). --*/
+   SHARED-CORE region below is diffed by the mirror-drift check. Task 1:
+   skeletons + fixtures. Task 2: the shared job core — JobAssign / JobCancel /
+   JobWatch (+ the stall-budget statics) — inside the markers, and the
+   one-cycle probe driver below them (Tasks 4/5 replace the driver). --*/
 
 #strict 3
 
@@ -26,6 +27,22 @@ static AT_FIELD_PLOTS;               // [380,410,470,520] (arrays are runtime)
 static g_at_sawm, g_at_grny, g_at_qrry, g_at_oass;
 static g_at_clonk_reap, g_at_clonk_saw, g_at_clonk_quarry;
 static g_at_gy;                      // pinned surface y (GRNY station scan)
+
+// Job bookkeeping (scenario statics, bumped by the def-side job funcs; C4Aul
+// statics are engine-global so the System.c4g appendtos and the scenario
+// Script.c share them across script units).
+static g_at_saw_cycles, g_at_saw_trees;            // Saw re-arms / claims
+static g_at_quarry_cycles;                         // Quarry handoffs
+static g_at_reap_deposits, g_at_oasis_deposits;    // Deposit tallies
+static g_at_stall_saw, g_at_stall_reap, g_at_stall_quarry; // watchdog budgets
+
+// FINDING 2: the JobWatch watchdog is a BOUNDED stall absorber, not a second
+// loop sustainer (an unbounded watchdog would mask mutation M1). At most
+// AT_STALL_BUDGET re-issues per job across the whole run; budget is reset on
+// effect start. Invariant that makes M1 behave as the spec predicts:
+//   1 + AT_STALL_BUDGET < 5   (budget 2 => M1 cycles <= 3 < 5-bar: RED;
+//   may be raised up to 3, never to a value that breaks this).
+static const AT_STALL_BUDGET = 2;
 
 // Sturmfront SFSurfaceY shape: first solid y from 100 up.
 global func ATSurfaceY(int x)
@@ -90,17 +107,23 @@ global func ATFixtures()
 		FatalError("AutoTasksSmoke FAIL: SAWM not built to con>=100");
 	Log(Format("ATFIX:sawm con=%d", GetCon(g_at_sawm)));
 
-	// 4. Forest: 10 TRE1 at x = 62 + 9*i (graphic bottom at y+35, DefCore
-	//    Offset=-36,-36 Height=71 => base on the surface).
-	for (i = 0; i < 10; i++)
+	// 4. Forest: 10 TRE1, WIDE spacing (originally 9px — measured false
+	//    premise, task-2 probe: a fallen log being pushed through a 9px-spaced
+	//    forest wedges against standing trunks and the PushTo stalls forever
+	//    at ~126px). 18-20px gaps leave ~12-14px trunk clearance for pushed
+	//    logs; two clusters keep every tree within 500px of the mill and the
+	//    push legs short. The y anchor is the surface (see the top comment:
+	//    Chop's approach target must be reachable, P3-chop probe).
+	var at_forest = [48, 66, 84, 102, 120, 138, 172, 190, 208, 226];
+	for (i = 0; i < GetLength(at_forest); i++)
 	{
-		var tree = CreateObject(TRE1, 62 + 9 * i, g_at_gy - 35, NO_OWNER);
+		var tree = CreateObject(TRE1, at_forest[i], g_at_gy, NO_OWNER);
 		if (!tree) FatalError(Format("AutoTasksSmoke FAIL: forest tree %d", i));
 	}
 
 	// 5. Reserved mint tree + pre-claim (Sawmill :58 shape: the marker makes
 	//    FindTreeToChop skip it, so the saw job never touches the mint fixture).
-	var mint = CreateObject(TRE1, AT_MINT_TREE_X, g_at_gy - 35, NO_OWNER);
+	var mint = CreateObject(TRE1, AT_MINT_TREE_X, g_at_gy, NO_OWNER);
 	if (!mint) FatalError("AutoTasksSmoke FAIL: mint tree");
 	AddEffect("IntSawmillTreeMarker", mint, 1, 5000, g_at_sawm, 0, 0);
 
@@ -159,9 +182,141 @@ global func ATFixtures()
 	return true;
 }
 
-protected func Initialize()
+// ---- shared job core (permanent; byte-identical between the scenario pair);
+// ---- menus and scripted runs both go through JobAssign (spec: same core).
+// One job per clonk, then dispatch to the owning station's appended job func.
+// Same-job re-assign proceeds (the job func re-arms idempotently); a clonk
+// already on a DIFFERENT job is refused.
+global func JobAssign(object clonk, string job)
 {
-	ATFixtures();
+	if (!clonk) return 0;
+	if (clonk == g_at_clonk_reap && job != "reap") return 0;
+	if (clonk == g_at_clonk_saw && job != "saw") return 0;
+	if (clonk == g_at_clonk_quarry && job != "quarry") return 0;
+	if (job == "saw")
+	{
+		g_at_clonk_saw = clonk;
+		return g_at_sawm->JobSaw(clonk);
+	}
+	if (job == "reap")
+	{
+		g_at_clonk_reap = clonk;
+		return g_at_grny->JobReap(clonk);
+	}
+	if (job == "quarry")
+	{
+		g_at_clonk_quarry = clonk;
+		return g_at_qrry->JobQuarry(clonk);
+	}
+	return 0;
+}
+
+// Clear the command stack (Sturmfront :752 shape) + the matching crew static;
+// clearing the static is what keeps the watchdog from resurrecting a cancelled
+// job (the 35-tick JobWatch skips clonks with nil crew statics).
+global func JobCancel(object clonk)
+{
+	if (!clonk) return 0;
+	SetCommand(clonk, "None");
+	if (clonk == g_at_clonk_saw)
+		g_at_clonk_saw = 0;
+	else if (clonk == g_at_clonk_reap)
+		g_at_clonk_reap = 0;
+	else if (clonk == g_at_clonk_quarry)
+		g_at_clonk_quarry = 0;
+	return 1;
+}
+
+// JobWatch — 35-tick bounded watchdog (global effect form,
+// FirstLightClimate.c4s/Script.c:25). Re-issues a job only when its stack has
+// genuinely emptied (GetCommand nil) AND budget remains; a cancelled job
+// already cleared its crew static above, so the clonk is skipped entirely.
+global func FxJobWatchStart(target, effect, temp)
+{
+	g_at_stall_saw = AT_STALL_BUDGET;
+	g_at_stall_reap = AT_STALL_BUDGET;
+	g_at_stall_quarry = AT_STALL_BUDGET;
+	return 1;
+}
+
+global func FxJobWatchTimer(target, effect, time)
+{
+	// Reap pair
+	if (g_at_clonk_reap)
+		if (!GetCommand(g_at_clonk_reap, 0, 0))
+			if (g_at_stall_reap > 0)
+			{
+				--g_at_stall_reap;
+				g_at_grny->JobReap(g_at_clonk_reap);
+				Log("ATMT:watch_reissue=reap");
+			}
+			else Log("ATMT:watch_budget=reap");
+	// Saw pair
+	if (g_at_clonk_saw)
+		if (!GetCommand(g_at_clonk_saw, 0, 0))
+			if (g_at_stall_saw > 0)
+			{
+				--g_at_stall_saw;
+				g_at_sawm->JobSaw(g_at_clonk_saw);
+				Log("ATMT:watch_reissue=saw");
+			}
+			else Log("ATMT:watch_budget=saw");
+	// Quarry pair
+	if (g_at_clonk_quarry)
+		if (!GetCommand(g_at_clonk_quarry, 0, 0))
+			if (g_at_stall_quarry > 0)
+			{
+				--g_at_stall_quarry;
+				g_at_qrry->JobQuarry(g_at_clonk_quarry);
+				Log("ATMT:watch_reissue=quarry");
+			}
+			else Log("ATMT:watch_budget=quarry");
 	return true;
 }
 // SHARED-CORE-END -------------------------------------------------------------
+
+// ---- task-2 one-cycle probe driver (Tasks 4/5 replace this section) --------
+// Assign all three jobs, add the watchdog + a 35-tick probe. The probe's
+// counts with no sync assists anywhere: every census/bank/deposit > 0 below
+// was walked by the real chain (ATWoodCensus near the mill; SNDS at the Oasis;
+// sheaves banked in the Granary).
+
+protected func Initialize()
+{
+	ATFixtures();
+	JobAssign(g_at_clonk_reap, "reap");
+	JobAssign(g_at_clonk_saw, "saw");
+	JobAssign(g_at_clonk_quarry, "quarry");
+	// Strict-3 engine calls take nil (not 0) in object slots (C4AulExec
+	// CheckOpPar: non-strict scripts pass empty values leniently, strict-3
+	// converts strictly). FirstLightClimate's shape uses 0 — that file is
+	// #strict 2. AddEffect args: name, target, prio, interval, cmdTarget, ...
+	AddEffect("JobWatch", nil, 1, 35, nil, 0);
+	AddEffect("ATProbe", nil, 1, 35, nil, 0);
+	return true;
+}
+
+global func FxATProbeStart(target, effect, temp) { return 1; }
+
+global func FxATProbeTimer(target, effect, time)
+{
+	// P1 (isolated MoveTo) proved unowned-CLNK walking works — the stall is
+	// job-command-specific. Full reap state per step: ripe-wheat census, head
+	// command (nil-guarded — %s with nil errors), position, carried sheaves.
+	var at_ripes = 0, at_w;
+	for (at_w in FindObjects(Find_ID(AGWH)))
+		if (at_w->IsRipe()) at_ripes++;
+	var at_rcmd = GetCommand(g_at_clonk_reap, 0, 0);
+	if (!at_rcmd) at_rcmd = "-";
+	var at_scmd = GetCommand(g_at_clonk_saw, 0, 0);
+	if (!at_scmd) at_scmd = "-";
+	Log(Format("ATPROBE:step=%d saw_cycles=%d saw_census=%d snds_oass=%d reap_banked=%d ripes=%d reap_x=%d reap_ags=%d reap_cmd=%s",
+	           time / 35, g_at_saw_cycles, ATWoodCensus(),
+	           ContentsCount(SNDS, g_at_oass), ContentsCount(AGSH, g_at_grny),
+	           at_ripes, GetX(g_at_clonk_reap),
+	           ContentsCount(AGSH, g_at_clonk_reap), at_rcmd));
+	Log(Format("ATPROBE:S step=%d saw_x=%d saw_ags=%d saw_cmd=%s",
+	           time / 35, GetX(g_at_clonk_saw),
+	           ContentsCount(WOOD, g_at_sawm), at_scmd));
+	return true;
+}
