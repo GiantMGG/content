@@ -99,9 +99,16 @@ public func OnSiegeDestroyed(int iByPlayer) {
 	fSiegeDestroyed = true;
 	if (SoundExists("SiegeBreak")) Sound("SiegeBreak");
 	CastObjects(ROCK, 8, 20);
-	SetGraphics("Ruin", this(), GetID(), 0, 5);
 	SetSolidMask(0, 0, 0, 0);
-	// 35-frame linger: the ruin art + break sound become perceivable
-	// (SolidMask is already clear, so passage is immediate).
-	Schedule("RemoveObject()", 35, 0, this());
+	// Only linger on the ruin art when the def actually ships a Ruin
+	// sheet (SGAT). Defs without one (castle walls CPW2, towers CPT2)
+	// would otherwise show their intact sprite while intangible for 35
+	// frames — a ghost-breach. Remove them right away: the SolidMask is
+	// already clear, so passage is immediate either way.
+	if (SetGraphics("Ruin", this(), GetID(), 0, 5))
+		// 35-frame linger: the ruin art + break sound become perceivable
+		// (SolidMask is already clear, so passage is immediate).
+		Schedule("RemoveObject()", 35, 0, this());
+	else
+		RemoveObject();
 }

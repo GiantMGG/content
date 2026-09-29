@@ -17,7 +17,7 @@ protected func Initialize()
 
 func RunSmokeSteps()
 {
-	var pGate, pCauldron, pTreb, pCat, pRam;
+	var pGate, pCauldron, pTreb, pCat, pRam, pWall;
 
 	// Step 0: spawn a SGAT, damage it with SBLD, verify OnSiegeDestroyed fires.
 	pGate = CreateObject(SGAT, 50, 30, NO_OWNER);
@@ -115,7 +115,54 @@ func RunSmokeSteps()
 	if (pTreb->GetPhase() != 6)
 		FatalError("SiegeSmoke FAIL step 8b: SetPhase(6) did not take (phase < 6 or out of band)");
 
-	// Step 9: pass + end.
+	// Step 9: FIX-2 wall setup -- destroy a castle wall (CPW2, no Ruin
+	// sheet) now; SiegeCheck10 asserts it is gone while the step-0/6d
+	// gates (Ruin sheet) still linger.
+	// Spawn method: probe.c4s (cycle 181) proved bare CreateObject(CPW2)
+	// yields a live object (findable at frame 5), so no CreateConstruction
+	// is needed here.
+	pWall = CreateObject(CPW2, 25, 30, NO_OWNER);
+	// Spawn verification: a destroyed-object handle stays truthy, so the
+	// old `if (!pWall)` guard passed even after the wall was removed.
+	// Pin the spawn by reading a property instead -- CreateObject returns
+	// a live object, so this fails loudly on a nil/dead handle.
+	if (!pWall) FatalError("SiegeSmoke FAIL step 9: could not spawn CPW2");
+	if (GetX(pWall) != 25)
+		FatalError("SiegeSmoke FAIL step 9: CPW2 handle not live at spawn");
+	pWall->~SiegeDamage(9999, NO_OWNER, SBLD);
+	// FIX-2 immediate-remove: a def WITHOUT a Ruin sheet is removed
+	// synchronously inside OnSiegeDestroyed, so the wall is already gone
+	// here. ObjectCount is the dead-handle-safe probe -- reading a Local
+	// off the removed object would raise 'Object call: target is zero!'
+	// (the smoke_fix1.log signature) instead of asserting.
+	if (ObjectCount(CPW2))
+		FatalError("SiegeSmoke FAIL step 9: CPW2 ghosting after destroy (immediate-remove branch broken)");
+
+	// Pass is deferred to SiegeCheck10 (frame-based tail below).
+	Schedule("SiegeCheck10()", 12, 0, this());
+}
+
+// Frame-based tail (FIX-2 regression): the ruin-swap branch in
+// STGT::OnSiegeDestroyed must remove a def WITHOUT a Ruin sheet (castle
+// wall CPW2) immediately -- no 35-frame intact-sprite ghost -- while a
+// def WITH one (SGAT) keeps the linger. The wall spawns+destroys in step
+// 0's frame; the destroyed gates from steps 0/6d are still in their
+// 35-frame linger when this runs.
+func SiegeCheck10()
+{
+	// Wall (no Ruin sheet): ObjectCount must be 0 now -- it was removed
+	// in its destroy frame, not scheduled 35 frames later.
+	if (ObjectCount(CPW2))
+		FatalError("SiegeSmoke FAIL step 10: no-Ruin wall still ghosting (not removed immediately)");
+	// Gate (Ruin sheet): at least one destroyed gate must still be
+	// present in its linger window (removal lands at ~frame 35).
+	var pG, iDestroyed = 0;
+	for (pG in FindObjects(Find_ID(SGAT)))
+		if (pG->LocalN("fSiegeDestroyed"))
+			++iDestroyed;
+	if (!iDestroyed)
+		FatalError("SiegeSmoke FAIL step 10: Ruin gate was removed instantly (linger branch broken)");
+
 	Log("SiegeSmoke PASS");
 	GameOver();
 }
