@@ -60,7 +60,11 @@ func BuildCastle()
 	CreateConstruction(CST3, iCX, iCY - 10, -1, 100, 1);
 
 	// BoilingOilCauldron pre-placed on the gatehouse battlement.
-	CreateConstruction(BOIL, iCX, iCY - 5, -1, 100, 1);
+	// iCY-85: the construction seats itself 13 px at creation, so the
+	// cauldron rests at iCY-98 -- the battlement shelf above the west gate
+	// (verified headless: BOIL GetY stays at iCY-98 for 100+ frames; the
+	// old iCY-5 placement had no collision and fell out of the world).
+	CreateConstruction(BOIL, iCX, iCY - 85, -1, 100, 1);
 
 	CreateObject(KING, iCX, iCY - 20, 1);
 
