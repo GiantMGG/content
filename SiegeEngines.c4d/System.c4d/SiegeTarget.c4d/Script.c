@@ -29,6 +29,10 @@ public func GetSiegeTier() { return iSiegeTier; }
    - SROK and BOMB apply flat damage. */
 public func SiegeDamage(int iDmg, int iByPlayer, id idAmmo) {
 	if (iDmg <= 0) return;
+	// No-op on a destroyed structure: a hit during the 35-frame ruin linger
+	// must not swap crack art back over the Ruin sheet or demote iSiegeTier
+	// below 3 (cycle-181 review fix, mirrors SiegeRepair's guard).
+	if (fSiegeDestroyed) return;
 	// Per-ammo vulnerability: FPOT x3 vs wooden structures
 	if (idAmmo == FPOT)
 		if (~IsWoodenStructure())

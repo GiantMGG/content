@@ -110,8 +110,10 @@ func RunSmokeSteps()
 		FatalError("SiegeSmoke FAIL step 8a: TRBT not in Ready action");
 	pTreb->SetAction("Swing");
 	pTreb->SetPhase(6);
-	if (pTreb->GetPhase() > 6)
-		FatalError("SiegeSmoke FAIL step 8b: TRBT phase out of band bounds");
+	// SetPhase clamps to Length-1 = 6, so a successful call leaves phase
+	// exactly 6; anything else means SetPhase silently failed (stuck at 0).
+	if (pTreb->GetPhase() != 6)
+		FatalError("SiegeSmoke FAIL step 8b: SetPhase(6) did not take (phase < 6 or out of band)");
 
 	// Step 9: pass + end.
 	Log("SiegeSmoke PASS");
