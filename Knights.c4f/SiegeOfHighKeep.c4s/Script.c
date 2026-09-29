@@ -97,7 +97,9 @@ func SpawnAmmoPiles()
 	return true;
 }
 
-func EliminateLosers(int iLosingTeam)
+// Callable from the global-scope SiegeDirector timer effect, which can only
+// resolve other `global func`s (cycle-181 finding, see FxSiegeDirectorTimer).
+global func EliminateLosers(int iLosingTeam)
 {
 	for (var i = 0; i < GetPlayerCount(); ++i)
 	{
@@ -109,14 +111,18 @@ func EliminateLosers(int iLosingTeam)
 }
 
 // --- SiegeDirector effect ---
+// Cycle-181 finding (director_probe.md): plain-func effect callbacks never
+// resolve for AddEffect(name, this, 1, 35, this) — the callback script is
+// looked up in the global script engine where only `global func`s live. The
+// two callbacks below MUST stay `global func` or the 1v3 timer is dead.
 
-func FxSiegeDirectorStart(object target, int effect, int temp)
+global func FxSiegeDirectorStart(object target, int effect, int temp)
 {
 	if (temp) return;
 	return 1;
 }
 
-func FxSiegeDirectorTimer(object target, int effect, int timer)
+global func FxSiegeDirectorTimer(object target, int effect, int timer)
 {
 	// Tick once per second (35-frame interval ~= 1s).
 	if (timer % 35 == 0) --g_iTimeRemaining;
