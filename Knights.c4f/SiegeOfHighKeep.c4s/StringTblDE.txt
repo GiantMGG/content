@@ -1,6 +1,10 @@
 [StringTable]
+TeamAttackers=Angreifer
+TeamDefenders=Verteidiger
 MsgIntro=Belagerung der Hochburg -- belagere die Burg und töte den König!
+MsgIntroDefense=Belagerung der Hochburg -- beschütze deinen König! Zerstöre die Belagerungswaffen oder halte durch, bis die Zeit abläuft!
 MsgTimeLeft=Nur noch %d Minuten, bis die Verteidiger siegen!
+MsgTimeLeftOne=Nur noch eine Minute, bis die Verteidiger siegen!
 MsgAttackersWin=Der König ist tot! Die Angreifer siegen!
 MsgDefendersWin=Die Belagerung ist gescheitert! Die Verteidiger siegen!
 MsgTimeUp=Die Zeit ist abgelaufen.

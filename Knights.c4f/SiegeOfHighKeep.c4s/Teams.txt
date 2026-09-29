@@ -1,0 +1,18 @@
+[Teams]
+Active=1
+Custom=0
+TeamColors=1
+
+	[Team]
+	id=1
+	Name=$TeamAttackers$
+	PlrStartIndex=1
+	IconSpec=TMS1:0
+	MaxPlayer=3
+
+	[Team]
+	id=2
+	Name=$TeamDefenders$
+	PlrStartIndex=2
+	IconSpec=TMS1:1
+	MaxPlayer=1

@@ -18,8 +18,6 @@ Rules=CNMT=1;FGRV=1;TACC=1;MGES=1
 StructNeedEnergy=0
 
 [Player1]
-Name=Attackers
-Team=1
 Position=20,80
 Crew=KNIG=3
 Knowledge=SCAT=1;TRBT=1;BRAM=1;SROK=1;FPOT=1;SBLD=1;BOMB=1
@@ -27,8 +25,6 @@ HomeBaseMaterial=SROK=10;FPOT=10;SBLD=5;BOMB=3;WOOD=10;METL=5
 HomeBaseProduction=WOOD=1;METL=1
 
 [Player2]
-Name=Defenders
-Team=2
 Position=70,40
 Crew=KNIG=3
 Knowledge=SGAT=1;CNKT=1

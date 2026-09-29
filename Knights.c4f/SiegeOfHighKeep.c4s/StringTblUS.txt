@@ -1,6 +1,10 @@
 [StringTable]
+TeamAttackers=Attackers
+TeamDefenders=Defenders
 MsgIntro=Siege of High Keep -- besiege the castle and slay the King!
+MsgIntroDefense=Siege of High Keep -- protect your King! Destroy the siege engines or hold out until the timer runs out!
 MsgTimeLeft=Only %d minutes left until the defenders prevail!
+MsgTimeLeftOne=Only one minute left until the defenders prevail!
 MsgAttackersWin=The King is dead! Attackers triumph!
 MsgDefendersWin=The siege has failed! Defenders triumph!
 MsgTimeUp=Time has expired.

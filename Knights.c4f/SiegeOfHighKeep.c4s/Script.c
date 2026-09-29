@@ -13,7 +13,6 @@
 
 static g_iTimeRemaining;   // in seconds
 static g_fInitialized;
-static g_fInitializedPlayers;
 static const SIEGE_TIME_LIMIT = 300;  // calibrated cycle 181, .opencode/scratch/181/pacing
 
 static const g_SiegeEngines0 = SCAT;
@@ -23,7 +22,6 @@ static const g_SiegeEngines2 = BRAM;
 protected func Initialize()
 {
 	g_fInitialized = 0;
-	g_fInitializedPlayers = 0;
 	g_iTimeRemaining = SIEGE_TIME_LIMIT;
 	BuildCastle();
 	SpawnAttackerEngines();
@@ -34,11 +32,16 @@ protected func Initialize()
 
 protected func InitializePlayer(int iPlr)
 {
-	// FIX-1: announce the objective to the (first) joining player --
-	// on-screen (PlayerMessage) and on the console (Log).
-	if (!g_fInitializedPlayers)
+	// Per-side briefing (Teams.txt binds player slots to sides):
+	// player 0 rides [Player1] (attackers, team 1), player 1 rides
+	// [Player2] (defenders, team 2). Late joiners swell the attackers.
+	if (iPlr == 1)
 	{
-		g_fInitializedPlayers = 1;
+		PlayerMessage(iPlr, "$MsgIntroDefense$");
+		Log("$MsgIntroDefense$");
+	}
+	else
+	{
 		PlayerMessage(iPlr, "$MsgIntro$");
 		Log("$MsgIntro$");
 	}
@@ -149,8 +152,16 @@ global func FxSiegeDirectorTimer(object target, int effect, int timer)
 	// (nil is a strict-3+ keyword; this scenario is #strict 2.)
 	if (timer % 35 == 0 && g_iTimeRemaining > 0 && g_iTimeRemaining % 60 == 0)
 	{
-		Message("$MsgTimeLeft$", 0, g_iTimeRemaining / 60);
-		Log("$MsgTimeLeft$", g_iTimeRemaining / 60);
+		if (g_iTimeRemaining == 60)
+		{
+			Message("$MsgTimeLeftOne$");
+			Log("$MsgTimeLeftOne$");
+		}
+		else
+		{
+			Message("$MsgTimeLeft$", 0, g_iTimeRemaining / 60);
+			Log("$MsgTimeLeft$", g_iTimeRemaining / 60);
+		}
 	}
 
 	var pKing = FindObject(KING);
