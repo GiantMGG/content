@@ -32,7 +32,6 @@ HomeBaseMaterial=WOOD=20;ROCK=20;FLAG=1
 HomeBaseProduction=WOOD=1;ROCK=1
 
 [Landscape]
-Map.bmp=Map.bmp
 Sky=Clouds1
 MapWidth=200
 MapHeight=100
