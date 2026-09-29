@@ -15,7 +15,7 @@ FlipDir=1
 Length=7
 Reverse=0
 Delay=6
-Facet=0,0,40,50
+Facet=0,50,40,50
 NextAction=Reset
 PhaseCall=SwingPhase
 
@@ -26,5 +26,5 @@ FlipDir=1
 Length=7
 Reverse=1
 Delay=6
-Facet=0,0,40,50
+Facet=0,50,40,50
 NextAction=Ready
