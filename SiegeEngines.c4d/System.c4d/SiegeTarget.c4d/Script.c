@@ -36,14 +36,19 @@ public func SiegeDamage(int iDmg, int iByPlayer, id idAmmo) {
 	// Accumulate
 	var iPrev = iSiegeDamage;
 	iSiegeDamage += iDmg;
-	// Crack-state graphics (thresholds based on MaxSiegeHP)
+	// Crack-state graphics (thresholds based on MaxSiegeHP).
+	// Slot-0 base swaps: SetGraphics(name, obj, id, 0, mode) bypasses the
+	// overlay system and swaps the object's base graphics group
+	// (C4Script.cpp SetGraphics overlay 0 -> C4Object::SetGraphics), so the
+	// crack sheets actually render in-world. Picture overlays (slot != 0)
+	// only draw in object pictures/HUD, never on the live object.
 	var iMax = MaxSiegeHP();
 	if (iSiegeDamage >= iMax * 2 / 3) {
-		SetGraphics("Crack2", this(), GetID(), 1, 3);
+		SetGraphics("Crack2", this(), GetID(), 0, 0);
 		iSiegeTier = 2;
 		if (iPrev < iMax * 2 / 3 && SoundExists("SiegeCrack")) Sound("SiegeCrack");
 	} else if (iSiegeDamage >= iMax / 3) {
-		SetGraphics("Crack1", this(), GetID(), 1, 3);
+		SetGraphics("Crack1", this(), GetID(), 0, 0);
 		iSiegeTier = 1;
 		if (iPrev < iMax / 3 && SoundExists("SiegeCrack")) Sound("SiegeCrack");
 	} else {
@@ -66,15 +71,17 @@ public func SiegeRepair(int iAmt, int iByPlayer) {
 	if (iAmt <= 0) return;
 	if (fSiegeDestroyed) return;
 	iSiegeDamage = Max(0, iSiegeDamage - iAmt);
-	// Re-evaluate crack overlays (clear at < 1/3, Crack1 at < 2/3)
+	// Re-evaluate crack graphics base swaps (clear at < 1/3, Crack1 at < 2/3).
+	// Slot-0 swaps restore/re-apply the base graphics group; picture overlays
+	// never render in-world, so the repair must swap the base sheet back.
 	if (iSiegeDamage < MaxSiegeHP() / 3) {
-		// Really clear overlay slot 1: mode GFXOV_MODE_Object with no overlay
-		// object routes through RemoveGraphicsOverlay (C4Script.cpp:4764-4766).
-		// The old mode-3 call drew a base-picture overlay instead of clearing.
-		SetGraphics(0, this(), GetID(), 1, GFXOV_MODE_Object);
+		// Base back to the DEFAULT group: SetGraphics(0, ..., 0, _) with
+		// overlay slot 0 routes to C4Object::SetGraphics, and a null
+		// graphics name resolves to the default sheet (no-op if already).
+		SetGraphics(0, this(), GetID(), 0, 0);
 		iSiegeTier = 0;
 	} else if (iSiegeDamage < MaxSiegeHP() * 2 / 3) {
-		SetGraphics("Crack1", this(), GetID(), 1, 3);
+		SetGraphics("Crack1", this(), GetID(), 0, 0);
 		iSiegeTier = 1;
 	}
 	// SolidMask is never cleared until OnSiegeDestroyed, so no re-arming here.
