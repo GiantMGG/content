@@ -34,8 +34,14 @@ protected func Initialize()
 
 protected func InitializePlayer(int iPlr)
 {
-	if (g_fInitializedPlayers) return;
-	g_fInitializedPlayers = 1;
+	// FIX-1: announce the objective to the (first) joining player --
+	// on-screen (PlayerMessage) and on the console (Log).
+	if (!g_fInitializedPlayers)
+	{
+		g_fInitializedPlayers = 1;
+		PlayerMessage(iPlr, "$MsgIntro$");
+		Log("$MsgIntro$");
+	}
 	return true;
 }
 
@@ -110,6 +116,17 @@ global func EliminateLosers(int iLosingTeam)
 	return true;
 }
 
+// Mirror the match outcome onto the GLST goal object so the round-results
+// goals board shows the correct fulfilled state (Goal_Siege). The goal's
+// own IsFulfilled is read by the GOAL framework; GameOver stays with the
+// director. Guarded: a goal-less game (Goals= not wired) must not crash.
+global func RecordSiegeOutcome(int iWinningTeam)
+{
+	var pGoal = FindObject(GLST);
+	if (pGoal) pGoal->~SiegeEnded(iWinningTeam);
+	return true;
+}
+
 // --- SiegeDirector effect ---
 // Cycle-181 finding (director_probe.md): plain-func effect callbacks never
 // resolve for AddEffect(name, this, 1, 35, this) — the callback script is
@@ -126,18 +143,33 @@ global func FxSiegeDirectorTimer(object target, int effect, int timer)
 {
 	// Tick once per second (35-frame interval ~= 1s).
 	if (timer % 35 == 0) --g_iTimeRemaining;
+	// FIX-1: visible countdown -- one message per full minute crossed
+	// (5:00 → 4:00 → 3:00 → 2:00 → 1:00), on-screen and in the log.
+	// Message's 2nd param is the target object; 0 = global message.
+	// (nil is a strict-3+ keyword; this scenario is #strict 2.)
+	if (timer % 35 == 0 && g_iTimeRemaining > 0 && g_iTimeRemaining % 60 == 0)
+	{
+		Message("$MsgTimeLeft$", 0, g_iTimeRemaining / 60);
+		Log("$MsgTimeLeft$", g_iTimeRemaining / 60);
+	}
 
 	var pKing = FindObject(KING);
 	if (!pKing || !GetAlive(pKing))
 	{
 		Log("$MsgAttackersWin$");
+		Message("$MsgAttackersWin$");
+		RecordSiegeOutcome(1);  // attackers' goal fulfilled
 		EliminateLosers(2);  // eliminate defenders
 		GameOver();
 		return -1;
 	}
 	if (g_iTimeRemaining <= 0)
 	{
+		Log("$MsgTimeUp$");
+		Message("$MsgTimeUp$");
 		Log("$MsgDefendersWin$");
+		Message("$MsgDefendersWin$");
+		RecordSiegeOutcome(2);  // defenders' goal fulfilled
 		EliminateLosers(1);  // eliminate attackers
 		GameOver();
 		return -1;
@@ -148,7 +180,11 @@ global func FxSiegeDirectorTimer(object target, int effect, int timer)
 	if (FindObject(g_SiegeEngines2)) ++iEnginesLeft;
 	if (iEnginesLeft == 0)
 	{
+		Log("$MsgEnginesDestroyed$");
+		Message("$MsgEnginesDestroyed$");
 		Log("$MsgDefendersWin$");
+		Message("$MsgDefendersWin$");
+		RecordSiegeOutcome(2);  // defenders' goal fulfilled
 		EliminateLosers(1);
 		GameOver();
 		return -1;

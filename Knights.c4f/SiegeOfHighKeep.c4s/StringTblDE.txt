@@ -1,5 +1,6 @@
 [StringTable]
 MsgIntro=Belagerung der Hochburg -- belagere die Burg und töte den König!
+MsgTimeLeft=Nur noch %d Minuten, bis die Verteidiger siegen!
 MsgAttackersWin=Der König ist tot! Die Angreifer siegen!
 MsgDefendersWin=Die Belagerung ist gescheitert! Die Verteidiger siegen!
 MsgTimeUp=Die Zeit ist abgelaufen.
