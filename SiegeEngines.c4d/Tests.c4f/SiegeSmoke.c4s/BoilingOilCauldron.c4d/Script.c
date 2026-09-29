@@ -6,6 +6,7 @@ local fCooldown;
 
 protected func Initialize()
 {
+	SetAction("Idle");
 	return true;
 }
 
@@ -18,7 +19,8 @@ protected func ControlDig(object pClonk)
 	// Cast flaming debris downward.
 	for (var i = -2; i <= 2; ++i)
 		CastObjects(DFLM, 4, 30, i * 5, 5);
-	Sound("Inflame");
+	if (SoundExists("OilSizzle")) Sound("OilSizzle");
+	else Sound("Inflame");
 	return true;
 }
 
