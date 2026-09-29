@@ -30,12 +30,13 @@ protected func Initialize()
 	return true;
 }
 
-protected func InitializePlayer(int iPlr)
+protected func InitializePlayer(int iPlr, int iX, int iY, object pBase, int iTeam)
 {
-	// Per-side briefing (Teams.txt binds player slots to sides):
-	// player 0 rides [Player1] (attackers, team 1), player 1 rides
-	// [Player2] (defenders, team 2). Late joiners swell the attackers.
-	if (iPlr == 1)
+	// Per-side briefing (Teams.txt binds slots to sides): team 1 =
+	// attackers ([Player1] west spawn), team 2 = defenders ([Player2]
+	// courtyard). Keyed on the joined TEAM (5th broadcast arg,
+	// C4Player.cpp:785), never on join order.
+	if (iTeam == 2)
 	{
 		PlayerMessage(iPlr, "$MsgIntroDefense$");
 		Log("$MsgIntroDefense$");
