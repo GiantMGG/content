@@ -14,6 +14,7 @@
 static g_iTimeRemaining;   // in seconds
 static g_fInitialized;
 static g_fInitializedPlayers;
+static const SIEGE_TIME_LIMIT = 300;  // calibrated cycle 181, .opencode/scratch/181/pacing
 
 static const g_SiegeEngines0 = SCAT;
 static const g_SiegeEngines1 = TRBT;
@@ -23,7 +24,7 @@ protected func Initialize()
 {
 	g_fInitialized = 0;
 	g_fInitializedPlayers = 0;
-	g_iTimeRemaining = 600;  // 10 min
+	g_iTimeRemaining = SIEGE_TIME_LIMIT;
 	BuildCastle();
 	SpawnAttackerEngines();
 	SpawnAmmoPiles();
