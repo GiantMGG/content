@@ -30,7 +30,7 @@ public func Attract()
 			ObjectSetAction(bait_obj, "Bait", this());
 		}
 	}
-	// Harvest any fish within 15 px (keep them alive until EmptyTrap).
+	// Harvest any fish within 15 px (alive; EmptyTrap live-releases them).
 	var pFish;
 	for (var pFish in FindObjects(Find_Distance(15), Find_ID(FISH), Find_Action("Swim")))
 	{
@@ -48,13 +48,17 @@ public func Attract()
 
 public func EmptyTrap()
 {
+	// Live-release (cycle 183): every contents exits alive - no Kill.
+	// Fish released into liquid immediately swim; ashore they are left
+	// to natural fish behavior. Banking happens by collecting the fish
+	// out of the trap before it auto-empties at 4.
 	var i = ContentsCount(), obj;
 	while (i--) if (obj = Contents(i))
 	{
 		Exit(obj, RandomX(-4, 4), -4);
 		if (GetID(obj) == FISH)
 		{
-			Kill(obj);
+			if (GBackLiquid(GetX(obj), GetY(obj))) obj->SetAction("Swim");
 			fish_count--;
 		}
 	}
