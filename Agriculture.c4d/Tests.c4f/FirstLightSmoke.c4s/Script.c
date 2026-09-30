@@ -84,9 +84,16 @@ global func HomesteadAudit()
 
 global func HomesteadLedgerFulfilled() { return g_green_audits >= 2; }
 
+// The stall's registered smoked-fish stock is materialized as contained
+// AGSF (RegisterTradeGood) and must not satisfy the fishery census
+// (review H1-Flash). Only uncontained AGSF counts as loose fish.
 global func FishStock()
 {
-	return ObjectCount(FISH) + ObjectCount(DFSH) + ObjectCount(AGSF);
+	var n = ObjectCount(FISH) + ObjectCount(DFSH);
+	var p;
+	for (var p in FindObjects(Find_ID(AGSF)))
+		if (!p->Contained()) n++;
+	return n;
 }
 
 /* ---- ledger HUD composers (mirror of FirstLight.c4s, cycle 183) ---- */
