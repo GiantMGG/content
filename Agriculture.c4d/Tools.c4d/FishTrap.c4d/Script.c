@@ -58,7 +58,7 @@ public func EmptyTrap()
 		Exit(obj, RandomX(-4, 4), -4);
 		if (GetID(obj) == FISH)
 		{
-			if (GBackLiquid(GetX(obj), GetY(obj))) obj->SetAction("Swim");
+			if (GBackLiquid(GetX(obj) - GetX(), GetY(obj) - GetY())) obj->SetAction("Swim");
 			fish_count--;
 		}
 	}
