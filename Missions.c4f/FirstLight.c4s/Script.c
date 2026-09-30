@@ -243,10 +243,10 @@ global func HomesteadRedLegsText()
 // replaces the prior line in place (engine C4GameMessageList::New
 // clears same-player/same-flags first; an empty string only deletes).
 // Offsets are percentages of the viewport under MSG_XRel/MSG_YRel;
-// tune the three numbers (-46, 25, 40) only against the 1080p shot.
+// tune the three numbers (-46, 8, 40) only against the 1080p shot.
 global func HomesteadDrawLedgerHUD()
 {
-	CustomMessage(HomesteadLedgerHUDText(), 0, 0, -46, 25, 0xffffff, 0, 0,
+	CustomMessage(HomesteadLedgerHUDText(), 0, 0, -46, 8, 0xffffff, 0, 0,
 		MSG_Bottom | MSG_Left | MSG_ALeft | MSG_XRel | MSG_YRel | MSG_WidthRel, 40);
 	return true;
 }
