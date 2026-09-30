@@ -63,6 +63,8 @@ protected func Initialize()
 	AddEffect("Story", 0, 1, 35, 0, 0);
 	AddEffect("Audit", 0, 1, 2100, 0, 0);
 	AddEffect("Caravan", 0, 1, 2100, 0, 0);
+	AddEffect("LedgerHUD", 0, 1, 35, 0, 0);
+	HomesteadDrawLedgerHUD();
 	return true;
 }
 
@@ -161,6 +163,109 @@ global func HomesteadAudit()
 
 global func HomesteadLedgerFulfilled() { return g_green_audits >= 2; }
 
+/* ---- live ledger HUD + red-audit naming (cycle 183) ---- */
+
+// Ripe-wheat census for the HUD's Field segment. Display-only: the
+// field predicate (HomesteadFieldGreen) is unchanged.
+global func HomesteadRipeWheatCount()
+{
+	var ripe = 0, pW;
+	for (var pW in FindObjects(Find_ID(AGWH)))
+		if (pW->IsRipe()) ripe++;
+	return ripe;
+}
+
+// Trade leg display text: frames since the last caravan sale, or
+// "none" before the first sale. All composition via Format() - the
+// ".."-on-bool quirk is designed out (roadmap.md:246).
+global func HomesteadTradeAgeText()
+{
+	if (g_last_sale < 0) return "none";
+	return Format("%df", FrameCounter() - g_last_sale);
+}
+
+// One HUD line: four leg segments joined with " · ", state words are
+// literally green/dark. Single source of truth - reads the same
+// Homestead*Green() predicates the audit reads, so the HUD can never
+// disagree with the ledger.
+global func HomesteadLedgerHUDText()
+{
+	// State words computed with if/else: this fork's parser has no
+	// C-style ternary (the '?' token is STRICT3 safe-navigation only),
+	// so the green/dark wording must be set branch-wise.
+	var sFishery = "dark";
+	if (HomesteadFisheryGreen()) sFishery = "green";
+	var sField = "dark";
+	if (HomesteadFieldGreen()) sField = "green";
+	var sMill = "dark";
+	if (HomesteadMillGreen()) sMill = "green";
+	var sTrade = "dark";
+	if (HomesteadTradeGreen()) sTrade = "green";
+	return Format("Fishery %d/8 %s · Field %d/4 %d/2 %s · Mill %d %s · Trade %s %s",
+		FishStock(), sFishery,
+		ObjectCount(AGWH), HomesteadRipeWheatCount(),
+		sField,
+		g_mill_total, sMill,
+		HomesteadTradeAgeText(), sTrade);
+}
+
+// Dark-leg list for red audits: each dark leg is named with its
+// numbers, green legs are omitted. Segments joined with ", ".
+global func HomesteadRedLegsText()
+{
+	var txt = "", sep = "";
+	if (!HomesteadFisheryGreen())
+	{
+		txt = Format("%s%sFishery %d/8 dark", txt, sep, FishStock());
+		sep = ", ";
+	}
+	if (!HomesteadFieldGreen())
+	{
+		txt = Format("%s%sField %d/4 %d/2 dark", txt, sep,
+			ObjectCount(AGWH), HomesteadRipeWheatCount());
+		sep = ", ";
+	}
+	if (!HomesteadMillGreen())
+	{
+		txt = Format("%s%sMill %d dark", txt, sep, g_mill_total);
+		sep = ", ";
+	}
+	if (!HomesteadTradeGreen())
+	{
+		txt = Format("%s%sTrade %s dark", txt, sep, HomesteadTradeAgeText());
+		sep = ", ";
+	}
+	return txt;
+}
+
+// Draw the HUD: one player-0 global-player CustomMessage, bottom-left,
+// width-capped. Re-issuing with the same player + positioning flags
+// replaces the prior line in place (engine C4GameMessageList::New
+// clears same-player/same-flags first; an empty string only deletes).
+// Offsets are percentages of the viewport under MSG_XRel/MSG_YRel;
+// tune the three numbers (-46, 25, 40) only against the 1080p shot.
+global func HomesteadDrawLedgerHUD()
+{
+	CustomMessage(HomesteadLedgerHUDText(), 0, 0, -46, 25, 0xffffff, 0, 0,
+		MSG_Bottom | MSG_Left | MSG_ALeft | MSG_XRel | MSG_YRel | MSG_WidthRel, 40);
+	return true;
+}
+
+// HUD refresh: re-issue every 35 frames. On win (two consecutive green
+// audits) one empty-string issue with the same flags deletes the
+// overlay and stops the effect.
+global func FxLedgerHUDTimer(target, effect, time)
+{
+	if (HomesteadLedgerFulfilled())
+	{
+		CustomMessage("", 0, 0, 0, 0, 0xffffff, 0, 0,
+			MSG_Bottom | MSG_Left | MSG_ALeft | MSG_XRel | MSG_YRel | MSG_WidthRel, 0);
+		return -1;
+	}
+	HomesteadDrawLedgerHUD();
+	return 1;
+}
+
 /* ---- caravan factor (the trade demand side; spec chapter 4) ---- */
 
 global func HomesteadFindLooseGoods()
@@ -254,7 +359,7 @@ global func FxAuditTimer(target, effect, time)
 	if (g_chapter < 5) return 1;
 	var green = HomesteadAudit();
 	if (green) { Log("$MsgLedgerGreen$"); Sound("LedgerChime"); }
-	else Log("$MsgLedgerRed$");
+	else Log(Format("$MsgLedgerRed$ %s", HomesteadRedLegsText()));
 	if (g_green_audits >= 2) Log("$MsgWin$");
 	// The engine's goal polling picks up IsFulfilled via HMGL from here.
 	return 1;
