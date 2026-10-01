@@ -17,14 +17,17 @@ func Initialize() {
   var cy = LandscapeHeight()/2;
   pBase1 = CreateConstruction(HUT3, cx - 300, cy - 200, NO_OWNER, 100, 1);
   pBase2 = CreateConstruction(HUT3, cx + 300, cy + 200, NO_OWNER, 100, 1);
-  // cycle 185: created ABOVE the base site and left to settle onto the
-  // local island surface. (The 2026-10-01 finding: with the ArenaChampions
-  // defs unloaded - Scenario.txt previously only loaded root Objects.c4d -
-  // CreateObject(TCHS/RSPN/BNDR) returned NULL, so the chests never existed
-  // and every heartbeat stayed 0 while bots carried gold. Scenario.txt now
-  // loads Definition2=ArenaChampions.c4f. Dropping the objects straight on
-  // the carved pit can shove them out of the map at gold-heavy seeds - the
-  // island surface is the reliable in-bounds rest spot.)
+  // cycle 185: chests/RSPNs parked 150 px above each base site (the +35
+  // base-doorstep floor is proven only in the scratch driver - follow-up
+  // item). TCHS/RSPN/BNDR always load for the shipped scenario: the
+  // engine's folder-local defs scan auto-loads the parent pack (pre-cycle
+  // boots log "ArenaChampions.c4f ... definitions loaded"), so
+  // CreateObject(TCHS/...) never returned NULL here. Scenario.txt's
+  // Definition2=ArenaChampions.c4f keeps that dependency explicit for the
+  // chest-race contract (a silent NULL CreateObject would freeze every
+  // heartbeat) - redundant-but-safe: the engine dedups duplicate def
+  // registrations (first load wins). TCHS/RSPN are C4D_StaticBack and do
+  // not fall; they sit exactly where created.
   pChest1 = CreateObject(TCHS, cx - 300, cy - 200 - 150, NO_OWNER);
   pChest2 = CreateObject(TCHS, cx + 300, cy + 200 - 150, NO_OWNER);
   pRspn1 = CreateObject(RSPN, cx - 300 + 40, cy - 200 - 150, NO_OWNER);
@@ -183,7 +186,8 @@ global func FxVeinPulseTimer(target, effect, time)
 }
 
 // One burn tick on branch b: damage + ignite in-branch clonks; sear
-// in-branch free GOLD. Damage 40/tick: ~3 consecutive ticks (~3 s) lethal.
+// in-branch free GOLD. DoEnergy(-40)/tick - 40 energy/tick:
+// ~3 consecutive ticks (~3 s) lethal.
 // NOTE (cycle 185): must be global - a global effect timer resolves calls
 // through the ENGINE's global func table only; a private (script-local)
 // callee parses as "unknown identifier" (verified on 2026-10-01, boot

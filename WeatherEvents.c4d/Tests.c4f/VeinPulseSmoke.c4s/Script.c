@@ -125,7 +125,7 @@ global func MirrorStepSetup()
 	g_E0In = GetEnergy(g_ClonkIn);
 	g_E0Out = GetEnergy(g_ClonkOut);
 	// 3) one burn tick: in-branch nugget seared, out-of-branch not; the
-	//    in-burn clonk loses >= 40 energy (the DoDamage constant), the
+	//    in-burn clonk loses >= 40 energy (the DoEnergy constant), the
 	//    out-of-burn clonk loses nothing
 	MirrorBurnBranch(0);
 	if (!GetEffect("VeinRich", nugIn))
