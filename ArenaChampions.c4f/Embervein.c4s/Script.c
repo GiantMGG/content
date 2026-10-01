@@ -1,6 +1,6 @@
 #strict
 
-static pBase1, pBase2, pChest1, pChest2;
+static pBase1, pBase2, pChest1, pChest2, pRspn1, pRspn2;
 
 func Initialize() {
   SetWind(0);
@@ -17,10 +17,18 @@ func Initialize() {
   var cy = LandscapeHeight()/2;
   pBase1 = CreateConstruction(HUT3, cx - 300, cy - 200, NO_OWNER, 100, 1);
   pBase2 = CreateConstruction(HUT3, cx + 300, cy + 200, NO_OWNER, 100, 1);
-  pChest1 = CreateObject(TCHS, cx - 300, cy - 200, NO_OWNER);
-  pChest2 = CreateObject(TCHS, cx + 300, cy + 200, NO_OWNER);
-  CreateObject(RSPN, cx - 300, cy - 200, NO_OWNER);
-  CreateObject(RSPN, cx + 300, cy + 200, NO_OWNER);
+  // cycle 185: created ABOVE the base site and left to settle onto the
+  // local island surface. (The 2026-10-01 finding: with the ArenaChampions
+  // defs unloaded - Scenario.txt previously only loaded root Objects.c4d -
+  // CreateObject(TCHS/RSPN/BNDR) returned NULL, so the chests never existed
+  // and every heartbeat stayed 0 while bots carried gold. Scenario.txt now
+  // loads Definition2=ArenaChampions.c4f. Dropping the objects straight on
+  // the carved pit can shove them out of the map at gold-heavy seeds - the
+  // island surface is the reliable in-bounds rest spot.)
+  pChest1 = CreateObject(TCHS, cx - 300, cy - 200 - 150, NO_OWNER);
+  pChest2 = CreateObject(TCHS, cx + 300, cy + 200 - 150, NO_OWNER);
+  pRspn1 = CreateObject(RSPN, cx - 300 + 40, cy - 200 - 150, NO_OWNER);
+  pRspn2 = CreateObject(RSPN, cx + 300 + 40, cy + 200 - 150, NO_OWNER);
   CreateObject(BNDR, 0, 0, NO_OWNER);
   CreateObject(BNDR, LandscapeWidth(), 0, NO_OWNER);
   CreateObject(BNDR, 0, LandscapeHeight(), NO_OWNER);
@@ -94,6 +102,7 @@ private func PlacePlayer1(int iPlr) {
     Enter(pBase1, CreateObject(FLAG, 0, 0, iPlr));
   } else for (var i; i < GetCrewCount(iPlr); i++) SetPosition(LandscapeWidth()/2 - 300, LandscapeHeight()/2 - 200, GetCrew(iPlr, i));
   if (pChest1 && GetOwner(pChest1) == NO_OWNER) SetOwner(iPlr, pChest1);
+  if (pRspn1 && GetOwner(pRspn1) == NO_OWNER) SetOwner(iPlr, pRspn1);
   Log("$TeamLeftJoin$", GetPlayerName(iPlr), Format("$TeamLeft$"));
   return 1;
 }
@@ -107,6 +116,7 @@ private func PlacePlayer2(int iPlr) {
     Enter(pBase2, CreateObject(FLAG, 0, 0, iPlr));
   } else for (var i; i < GetCrewCount(iPlr); i++) SetPosition(LandscapeWidth()/2 + 300, LandscapeHeight()/2 + 200, GetCrew(iPlr, i));
   if (pChest2 && GetOwner(pChest2) == NO_OWNER) SetOwner(iPlr, pChest2);
+  if (pRspn2 && GetOwner(pRspn2) == NO_OWNER) SetOwner(iPlr, pRspn2);
   Log("$TeamRightJoin$", GetPlayerName(iPlr), Format("$TeamRight$"));
   return 1;
 }
@@ -256,7 +266,7 @@ global func VeinNormalizeCarriedGold()
 		{
 			item = Contents(k, carriers[i]);
 			if (!item) break;
-			if (GetID(item) == GOLD) SetOwner(item, GetOwner(carriers[i]));
+			if (GetID(item) == GOLD) SetOwner(GetOwner(carriers[i]), item);
 		}
 	}
 	return 1;

@@ -10,6 +10,7 @@ Origin=ArenaChampions.c4f\Embervein.c4s
 
 [Definitions]
 Definition1=Objects.c4d
+Definition2=ArenaChampions.c4f
 
 [Game]
 StructNeedEnergy=0
