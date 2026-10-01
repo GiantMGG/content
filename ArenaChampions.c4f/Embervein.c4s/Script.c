@@ -1,6 +1,6 @@
 #strict
 
-static pBase1, pBase2;
+static pBase1, pBase2, pChest1, pChest2;
 
 func Initialize() {
   SetWind(0);
@@ -10,12 +10,15 @@ func Initialize() {
   gVeinPhase = 0; gVeinTick = 0; gVeinBranch = Random(3);
   AddEffect("VeinPulse", 0, 1, 35);
   Log(Format("$MsgVeinIgnite$", gVeinBranch + 1));
+  // cycle 185: chest score guard (first team to 50 banked gold wins)
+  gVeinWinFired = 0; gVeinBeat = 0;
+  AddEffect("ChestGuard", 0, 1, 35);
   var cx = LandscapeWidth()/2;
   var cy = LandscapeHeight()/2;
   pBase1 = CreateConstruction(HUT3, cx - 300, cy - 200, NO_OWNER, 100, 1);
   pBase2 = CreateConstruction(HUT3, cx + 300, cy + 200, NO_OWNER, 100, 1);
-  CreateObject(TCHS, cx - 300, cy - 200, NO_OWNER);
-  CreateObject(TCHS, cx + 300, cy + 200, NO_OWNER);
+  pChest1 = CreateObject(TCHS, cx - 300, cy - 200, NO_OWNER);
+  pChest2 = CreateObject(TCHS, cx + 300, cy + 200, NO_OWNER);
   CreateObject(RSPN, cx - 300, cy - 200, NO_OWNER);
   CreateObject(RSPN, cx + 300, cy + 200, NO_OWNER);
   CreateObject(BNDR, 0, 0, NO_OWNER);
@@ -90,6 +93,7 @@ private func PlacePlayer1(int iPlr) {
     for (var i; i < GetCrewCount(iPlr); i++) Enter(pBase1, GetCrew(iPlr, i));
     Enter(pBase1, CreateObject(FLAG, 0, 0, iPlr));
   } else for (var i; i < GetCrewCount(iPlr); i++) SetPosition(LandscapeWidth()/2 - 300, LandscapeHeight()/2 - 200, GetCrew(iPlr, i));
+  if (pChest1 && GetOwner(pChest1) == NO_OWNER) SetOwner(iPlr, pChest1);
   Log("$TeamLeftJoin$", GetPlayerName(iPlr), Format("$TeamLeft$"));
   return 1;
 }
@@ -102,6 +106,7 @@ private func PlacePlayer2(int iPlr) {
     for (var i; i < GetCrewCount(iPlr); i++) Enter(pBase2, GetCrew(iPlr, i));
     Enter(pBase2, CreateObject(FLAG, 0, 0, iPlr));
   } else for (var i; i < GetCrewCount(iPlr); i++) SetPosition(LandscapeWidth()/2 + 300, LandscapeHeight()/2 + 200, GetCrew(iPlr, i));
+  if (pChest2 && GetOwner(pChest2) == NO_OWNER) SetOwner(iPlr, pChest2);
   Log("$TeamRightJoin$", GetPlayerName(iPlr), Format("$TeamRight$"));
   return 1;
 }
@@ -201,6 +206,100 @@ global func VeinBurnBranch(int b)
 			AddEffect("VeinRich", obj, 2);
 			Log(Format("$MsgVeinSeared$", b + 1, FrameCounter()));
 		}
+	}
+	return 1;
+}
+
+// --- Chest score + first-to-50 round end (cycle 185) ----------------------
+static gVeinWinFired, gVeinBeat;
+
+// NOTE (cycle 185): VeinChestScore / VeinNormalizeCarriedGold /
+// VeinEliminateLosers are GLOBAL despite the plan's literal `private` -
+// FxChestGuardTimer is a global-effect timer (target 0) whose calls resolve
+// through the ENGINE's global func table only; a script-local private
+// callee parses as "unknown identifier" (same finding that made
+// VeinBurnBranch global in S1, see note above).
+global func VeinChestScore(int team)
+{
+	var score = 0, i, k, item, owner;
+	var chests = FindObjects(Find_ID(TCHS));
+	for (i = 0; i < GetLength(chests); i++)
+	{
+		owner = GetOwner(chests[i]);
+		if (owner == NO_OWNER) continue;
+		if (GetPlayerTeam(owner) != team) continue;
+		for (k = 0; k < 100; k++)
+		{
+			item = Contents(k, chests[i]);
+			if (!item) break;
+			if (GetID(item) == GOLD)
+			{
+				score = score + 1;
+				if (GetEffect("VeinRich", item)) score = score + 1;
+			}
+		}
+	}
+	return score;
+}
+
+// Nuggets carried by a clonk take the carrier's owner so the team chest's
+// RejectCollect (owner-team match) accepts the deposit — liberated GOLD is
+// created unowned and never gains one on pickup.
+global func VeinNormalizeCarriedGold()
+{
+	var i, k, item;
+	var carriers = FindObjects(Find_OCF(OCF_Alive));
+	for (i = 0; i < GetLength(carriers); i++)
+	{
+		if (GetOwner(carriers[i]) == NO_OWNER) continue;
+		for (k = 0; k < 100; k++)
+		{
+			item = Contents(k, carriers[i]);
+			if (!item) break;
+			if (GetID(item) == GOLD) SetOwner(item, GetOwner(carriers[i]));
+		}
+	}
+	return 1;
+}
+
+global func FxChestGuardTimer(target, effect, time)
+{
+	VeinNormalizeCarriedGold();
+	var s1 = VeinChestScore(1), s2 = VeinChestScore(2);
+	// heartbeat every 3rd guard tick (105 frames): the bot-parse surface
+	++gVeinBeat;
+	if (gVeinBeat >= 3)
+	{
+		gVeinBeat = 0;
+		Log(Format("$MsgVeinScore$", GetTeamName(1), s1, GetTeamName(2), s2, 50, FrameCounter()));
+	}
+	if (gVeinWinFired) return 1;
+	var winner = 0;
+	if (s1 >= 50) winner = 1;
+	else if (s2 >= 50) winner = 2;
+	if (winner)
+	{
+		gVeinWinFired = 1;   // fired latch: the win fires exactly once
+		Log(Format("$MsgVeinWin$", GetTeamName(winner), 50, FrameCounter()));
+		if (SoundExists("VictorySting")) Sound("VictorySting");
+		VeinEliminateLosers(winner);
+		GameOver();
+	}
+	return 1;
+}
+
+// KILT-Guard-pattern loser sweep (KillTarget.c4d Script.c EliminateLosers,
+// re-implemented scenario-side so the engine's elimination-based game-over
+// evaluation credits exactly the announced team).
+global func VeinEliminateLosers(int iWinningTeam)
+{
+	if (iWinningTeam <= 0) return;
+	var i;
+	for (i = 0; i < GetPlayerCount(); i++)
+	{
+		var plr = GetPlayerByIndex(i);
+		if (GetPlayerTeam(plr) != iWinningTeam)
+			EliminatePlayer(plr);
 	}
 	return 1;
 }
