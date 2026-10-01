@@ -11,10 +11,11 @@ static g_Step, g_Phase, g_Done;
 static g_T;
 static g_MPhase, g_MBranch, g_MTick, g_MRects;   // mirror pulse state
 static g_ClonkIn, g_ClonkOut, g_E0In, g_E0Out;
+static g_Chest, g_Canary;
 
 protected func Initialize()
 {
-	g_Step = 0; g_Phase = 0; g_Done = 0; g_T = 0;
+	g_Step = 0; g_Phase = 0; g_Done = 0; g_T = 0; g_Chest = 0; g_Canary = 0;
 	MirrorScanBranches();
 	g_MPhase = 0; g_MBranch = 0; g_MTick = 0;
 	AddEffect("RunTest", 0, 1, 35);
@@ -26,6 +27,8 @@ global func FxRunTestTimer(target, effect, time)
 	++g_Step;
 	if (g_Phase == 0) return MirrorStepSetup();
 	if (g_Phase == 1) return MirrorStepTransitions();
+	if (g_Phase == 2) return MirrorStepChest();
+	if (g_Phase == 3) return MirrorCanary();
 	return 1;
 }
 
@@ -157,10 +160,70 @@ global func MirrorStepTransitions()
 		FatalError("VeinPulseSmoke FAIL: no burn->cool transition after 2 burn ticks");
 	if (g_T == 5 && g_MPhase != 0)
 		FatalError("VeinPulseSmoke FAIL: no cool->burn transition after 1 cool tick");
-	if (g_T >= 5)
+	if (g_T >= 5) { g_Phase = 2; return 1; }   // -> chest phase (session 2)
+	return 1;
+}
+
+// MIRROR of VeinChestScore's inner fold, owner/team check stripped (one
+// staged chest). Plain GOLD = 1, VeinRich GOLD = 2.
+global func MirrorChestFold(object chest)
+{
+	var score = 0, k, item;
+	for (k = 0; k < 100; k++)
 	{
-		Log("VeinPulseSmoke PASS");
-		GameOver();
+		item = Contents(k, chest);
+		if (!item) break;
+		if (GetID(item) == GOLD)
+		{
+			score = score + 1;
+			if (GetEffect("VeinRich", item)) score = score + 1;
+		}
 	}
+	return score;
+}
+
+// Stage a chest holding 2 plain + 1 seared GOLD: fold must equal 4 EXACTLY
+// (plain 1, seared 2). Then arm the scaled mirror guard (target 4) and let
+// the ROUND end itself: PASS logs before the guard fires, the late canary
+// FatalErrors if the round is still running +70 frames later.
+global func MirrorStepChest()
+{
+	var chest = CreateObject(TCHS, 60, 40, NO_OWNER);
+	var p1 = CreateObject(GOLD, 0, 0, NO_OWNER);
+	var p2 = CreateObject(GOLD, 0, 0, NO_OWNER);
+	var seared = CreateObject(GOLD, 0, 0, NO_OWNER);
+	AddEffect("VeinRich", seared, 2);
+	Enter(chest, p1); Enter(chest, p2); Enter(chest, seared);
+	var fold = MirrorChestFold(chest);
+	if (fold != 4)
+		FatalError(Format("VeinPulseSmoke FAIL: chest fold %d, expected 4 (plain 1, seared 2)", fold));
+	g_Chest = chest;
+	AddEffect("MirrorGuard", 0, 1, 35);
+	Log("VeinPulseSmoke PASS");
+	g_Phase = 3;
+	return 1;
+}
+
+// MIRROR of the ChestGuard win path, scaled: first fold tick at >= 4 ends
+// the round itself (announce + GameOver) - the smoke never calls GameOver.
+global func FxMirrorGuardTimer(target, effect, time)
+{
+	var fold = MirrorChestFold(g_Chest);
+	if (fold >= 4)
+	{
+		Log("VeinPulseSmoke: chest target reached - round self-ends");
+		GameOver();
+		return -1;
+	}
+	return 1;
+}
+
+// Late canary (ArenaBotRound form): 70 frames after PASS the round MUST
+// have ended by itself; still running = the guard never fired = FAIL.
+global func MirrorCanary()
+{
+	++g_Canary;
+	if (g_Canary >= 2)
+		FatalError("VeinPulseSmoke FAIL: round did not self-end within 70 frames of the win");
 	return 1;
 }
