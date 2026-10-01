@@ -1,4 +1,11 @@
-TeamLeft=Emberforged
-TeamRight=Emberforged
+TeamLeft=Embervein West
+TeamRight=Embervein East
 TeamLeftJoin=%s tritt %s bei.
 TeamRightJoin=%s tritt %s bei.
+MsgVeinTeams=Teams: %s vs %s
+MsgVeinIgnite=Aderzweig %d entflammt!
+MsgVeinCool=Aderzweig %d kuehlt ab.
+MsgVeinSeared=Geroestetes Gold an Zweig %d @%d
+MsgVeinScore=Adern-Gold: %s %d vs %s %d - wer zuerst %d hat @%d
+MsgVeinWin=%s verwahrt %d Gold und gewinnt die Ader! @%d
+MsgVeinNoGold=Warnung: keine Goldader gefunden - Puls faellt auf die Kartenmitte zurueck.

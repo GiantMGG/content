@@ -7,14 +7,14 @@ TeamColors=1
 
 	[Team]
 	id=1
-	Name=$TeamLeft$
+	Name=Embervein West
 	PlrStartIndex=1
 	MaxPlayer=4
 	IconSpec=TMS1:2
 
 	[Team]
 	id=2
-	Name=$TeamRight$
+	Name=Embervein East
 	PlrStartIndex=2
 	MaxPlayer=4
 	IconSpec=TMS1:3

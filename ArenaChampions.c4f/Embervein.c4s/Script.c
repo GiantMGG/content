@@ -54,7 +54,12 @@ global func FxArenaTeamsTimer(target, effect, time)
       done++;
     }
   }
-  if (!done) return -1;   // every joined player has a team: stop polling
+  if (!done)
+  {
+    if (GetPlayerCount() > 0)
+      Log(Format("$MsgVeinTeams$", GetTeamName(1), GetTeamName(2)));
+    return -1;   // every joined player has a team: stop polling
+  }
   return 1;
 }
 

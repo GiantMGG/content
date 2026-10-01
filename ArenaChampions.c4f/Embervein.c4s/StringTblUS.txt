@@ -1,4 +1,11 @@
-TeamLeft=Emberforged
-TeamRight=Emberforged
+TeamLeft=Embervein West
+TeamRight=Embervein East
 TeamLeftJoin=%s joins %s.
 TeamRightJoin=%s joins %s.
+MsgVeinTeams=Teams: %s vs %s
+MsgVeinIgnite=Vein branch %d ignites!
+MsgVeinCool=Vein branch %d cools.
+MsgVeinSeared=Seared gold on branch %d @%d
+MsgVeinScore=Vein gold: %s %d vs %s %d - first to %d @%d
+MsgVeinWin=%s banks %d gold and wins the vein! @%d
+MsgVeinNoGold=Warning: no gold vein found - vein pulse falls back to the map center.
