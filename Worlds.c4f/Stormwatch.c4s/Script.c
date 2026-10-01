@@ -55,21 +55,35 @@ protected func Initialize()
 	// --- Pre-place the settlement (spec §Opening) ---
 
 	// Ruined HUT2 on the headland (40% completion -- Colony Bay ruin pattern).
-	var iHeadX = LandscapeWidth() * 70 / 100;
-	var iHeadY = LandscapeHeight() * 35 / 100;
+	// Authored map: the dark Rock-Rough headland covers cols 50-99, rows
+	// 20-59; its top (map row 20) is the surface at world Y=199 (MapZoom=10;
+	// pinned by StormwatchMapProbe cycle-186). CreateConstruction drops the
+	// site 10px on spawn (calibrated: create 180 -> settle 170, base ~195
+	// against the surface). Old 35%H=210 was tuned for the procedural
+	// fallback map and would have buried the site 15px into the rock.
+	var iHeadX = LandscapeWidth() * 70 / 100;   // 700: headland cols 50-99
+	var iHeadY = 180;                           // settle 170, base on headland surface
 	CreateConstruction(HUT2, iHeadX, iHeadY, -1, 40, 1);
 
-	// Wheat field (3 AGWH seedlings) on the headland.
+	// Wheat field (3 AGWH seedlings) on the headland -- AGWH is static (does
+	// not fall), so born at 195 = base just into the surface (old iHeadY+5
+	// sat 15px inside the rock).
 	for (var i = 0; i < 3; i++)
-		CreateObject(AGWH, iHeadX - 20 + i * 10, iHeadY + 5, NO_OWNER);
+		CreateObject(AGWH, iHeadX - 20 + i * 10, 195, NO_OWNER);
 
-	// WOOD stockpile near the hut (ignites under HTWV).
+	// WOOD stockpile near the hut (ignites under HTWV) -- falls to ~197
+	// (base ~200 on the surface; old iHeadY+10 was inside the rock).
 	for (var i = 0; i < 5; i++)
-		CreateObject(WOOD, iHeadX + 10 + Random(20), iHeadY + 10, NO_OWNER);
+		CreateObject(WOOD, iHeadX + 10 + Random(20), 194, NO_OWNER);
 
 	// Low CNKT sea wall along the beachfront (3 segments @ 30% completion --
 	// low enough that FLDD's CastPXS overtops it; spec §Note).
-	var iBeachY = LandscapeHeight() * 70 / 100;
+	// Authored map: the earth lowland (cols 0-49, rows 20-49) drops to the
+	// Water-Smooth sea basin at world Y~500-505 (liquid top, pinned by
+	// StormwatchMapProbe cycle-186). Foot at 495 settles 494 on the last
+	// earth row, at the water line. (Old 70%H=420 was mid-lowland on the
+	// procedural map -- unrelated to any shore.)
+	var iBeachY = 495;                          // earth/water shore, waterline below
 	for (var i = 0; i < 3; i++)
 		CreateConstruction(CNKT, LandscapeWidth() * 30 / 100 + i * 15, iBeachY, -1, 30, 1);
 
