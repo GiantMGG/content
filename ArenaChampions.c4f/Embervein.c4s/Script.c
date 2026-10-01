@@ -10,28 +10,33 @@ func Initialize() {
   gVeinPhase = 0; gVeinTick = 0; gVeinBranch = Random(3);
   AddEffect("VeinPulse", 0, 1, 35);
   Log(Format("$MsgVeinIgnite$", gVeinBranch + 1));
-  // cycle 185: chest score guard (first team to 50 banked gold wins)
+  // cycle 185: chest score guard (first team to 50 banked gold wins) +
+  // stall guard (critic fix-now 2): zero-progress rounds must terminate
   gVeinWinFired = 0; gVeinBeat = 0;
+  gVeinStall = 0; gVeinStallLast = 0; gVeinStallFired = 0;
   AddEffect("ChestGuard", 0, 1, 35);
   var cx = LandscapeWidth()/2;
   var cy = LandscapeHeight()/2;
   pBase1 = CreateConstruction(HUT3, cx - 300, cy - 200, NO_OWNER, 100, 1);
   pBase2 = CreateConstruction(HUT3, cx + 300, cy + 200, NO_OWNER, 100, 1);
-  // cycle 185: chests/RSPNs parked 150 px above each base site (the +35
-  // base-doorstep floor is proven only in the scratch driver - follow-up
-  // item). TCHS/RSPN/BNDR always load for the shipped scenario: the
-  // engine's folder-local defs scan auto-loads the parent pack (pre-cycle
-  // boots log "ArenaChampions.c4f ... definitions loaded"), so
-  // CreateObject(TCHS/...) never returned NULL here. Scenario.txt's
-  // Definition2=ArenaChampions.c4f keeps that dependency explicit for the
-  // chest-race contract (a silent NULL CreateObject would freeze every
-  // heartbeat) - redundant-but-safe: the engine dedups duplicate def
-  // registrations (first load wins). TCHS/RSPN are C4D_StaticBack and do
-  // not fall; they sit exactly where created.
-  pChest1 = CreateObject(TCHS, cx - 300, cy - 200 - 150, NO_OWNER);
-  pChest2 = CreateObject(TCHS, cx + 300, cy + 200 - 150, NO_OWNER);
-  pRspn1 = CreateObject(RSPN, cx - 300 + 40, cy - 200 - 150, NO_OWNER);
-  pRspn2 = CreateObject(RSPN, cx + 300 + 40, cy + 200 - 150, NO_OWNER);
+  // cycle 185 (critic fix-now 1): chests/RSPNs on the +35 base-doorstep
+  // form pilot-proven reachable in the scratch driver (VeinBotRound.c4s):
+  // chests 35 px below each base site, RSPNs at the base site itself. The
+  // predecessor -150 summit-ledge sat inside burn row 1 on some seeds and
+  // wiped crews/respawners in the first burn cycle (rounds 14/16, 12-18 s).
+  // TCHS/RSPN/BNDR always load for the shipped scenario: the engine's
+  // folder-local defs scan auto-loads the parent pack (pre-cycle boots log
+  // "ArenaChampions.c4f ... definitions loaded"), so CreateObject(TCHS/...)
+  // never returned NULL here. Scenario.txt's Definition2=ArenaChampions.c4f
+  // keeps that dependency explicit for the chest-race contract (a silent
+  // NULL CreateObject would freeze every heartbeat) - redundant-but-safe:
+  // the engine dedups duplicate def registrations (first load wins).
+  // TCHS/RSPN are C4D_StaticBack and do not fall; they sit exactly where
+  // created.
+  pChest1 = CreateObject(TCHS, cx - 300, cy - 200 + 35, NO_OWNER);
+  pChest2 = CreateObject(TCHS, cx + 300, cy + 200 + 35, NO_OWNER);
+  pRspn1 = CreateObject(RSPN, cx - 300, cy - 200, NO_OWNER);
+  pRspn2 = CreateObject(RSPN, cx + 300, cy + 200, NO_OWNER);
   CreateObject(BNDR, 0, 0, NO_OWNER);
   CreateObject(BNDR, LandscapeWidth(), 0, NO_OWNER);
   CreateObject(BNDR, 0, LandscapeHeight(), NO_OWNER);
@@ -226,6 +231,7 @@ global func VeinBurnBranch(int b)
 
 // --- Chest score + first-to-50 round end (cycle 185) ----------------------
 static gVeinWinFired, gVeinBeat;
+static gVeinStall, gVeinStallLast, gVeinStallFired;   // stall guard (fix-now 2)
 
 // NOTE (cycle 185): VeinChestScore / VeinNormalizeCarriedGold /
 // VeinEliminateLosers are GLOBAL despite the plan's literal `private` -
@@ -280,6 +286,23 @@ global func FxChestGuardTimer(target, effect, time)
 {
 	VeinNormalizeCarriedGold();
 	var s1 = VeinChestScore(1), s2 = VeinChestScore(2);
+	var total = s1 + s2;
+	// Stall guard (cycle-185 critic fix-now 2): the round used to be able
+	// to stalemate forever at a 0-0 scoreboard (rounds 6/9/20 ran to the
+	// frame cap with crews alive, no deposits, no eliminations - nothing
+	// ever ended). Count consecutive guard ticks with zero change in total
+	// banked gold (no deposit since round start while total is still 0);
+	// after 210 ticks x 35f = 7350f (~3.5 min) of zero progress, announce
+	// and end the round through the same GameOver evaluation path. Any
+	// deposit resets the counter; a 50-gold win (below) outranks a stall
+	// end on the same tick.
+	if (total == gVeinStallLast)
+		++gVeinStall;
+	else
+	{
+		gVeinStallLast = total;
+		gVeinStall = 0;
+	}
 	// heartbeat every 3rd guard tick (105 frames): the bot-parse surface
 	++gVeinBeat;
 	if (gVeinBeat >= 3)
@@ -297,6 +320,13 @@ global func FxChestGuardTimer(target, effect, time)
 		Log(Format("$MsgVeinWin$", GetTeamName(winner), 50, FrameCounter()));
 		if (SoundExists("VictorySting")) Sound("VictorySting");
 		VeinEliminateLosers(winner);
+		GameOver();
+		return 1;
+	}
+	if (gVeinStall >= 210 && !gVeinStallFired)   // 210 x 35f = 7350f = ~3.5 min
+	{
+		gVeinStallFired = 1;   // fired latch: the stall fires exactly once
+		Log(Format("Vein stall-guard: no haul progress for %d ticks - round ends", gVeinStall));
 		GameOver();
 	}
 	return 1;

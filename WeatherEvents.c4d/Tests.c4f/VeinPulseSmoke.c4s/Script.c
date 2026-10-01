@@ -5,17 +5,21 @@
      scan (grid step 3), damage (40/tick), searing (VeinRich on free GOLD
      in the burning branch) mirror Embervein.c4s/Script.c — KEEP ALIGNED,
      diff the mirrored blocks on any change. Session 2 appends the chest
-     fold + first-to-target self-end asserts. --*/
+     fold + first-to-target self-end asserts; the critic-fix pass appends
+     the stall-guard fold mirror (fires on a no-progress timeline, see
+     MirrorStallGuardTick vs FxChestGuardTimer's stall block). --*/
 
 static g_Step, g_Phase, g_Done;
 static g_T;
 static g_MPhase, g_MBranch, g_MTick, g_MRects;   // mirror pulse state
 static g_ClonkIn, g_ClonkOut, g_E0In, g_E0Out;
 static g_Chest, g_Canary;
+static g_StallChest, g_MStall, g_MStallLast, g_StallFired;   // stall mirror
 
 protected func Initialize()
 {
 	g_Step = 0; g_Phase = 0; g_Done = 0; g_T = 0; g_Chest = 0; g_Canary = 0;
+	g_StallChest = 0; g_MStall = 0; g_MStallLast = 0; g_StallFired = 0;
 	MirrorScanBranches();
 	g_MPhase = 0; g_MBranch = 0; g_MTick = 0;
 	AddEffect("RunTest", 0, 1, 35);
@@ -143,8 +147,41 @@ global func MirrorStepSetup()
 		FatalError("VeinPulseSmoke FAIL: in-burn clonk survived 3 ticks - damage constant too low");
 	if (!GetAlive(g_ClonkOut))
 		FatalError("VeinPulseSmoke FAIL: out-of-burn clonk died");
+	// 5) stall-guard fixture: an EMPTY chest - total banked gold never
+	// moves, so the mirrored stall fold must climb every tick and fire at
+	// the scaled threshold (hard-fatal if the chest is not empty).
+	g_StallChest = CreateObject(TCHS, 20, 60, NO_OWNER);
+	if (!g_StallChest)
+		FatalError("VeinPulseSmoke FAIL: stall chest staging failed");
+	if (MirrorChestFold(g_StallChest) != 0)
+		FatalError("VeinPulseSmoke FAIL: stall chest not empty");
 	Log("VeinPulseSmoke step1: scan/damage/seared asserts green");
 	g_Phase = 1;
+	return 1;
+}
+
+// MIRROR of FxChestGuardTimer's stall block, scaled: an empty chest never
+// changes total banked gold, so the fold climbs one per tick and fires at
+// MIRROR_STALL_N (3; the shipped threshold 210 scaled ~70:1 - same
+// mechanism: count consecutive no-change ticks, fire once at the
+// threshold, announce). The shipped fire path ends the round via
+// GameOver(); the mirror only latches + announces so the win self-end can
+// still run (the smoke never calls GameOver for the stall).
+global func MirrorStallGuardTick()
+{
+	var total = MirrorChestFold(g_StallChest);
+	if (total == g_MStallLast)
+		++g_MStall;
+	else
+	{
+		g_MStallLast = total;
+		g_MStall = 0;
+	}
+	if (g_MStall >= 3 && !g_StallFired)
+	{
+		g_StallFired = 1;
+		Log("VeinPulseSmoke: mirror stall-guard fires - no haul progress for 3 ticks");
+	}
 	return 1;
 }
 
@@ -152,6 +189,7 @@ global func MirrorStepTransitions()
 {
 	++g_T;
 	MirrorPulseTick();
+	MirrorStallGuardTick();   // no-progress stall fold, ticked in parallel
 	// burn 2 ticks then flip to cool (g_T==3); cool 1 tick (g_T==4) then
 	// flip back to a fresh Random(3) burn branch (g_T==5). The cool limit is
 	// `> 1` mirroring the shipped `> 10` (10:1 scaling, same operator), so
@@ -160,7 +198,18 @@ global func MirrorStepTransitions()
 		FatalError("VeinPulseSmoke FAIL: no burn->cool transition after 2 burn ticks");
 	if (g_T == 5 && g_MPhase != 0)
 		FatalError("VeinPulseSmoke FAIL: no cool->burn transition after 1 cool tick");
-	if (g_T >= 5) { g_Phase = 2; return 1; }   // -> chest phase (session 2)
+	if (g_T >= 5)
+	{
+		// stall mirror: an empty chest means zero progress every tick, so
+		// the fold must have reached the 3-tick threshold and fired (and
+		// stays latched on the two later ticks) by the end of transitions.
+		if (!g_StallFired)
+			FatalError("VeinPulseSmoke FAIL: mirror stall-guard never fired on the no-progress timeline");
+		if (g_MStall < 3)
+			FatalError(Format("VeinPulseSmoke FAIL: stall fold %d below threshold 3", g_MStall));
+		Log("VeinPulseSmoke step2: stall-guard fires on the no-progress timeline");
+		g_Phase = 2; return 1;   // -> chest phase (session 2)
+	}
 	return 1;
 }
 
