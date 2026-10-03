@@ -120,13 +120,13 @@ global func EliminateLosers(int iLosingTeam)
 	return true;
 }
 
-// Mirror the match outcome onto the GLST goal object so the round-results
+// Mirror the match outcome onto the GSIE goal object so the round-results
 // goals board shows the correct fulfilled state (Goal_Siege). The goal's
 // own IsFulfilled is read by the GOAL framework; GameOver stays with the
 // director. Guarded: a goal-less game (Goals= not wired) must not crash.
 global func RecordSiegeOutcome(int iWinningTeam)
 {
-	var pGoal = FindObject(GLST);
+	var pGoal = FindObject(GSIE);
 	if (pGoal) pGoal->~SiegeEnded(iWinningTeam);
 	return true;
 }

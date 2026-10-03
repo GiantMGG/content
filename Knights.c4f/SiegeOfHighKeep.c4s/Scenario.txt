@@ -13,7 +13,7 @@ Definition2=Knights.c4d
 Definition3=SiegeEngines.c4d
 
 [Game]
-Goals=GLST=1
+Goals=GSIE=1
 Rules=CNMT=1;FGRV=1;TACC=1;MGES=1
 StructNeedEnergy=0
 
