@@ -6,12 +6,13 @@ Difficulty=20
 Access=1
 MaxPlayer=4
 Film=1
-Origin=SilkRoad.c4f\SilkRoad.c4s
+Origin=OceanTrade.c4f\SilkRoad.c4s
 
 [Definitions]
 Definition1=Objects.c4d
 Definition2=Western.c4d
 Definition3=TradeGoods.c4d
+Definition4=OceanTrade.c4d
 
 [Game]
 StructNeedEnergy=0

@@ -51,8 +51,9 @@ global func GetNearestCaravan(int iX, int iY) {
 /* ---- CaravanAI effect (lives on the horse) ---- */
 
 global func FxCaravanAITimer(object pTarget, int fx) {
-	// Player riding? Let them drive.
-	if (pTarget->GetRider()) return 1;
+	// Player riding? Let them drive. (Failsafe: GetRider lives in the
+	// Western/Knights horse defs, not in every enrollment of this pack.)
+	if (pTarget->~GetRider()) return 1;
 
 	var pWagon = EffectVar(0, pTarget, fx);
 	if (!pWagon) return -1; // wagon destroyed -> end effect
@@ -88,4 +89,63 @@ global func FxCaravanAITimer(object pTarget, int fx) {
 global func FxCaravanAIStop(object pTarget, int fx, int iReason) {
 	// Caravan destroyed mid-route: nothing else to clean (wagon is independent).
 	return 1;
+}
+
+/* ---- Auto-barter at a trade post (moved from SilkRoad.c4s/System.c4g/ -- */
+/* ---- Helpers.c during the cycle-193 SilkRoad fold: this def is now      -- */
+/* ---- enrolled by every OceanTrade.c4f scenario, so the trade helper     -- */
+/* ---- must live with the def instead of a scenario-local System.c4g).    -- */
+/* pPost role is read from Local(0, pPost): 0=east, 1=center, 2=west.      */
+
+// Count items of idDef inside pWagon.
+global func CountInWagon(object pWagon, id idDef) {
+	var iCount = 0;
+	var pObj;
+	for (pObj in FindObjects(Find_Container(pWagon), Find_ID(idDef))) iCount++;
+	return iCount;
+}
+
+// Remove up to iCount items of idDef from pWagon.
+global func RemoveFromWagon(object pWagon, id idDef, int iCount) {
+	var pObj;
+	for (pObj in FindObjects(Find_Container(pWagon), Find_ID(idDef))) {
+		RemoveObject(pObj);
+		if (--iCount <= 0) break;
+	}
+}
+
+global func DoCaravanTrade(object pPost, object pWagon) {
+	if (!pPost || !pWagon) return;
+	var iRole = Local(0, pPost);
+	var iPlr = GetAnyPlayer();
+
+	if (iRole == 1) {
+		// Center refiner.
+		if (CountInWagon(pWagon, SILK) >= 5) {
+			RemoveFromWagon(pWagon, SILK, 5);
+			CreateContents(SPIC, pWagon, 5);
+			if (iPlr >= 0) DoWealth(iPlr, 50);
+			Sound("Cash", 0, pWagon);
+		}
+		if (CountInWagon(pWagon, GLDN) >= 5) {
+			RemoveFromWagon(pWagon, GLDN, 5);
+			CreateContents(INCN, pWagon, 5);
+			if (iPlr >= 0) DoWealth(iPlr, 50);
+			Sound("Cash", 0, pWagon);
+		}
+	} else if (iRole == 2) {
+		// West post buys Spice.
+		if (CountInWagon(pWagon, SPIC) >= 5) {
+			RemoveFromWagon(pWagon, SPIC, 5);
+			if (iPlr >= 0) DoWealth(iPlr, 50);
+			Sound("Cash", 0, pWagon);
+		}
+	} else {
+		// East post (role 0) buys Incense.
+		if (CountInWagon(pWagon, INCN) >= 5) {
+			RemoveFromWagon(pWagon, INCN, 5);
+			if (iPlr >= 0) DoWealth(iPlr, 50);
+			Sound("Cash", 0, pWagon);
+		}
+	}
 }

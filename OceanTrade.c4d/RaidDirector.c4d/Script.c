@@ -45,7 +45,9 @@ func FxRaidTickTimer(object pTarget, int fx) {
 		// Note: no SetAI here -- the AIBandit* effects only exist in the
 		// Western.c4f scenario-local AI defs, not in this pack; base BNDT
 		// uses the engine's default combat AI.
-		pBoss->MakeBoss();
+		// Boss buff is failsafe: MakeBoss lives on Western.c4d's Bandit
+		// def, which not every enrollment of this pack provides.
+		pBoss->~MakeBoss();
 		pBoss->SetColorDw(RGB(150));
 	}
 	return 1;
