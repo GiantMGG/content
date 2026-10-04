@@ -30,6 +30,9 @@ func Initialize() {
 	RegisterTradeGood(SILK, pWestPost, 10);
 	RegisterTradeGood(SPIC, pWestPost, 10);
 
+	// --- Salt Pan: the center port's SALT source (cycle-193 chain). ---
+	PlaceSaltPanNear(iCenterX);
+
 	// 3 SeaLaneMarkers at sea edges + mid-lane.
 	CreateObject(SLMR, (iEastX + iCenterX) / 2, iGroundY - 80, NO_OWNER);
 	CreateObject(SLMR, iCenterX, iGroundY - 80, NO_OWNER);
@@ -67,4 +70,30 @@ func FxDefeatPollTimer(object pTarget, int fx) {
 	var pDir = FindObject(PRDR);
 	if (pDir) pDir->CheckSeaTradeDefeat();
 	return 1;
+}
+
+/* ---- Salt Pan placement: first shoreline within 200px of iCx ---- */
+/* Bench a starter SaltPan where solid ground sits directly beside  */
+/* surface water, and register it as the SALT vendor.               */
+private func PlaceSaltPanNear(int iCx) {
+	var iWater = Material("Water");
+	var pPan = 0, iX, iY;
+	for (var iDir = -1; iDir <= 1; iDir += 2) {
+		for (var iOff = 8; iOff <= 200; iOff += 8) {
+			iX = iCx + iDir * iOff;
+			iY = 20;
+			// SilkRoadOfTheSea's landscape is 1600x800 (MapWidth=160 x
+			// MapZoom=10); the posts sit near y = height-120, so scan deep.
+			while (iY < 700 && !GBackSolid(iX, iY)) iY++;
+			if (iY >= 700) continue;
+			if (GetMaterial(iX + 18, iY) == iWater) {
+				pPan = CreateObject(SLTP, iX, iY - 6, NO_OWNER);
+				break;
+			}
+		}
+		if (pPan) break;
+	}
+	if (!pPan) return 0;
+	RegisterTradeGood(SALT, pPan, 8);
+	return pPan;
 }
