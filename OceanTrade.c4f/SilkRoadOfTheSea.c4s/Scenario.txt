@@ -13,7 +13,7 @@ Definition5=OceanTrade.c4d
 
 [Game]
 StructNeedEnergy=0
-Goals=MONE=8
+Goals=VALG=10
 Rules=CNMT=1;TACC=1;ENRG=1;TKNW=1
 
 [Player1]
