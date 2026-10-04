@@ -38,8 +38,7 @@ public func SellGood(id idGood, object pClonk) {
 	return SellGoodAt(idGood, pClonk, this());
 }
 
-/* ---- Auto-restock timer (called by engine every 70 frames) ---- */
-
-protected func Timer() {
-	RestockTradeGoods(this());
-}
+/* ---- Timer stub (cycle 193: void-refill removed; goods produce at ---- */
+/* ---- source -- SaltPan / scenario producer effects). DefCore Timer  ---- */
+/* ---- entries stay per spec.                                          ---- */
+protected func Timer() {}

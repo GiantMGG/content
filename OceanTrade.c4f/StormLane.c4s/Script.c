@@ -25,6 +25,10 @@ func Initialize() {
 	RegisterTradeGood(SILK, pWestPost, 10);
 	RegisterTradeGood(SILK, pEastPost, 10);
 
+	// --- Producer-at-source (cycle 193): keep the west SILK stock alive ---
+	// --- after the restock removal, mirroring SilkRoad.c4s FxProduce.   ---
+	AddEffect("FxProduce", pWestPost, 1, 70, pWestPost);
+
 	// Player Cog (CGSH) at west dock; escort Sailboat.
 	pCog = CreateObject(CGSH, iWestX + 40, iGroundY - 20, NO_OWNER);
 	pEscort = CreateObject(SLBT, iWestX + 80, iGroundY - 20, NO_OWNER);
@@ -79,5 +83,12 @@ func FxCogRunTimer(object pCog, int fx) {
 func FxDefeatPollTimer(object pTarget, int fx) {
 	var pDir = FindObject(STLD);
 	if (pDir) pDir->CheckStormLaneDefeat();
+	return 1;
+}
+
+/* ---- Production effect: spawn SILK at the west producer post ---- */
+func FxProduceTimer(object pTarget, int fx) {
+	if (ContentsCount(SILK, pTarget) >= 15) return 1;
+	CreateContents(SILK, pTarget);
 	return 1;
 }

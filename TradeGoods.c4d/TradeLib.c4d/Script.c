@@ -40,25 +40,6 @@ global func RegisterTradeGood(id idGood, object pStall, int iBaseline) {
 		CreateContents(idGood, pStall);
 }
 
-/* ---- Restock (call from stall's Timer) ---- */
-
-global func RestockTradeGoods(object pStall) {
-	if (!pStall) return;
-	var aGoods = pStall->~GetTradeGoods();
-	var aBases = pStall->~GetTradeBaselines();
-	if (!aGoods) return;
-	for (var i = 0; i < GetLength(aGoods); i++) {
-		var idGood = aGoods[i];
-		var iBase = aBases[i];
-		var iStock = ContentsCount(idGood, pStall);
-		if (iStock < iBase) CreateContents(idGood, pStall);
-		else if (iStock > iBase * 2) {
-			var pExcess = FindContents(idGood, pStall);
-			if (pExcess) RemoveObject(pExcess);
-		}
-	}
-}
-
 /* ---- Buy / Sell ---- */
 
 global func BuyGoodAt(id idGood, object pClonk, object pStall) {

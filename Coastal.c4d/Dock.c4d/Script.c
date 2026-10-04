@@ -53,11 +53,9 @@ public func SellGood(id idGood, object pClonk)
 	return bOk;
 }
 
-/* ---- Auto-restock timer (MarketStall pattern) ---- */
-
+/* ---- Timer stub (cycle 193: void-refill removed; producers restock) ---- */
 protected func Timer()
 {
-	RestockTradeGoods(this());
 }
 
 /* ---- Mooring post ---- */

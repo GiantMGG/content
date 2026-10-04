@@ -42,12 +42,6 @@ public func SellGood(id idGood, object pClonk) {
 	return SellGoodAt(idGood, pClonk, this());
 }
 
-/* ---- Auto-restock timer ---- */
-
-protected func Timer() {
-	RestockTradeGoods(this());
-}
-
 /* ---- Market menu (dynamic buy/sell) ---- */
 
 protected func ContainedUp(object pClonk) {
