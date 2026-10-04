@@ -10,6 +10,8 @@ Origin=Worlds.c4f\ColonyBay.c4s
 [Definitions]
 Definition1=Objects.c4d
 Definition2=WeatherEvents.c4d
+Definition3=Coastal.c4d
+Definition4=TradeGoods.c4d
 
 [Game]
 StructNeedEnergy=0
@@ -73,3 +75,5 @@ Event=BLZD=4;0;25
 Event=DRGT=3;50;100
 Event=HTWV=2;60;100
 Event=FLDD=4;25;75
+Event=TIDE=10;0;100
+Event=FOGG=4;0;100

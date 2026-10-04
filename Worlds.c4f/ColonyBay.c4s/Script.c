@@ -47,12 +47,41 @@ protected func Initialize()
         CreateObject(ROCK, iX, iY, NO_OWNER);
     }
 
+    // Coastal fold (cycle 192): dock the western flats so the enrolled
+    // tide/fog events have a harbor to play against. Additive dressing
+    // only -- the GLHT/LGHT quest is untouched.
+    PlaceFlatsDock();
+
     // Start the wealth-check effect (runs every 30 frames)
     AddEffect("WealthCheck", this, 1, 30, this);
 
     // Show opening tutorial message
     TutorialMessage("$MsgIntro$");
 
+    return true;
+}
+
+// Place a Dock (DKST) construction on the western tidal flats: scan
+// down the flats column from mid-height for the first solid ground;
+// skip placement entirely if the column never touches solid (no crash,
+// the fold stays cosmetic).
+func PlaceFlatsDock()
+{
+    var iFlatsX = LandscapeWidth() * 20 / 100;
+    var iDockY = 0;
+    var iY;
+    for (iY = LandscapeHeight() / 2; iY < LandscapeHeight() - 5; iY++)
+    {
+        if (GBackSolid(iFlatsX, iY))
+        {
+            iDockY = iY;
+            break;
+        }
+    }
+    if (iDockY > 0)
+    {
+        CreateConstruction(DKST, iFlatsX, iDockY, -1, 100, 1);
+    }
     return true;
 }
 
