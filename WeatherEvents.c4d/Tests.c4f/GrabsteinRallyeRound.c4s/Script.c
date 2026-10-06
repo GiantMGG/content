@@ -227,13 +227,22 @@ global func GRDriveBot(int plr)
 		iTx = GRWaypointX(g_GRwpIdx[plr]);
 		iTy = GRWaypointY(g_GRwpIdx[plr]);
 	}
+	// tunnel carve: inside the fixed seam's x-range, clear the whole
+	// band cross-section down to the shelf floor in ONE swipe. The
+	// instable seam Sand would otherwise keep refilling a small carve:
+	// the collapse piles up above the shelf floor and jams the racer
+	// (T5 diagnosis - all four bots wedged at x 517 / y 286 against the
+	// pillar, re-settled sand mound at their feet). Idempotent.
+	if (GetX(pBot) > GR_SeamX1 - 20 && GetX(pBot) < GR_SeamX2 + 20)
+		DigFreeRect(GR_SeamX1, GR_SeamY1 - 8, GR_SeamX2 - GR_SeamX1, GR_SeamY2 - GR_SeamY1 + 8);
 	// dig assist: solid diggable material ahead -> carve a walk corridor
-	// (model-assisted digging, sturmfront R7 precedent)
+	// (tall enough for the 20px clonk shape; model-assisted digging,
+	// sturmfront R7 precedent)
 	if (GBackSolid(GetX(pBot) + 15, GetY(pBot) - 8))
-		DigFreeRect(GetX(pBot) + 4, GetY(pBot) - 14, 26, 16);
+		DigFreeRect(GetX(pBot) + 4, GetY(pBot) - 16, 34, 34);
 	// stuck watchdog: carve free at the bot's own position
 	if (Stuck(pBot))
-		DigFreeRect(GetX(pBot), GetY(pBot) - 16, 20, 18);
+		DigFreeRect(GetX(pBot), GetY(pBot) - 16, 24, 36);
 	// (re-)issue the real MoveTo command (GiantSquid/JungleClonk form)
 	SetCommand(pBot, "MoveTo", 0, iTx, iTy);
 	return true;
