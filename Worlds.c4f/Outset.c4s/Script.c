@@ -94,7 +94,7 @@ protected func Initialize()
 	var pC3 = CreateObject(GSTV, 0, 0, NO_OWNER);
 	var pC4 = CreateObject(GHWV, 0, 0, NO_OWNER);
 	if (!pC3 || !pC4) FatalError("Frontier: goal card spawn failed");
-	FRAnnounce("CURRENT GOAL -- A drought is coming -- plant before it, and keep every clonk fed. -- Drought at 2:00 -- counter: 8 edibles in the granary at drought end");
+	FRAnnounce("CURRENT GOAL -- A drought is coming -- plant before it, and keep every clonk fed. Wheat needs 3:20 to ripen: sow NOW. -- Drought at 2:00 -- counter: 8 edibles in the granary at drought end");
 	FRAnnounce("CURRENT GOAL -- The river tops the floodplain in 4:00 -- anything on the ground is forfeit. Bank your sheaves. -- counter: 10 banked (granary + carried) at flood end");
 
 	AddEffect("FrontDirector", 0, 1, 35, 0, 0);
@@ -123,7 +123,7 @@ global func FxFrontDirectorTimer(target, effect, time)
 	}
 
 	if (t == FR_T_FORECAST)
-		FRAnnounce("Green Vale -- drought at 2:00, high water after. Plant early, bank early.");
+		FRAnnounce("Green Vale -- drought at 2:00, high water after. Sow wheat now -- it needs 3:20 to ripen. Bank early.");
 
 	if (t == FR_T_DRGT)
 	{
