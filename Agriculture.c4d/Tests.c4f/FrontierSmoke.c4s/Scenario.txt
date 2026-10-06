@@ -2,7 +2,7 @@
 Title=FrontierSmoke
 Version=1
 MaxPlayer=0
-Origin=Worlds.c4f\Tests.c4f\FrontierSmoke.c4s
+Origin=Agriculture.c4d\Tests.c4f\FrontierSmoke.c4s
 
 [Definitions]
 Definition1=Objects.c4d
