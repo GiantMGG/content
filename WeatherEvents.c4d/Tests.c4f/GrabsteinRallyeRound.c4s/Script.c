@@ -88,6 +88,12 @@ static g_GRdetourX;       // gamble detour waypoint (x), 0 = none yet
 static g_GRdetourY;       // gamble detour waypoint (y)
 static g_GRcarveLog;      // per-plr GRCARVE line counter (log cap)
 
+// ---- Phase-B per-racer carve attribution (T2): every driver DigFreeRect
+// increments the grid cells it covered, per racer. GREmitHeatmap then
+// mirrors those counters into per-racer GRHM lines so the kill/keep
+// measurement can read racer decisions instead of one aggregate carve set.
+static g_GRcarve;         // per-plr per-cell carve-op counters (4x[50x30])
+
 // RunTest phases: 0 setup, 1 race watch, 2 diff wait, 3 late canary
 static g_Phase;
 static g_Step;
@@ -95,6 +101,7 @@ static g_Canary;
 
 protected func Initialize()
 {
+	var i;
 	g_GRbase = CreateArray(GR_GridW * GR_GridH);
 	g_GRmat = CreateArray(GR_GridW * GR_GridH);
 	g_GRTimes = CreateArray(4);
@@ -106,8 +113,12 @@ protected func Initialize()
 	g_GRdetourX = CreateArray(4);
 	g_GRdetourY = CreateArray(4);
 	g_GRcarveLog = CreateArray(4);
+	g_GRcarve = CreateArray(4);
+	for (i = 0; i < 4; ++i)
+		g_GRcarve[i] = CreateArray(GR_GridW * GR_GridH);
 	AddEffect("GRRace", 0, 1, 35);
 	AddEffect("GRBotDriver", 0, 1, 35);
+	AddEffect("GRTMPoll", 0, 1, 1);
 	AddEffect("RunTest", 0, 1, 35);
 	return true;
 }
@@ -188,6 +199,26 @@ global func GREmitHeatmap()
 		}
 	g_GRdug = dug;
 	Log(Format("GRHM:lap=1 total=%d cells=%d", g_GRdug, g_GRdug));
+	// Phase-B T2: per-racer attribution - every cell a racer's
+	// DigFreeRects covered, credited to that plr's counters, plus the
+	// racer's total carved cell count. The global aggregate above stays.
+	var plr, p, iDug;
+	for (p = 0; p < GetPlayerCount(); ++p)
+	{
+		plr = GetPlayerByIndex(p);
+		iDug = 0;
+		for (cy = 0; cy < GR_GridH; ++cy)
+			for (cx = 0; cx < GR_GridW; ++cx)
+			{
+				idx = cy * GR_GridW + cx;
+				if (g_GRcarve[plr][idx] > 0)
+				{
+					++iDug;
+					Log(Format("GRHM:lap=1 plr=%d cell=%d,%d dug=%d", plr, cx, cy, g_GRcarve[plr][idx]));
+				}
+			}
+		Log(Format("GRHM:lap=1 plr=%d total=%d", plr, iDug));
+	}
 	return true;
 }
 
@@ -200,7 +231,30 @@ global func FxGRRaceTimer(target, effect, time)
 		g_GRseamsPainted = 1;
 		return 1;
 	}
-	// per-racer finish poll -> GRTM lines + first-finisher lap-end diff
+	// finish stamps + lap-end diff: GRTM happens per-frame in GRTMPoll;
+	// this coarser poll only watches for the first finisher to emit the
+	// lap-end heatmap diff (RACE+RVLR ends the round engine-side)
+	if (!g_GRlapDone)
+	{
+		var i;
+		for (i = 0; i < GetPlayerCount(); ++i)
+		{
+			if (g_GRTimes[GetPlayerByIndex(i)] > 0)
+			{
+				g_GRlapDone = 1;
+				GREmitHeatmap();
+				break;
+			}
+		}
+	}
+	return 1;
+}
+
+// ---- per-frame finish poll (Phase B T2): stamps the first crossing of
+// GR_FinishX at 1-tick resolution (FrameCounter()), killing the Phase-A
+// 35-tick quantization. Global effect form (gotcha #4).
+global func FxGRTMPollTimer(target, effect, time)
+{
 	var i;
 	for (i = 0; i < GetPlayerCount(); ++i)
 	{
@@ -211,18 +265,6 @@ global func FxGRRaceTimer(target, effect, time)
 		{
 			g_GRTimes[plr] = FrameCounter();
 			Log(Format("GRTM:plr=%d finish=%d", plr, g_GRTimes[plr]));
-		}
-	}
-	if (!g_GRlapDone)
-	{
-		for (i = 0; i < GetPlayerCount(); ++i)
-		{
-			if (g_GRTimes[GetPlayerByIndex(i)] > 0)
-			{
-				g_GRlapDone = 1;
-				GREmitHeatmap();
-				break;
-			}
 		}
 	}
 	return 1;
@@ -237,10 +279,27 @@ global func FxGRBotDriverTimer(target, effect, time)
 	return 1;
 }
 
-// raw carve telemetry: one line per driver DigFreeRect, capped at the
-// first 40 per plr (carves are few; the cap just bounds the log)
+// raw carve telemetry + attribution: one line per driver DigFreeRect,
+// capped at the first 40 per plr (carves are few; the cap just bounds
+// the log), and every covered grid cell is credited to that plr's
+// per-cell counter (T2, feeds GREmitHeatmap's per-racer GRHM lines)
 global func GRLogCarve(int plr, int x, int y, int w, int h)
 {
+	// a zero-width carve covers nothing; still log it once (edge guard)
+	if (w > 0 && h > 0)
+	{
+		var cx0 = BoundBy(x / GR_Cell, 0, GR_GridW - 1);
+		var cy0 = BoundBy(y / GR_Cell, 0, GR_GridH - 1);
+		var cx1 = BoundBy((x + w) / GR_Cell, 0, GR_GridW - 1);
+		var cy1 = BoundBy((y + h) / GR_Cell, 0, GR_GridH - 1);
+		var cx, cy, idx;
+		for (cy = cy0; cy <= cy1; ++cy)
+			for (cx = cx0; cx <= cx1; ++cx)
+			{
+				idx = cy * GR_GridW + cx;
+				g_GRcarve[plr][idx] += 1;
+			}
+	}
 	if (g_GRcarveLog[plr] >= 40) return true;
 	g_GRcarveLog[plr] += 1;
 	Log(Format("GRCARVE:plr=%d x=%d y=%d w=%d h=%d", plr, x, y, w, h));
