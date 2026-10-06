@@ -15,10 +15,19 @@
   CTest entry (tests/CMakeLists.txt) passes the four player fixtures
   and the seed pin 200.
 
+  Phase B T3 (cup): the race now runs three legs. Legs 1-2 are
+  measurement feeds - CheckRACEGoal returns -1 (round cannot end), the
+  first crossing re-arms the course (GCUP points, fresh baseline,
+  sealed seam band, six new veins, all four racers back at the gate),
+  and leg 3 returns 0 so the positional default applies and RACE+RVLR
+  ends the round ENGINE-OWNED, unchanged. The 4200-tick smoke budget
+  covers 3 legs plus the engine-end sequence.
+
   Late canary (phase 3): the engine-owned end needs retire (~60 ticks)
   + GOAL controller CheckTime poll (Timer=250) + Wait4End (Delay 30);
-  everything fits inside 13 steps (455 ticks). Reaching canary step 13
-  means the round did NOT end by itself - the cycle-172 B1 class. --*/
+  everything fits inside 13 steps (455 ticks) after the leg-3 diff.
+  Reaching canary step 13 means the round did NOT end by itself - the
+  cycle-172 B1 class. --*/
 
 #strict 2
 
@@ -26,6 +35,13 @@
 func GetRACEDirection() { return 1; }  // 1: left -> right
 func GetRACEStartOffset() { return 20; }
 func GetRACEEndOffset() { return 30; } // win column: GetX(cursor) > LandscapeWidth()-30
+
+// ---- cup goal gate (Phase B T3): the RACE goal GameCalls a scenario
+// CheckRACEGoal and respects any nonzero return (Race.c4d CheckGoal).
+// Legs 1-2 return -1 (round cannot end - the leg end is scripted via
+// the GRRace timer); leg 3 returns 0 so the positional default applies
+// and the engine owns the end at the first crossing (as in Phase A).
+func CheckRACEGoal(int iPlr) { if (g_CupLeg < 3) return -1; return 0; }
 
 // ---- course geometry (world px; 100x60 map, zoom 10 -> 1000x600) ----
 static const GR_GateX = 40;     // spawn column on the start shelf
@@ -93,6 +109,11 @@ static g_GRcarveLog;      // per-plr GRCARVE line counter (log cap)
 // mirrors those counters into per-racer GRHM lines so the kill/keep
 // measurement can read racer decisions instead of one aggregate carve set.
 static g_GRcarve;         // per-plr per-cell carve-op counters (4x[50x30])
+static g_CupLeg;          // Phase B T3: current cup leg (1..3); legs 1-2
+                          // are measurement feeds, leg 3 ends the round
+static g_GRwpx;           // no-progress watchdog: last-slice racer x
+static g_GRwpy;           // no-progress watchdog: last-slice racer y
+static g_GRwstall;        // no-progress watchdog: slices without progress
 
 // RunTest phases: 0 setup, 1 race watch, 2 diff wait, 3 late canary
 static g_Phase;
@@ -114,12 +135,16 @@ protected func Initialize()
 	g_GRdetourY = CreateArray(4);
 	g_GRcarveLog = CreateArray(4);
 	g_GRcarve = CreateArray(4);
+	g_GRwpx = CreateArray(4);
+	g_GRwpy = CreateArray(4);
+	g_GRwstall = CreateArray(4);
 	for (i = 0; i < 4; ++i)
 		g_GRcarve[i] = CreateArray(GR_GridW * GR_GridH);
 	AddEffect("GRRace", 0, 1, 35);
 	AddEffect("GRBotDriver", 0, 1, 35);
 	AddEffect("GRTMPoll", 0, 1, 1);
 	AddEffect("RunTest", 0, 1, 35);
+	g_CupLeg = 1;
 	return true;
 }
 
@@ -138,16 +163,33 @@ protected func InitializePlayer(int iPlr)
 // ---- seam painter ---------------------------------------------------------
 global func GRPaintSeams()
 {
-	// fixed gate seam through the mid-shelf pillar base
+	// fixed gate seam through the mid-shelf pillar base, plus six seeded
+	// vein bands: positions roll off the engine Random() stream
+	// (deterministic under the pinned seed). Veins only land INSIDE the
+	// shelf masses: the probe (quad centre plus both edges) requires the
+	// target to already be solid, which excludes the walk bands, the
+	// finish chase, and every void the previous legs' carves left open -
+	// a vein on the track would bury it (cycle-201 cup diagnosis: the
+	// finish-straight dam under seed 200 and the x-600 sinkhole under
+	// seed 201 came from unconstrained re-seeds over the carved course).
+	// Failed probes re-roll (bounded), a still-open spot skips the vein.
 	DrawMaterialQuad("Sand", GR_SeamX1, GR_SeamY1, GR_SeamX2, GR_SeamY1, GR_SeamX2, GR_SeamY2, GR_SeamX1, GR_SeamY2);
-	// six seeded vein bands: positions roll off the engine Random()
-	// stream (deterministic under the pinned seed). Buried Sand veins
-	// in the shelf masses are the Phase-B line-choice fodder.
-	var i;
+	var i, j;
 	for (i = 0; i < 6; ++i)
 	{
-		var vx = 150 + Random(750);
-		var vy = 260 + Random(180);
+		var vx = -1, vy = 0;
+		for (j = 0; j < 12; ++j)
+		{
+			var tvx = 150 + Random(750);
+			var tvy = 260 + Random(180);
+			if (GBackSolid(tvx + 8, tvy + 8) && GBackSolid(tvx + 27, tvy + 30) && GBackSolid(tvx + 47, tvy + 52))
+			{
+				vx = tvx;
+				vy = tvy;
+				break;
+			}
+		}
+		if (vx < 0) { g_GRveinX[i] = 0; continue; }  // no solid pocket: skip
 		DrawMaterialQuad("Sand", vx, vy, vx + 30, vy, vx + 55, vy + 60, vx + 25, vy + 60);
 		// record the painted vein centre: the gamble-flag bots route one
 		// detour waypoint through the nearest one (T1 line bias)
@@ -194,11 +236,11 @@ global func GREmitHeatmap()
 			if (now < base)
 			{
 				++dug;
-				Log(Format("GRHM:lap=1 cell=%d,%d mat=%d dug=%d", cx, cy, g_GRmat[idx], base - now));
+				Log(Format("GRHM:lap=%d cell=%d,%d mat=%d dug=%d", g_CupLeg, cx, cy, g_GRmat[idx], base - now));
 			}
 		}
 	g_GRdug = dug;
-	Log(Format("GRHM:lap=1 total=%d cells=%d", g_GRdug, g_GRdug));
+	Log(Format("GRHM:lap=%d total=%d cells=%d", g_CupLeg, g_GRdug, g_GRdug));
 	// Phase-B T2: per-racer attribution - every cell a racer's
 	// DigFreeRects covered, credited to that plr's counters, plus the
 	// racer's total carved cell count. The global aggregate above stays.
@@ -214,10 +256,10 @@ global func GREmitHeatmap()
 				if (g_GRcarve[plr][idx] > 0)
 				{
 					++iDug;
-					Log(Format("GRHM:lap=1 plr=%d cell=%d,%d dug=%d", plr, cx, cy, g_GRcarve[plr][idx]));
+					Log(Format("GRHM:lap=%d plr=%d cell=%d,%d dug=%d", g_CupLeg, plr, cx, cy, g_GRcarve[plr][idx]));
 				}
 			}
-		Log(Format("GRHM:lap=1 plr=%d total=%d", plr, iDug));
+		Log(Format("GRHM:lap=%d plr=%d total=%d", g_CupLeg, plr, iDug));
 	}
 	return true;
 }
@@ -232,8 +274,10 @@ global func FxGRRaceTimer(target, effect, time)
 		return 1;
 	}
 	// finish stamps + lap-end diff: GRTM happens per-frame in GRTMPoll;
-	// this coarser poll only watches for the first finisher to emit the
-	// lap-end heatmap diff (RACE+RVLR ends the round engine-side)
+	// this coarser poll waits for the first finisher of the CURRENT leg
+	// to emit the leg-end heatmap diff. Legs 1-2 then re-arm the course
+	// (GRCupAdvanceLeg); on leg 3 CheckRACEGoal returns 0 so RACE+RVLR
+	// ends the round engine-side - no advance, the canary watches that.
 	if (!g_GRlapDone)
 	{
 		var i;
@@ -243,11 +287,75 @@ global func FxGRRaceTimer(target, effect, time)
 			{
 				g_GRlapDone = 1;
 				GREmitHeatmap();
+				if (g_CupLeg < 3) GRCupAdvanceLeg();
 				break;
 			}
 		}
 	}
 	return 1;
+}
+
+// ---- cup leg advance (Phase B T3) -----------------------------------------
+// Legs 1-2 are measurement feeds: the leader's crossing emits the lap
+// heatmap (done by the caller), the GCUP lines announce the crossing
+// order, and the course re-arms - fresh baseline snapshot AFTER the
+// sealed seam band and six NEW veins (a dug status-quo baseline would
+// be un-diffable), every racer back at the gate stagger, carve
+// attribution and gamble-detour state reset for a fresh per-leg
+// decision. Leg 3 never reaches here (CheckRACEGoal gate).
+global func GRCupAdvanceLeg()
+{
+	var i, j, plr, iCnt;
+	// GCUP: 3/2/1/0 by the leg's crossing order - the g_GRTimes stamps
+	// GRTMPoll took per frame; tied stamps share the bucket. Announced
+	// once per racer per leg; racers who never crossed the line get 0.
+	for (i = 0; i < GetPlayerCount(); ++i)
+	{
+		plr = GetPlayerByIndex(i);
+		var iLeg = 0;
+		if (g_GRTimes[plr] > 0)
+		{
+			iCnt = 0;
+			for (j = 0; j < GetPlayerCount(); ++j)
+			{
+				var plr2 = GetPlayerByIndex(j);
+				if (g_GRTimes[plr2] > 0 && g_GRTimes[plr2] < g_GRTimes[plr]) ++iCnt;
+			}
+			iLeg = 3 - iCnt;
+		}
+		Log(Format("GCUP:leg=%d plr=%d pts=%d", g_CupLeg, plr, iLeg));
+	}
+	// re-arm the per-leg measurement state: fresh finish stamps, zeroed
+	// carve attribution and GRCARVE line caps, and the gamble bots get a
+	// fresh detour decision against the NEW vein seed (T1 bias applies
+	// per leg); waypoints re-walk the same course from the gate
+	for (i = 0; i < GetPlayerCount(); ++i)
+	{
+		plr = GetPlayerByIndex(i);
+		g_GRTimes[plr] = 0;
+		g_GRcarveLog[plr] = 0;
+		g_GRdetour[plr] = 0;
+		g_GRdetourX[plr] = 0;
+		g_GRdetourY[plr] = 0;
+		g_GRwpIdx[plr] = 0;
+		var iCell;
+		for (iCell = 0; iCell < GR_GridW * GR_GridH; ++iCell)
+			g_GRcarve[plr][iCell] = 0;
+	}
+	// fresh course: sealed seam band + six fresh veins (deterministic
+	// Random stream), baseline AFTER the paint, then re-open the poll
+	GRPaintSeams();
+	GRSnapshot();
+	g_GRlapDone = 0;
+	// respawn every racer at the gate stagger
+	for (i = 0; i < GetPlayerCount(); ++i)
+	{
+		plr = GetPlayerByIndex(i);
+		var pBot = GetCursor(plr);
+		if (pBot) SetPosition(GR_GateX + plr * 12, GR_GateY, pBot);
+	}
+	++g_CupLeg;
+	return true;
 }
 
 // ---- per-frame finish poll (Phase B T2): stamps the first crossing of
@@ -370,17 +478,13 @@ global func GRDriveBot(int plr)
 		iTy = GRWaypointY(g_GRwpIdx[plr]);
 	}
 	// tunnel carve: inside the fixed seam's x-range, clear the whole
-	// band cross-section down to the shelf floor in ONE swipe. The
-	// instable seam Sand would otherwise keep refilling a small carve:
-	// the collapse piles up above the shelf floor and jams the racer
-	// (T5 diagnosis - all four bots wedged at x 517 / y 286 against the
-	// pillar, re-settled sand mound at their feet). Idempotent.
-	// The lane's y-range shifts with the racer's entry bias (T1), but
-	// every lane still FULLY covers the band 280..320 (8px margins):
-	// a downward shift would leave the band's top sliver uncarved and
-	// re-open the refill wedge, so +entry deepens into the floor below
-	// the band instead and -entry lifts the lane with a compensating
-	// height gain.
+	// band cross-section down to the shelf floor in ONE swipe (the seam
+	// re-seals with instable Sand per leg; the full-width swipe is still
+	// the right shape - idempotent, every lane covers the band 280..320
+	// with 8px margins). The lane's y-range re-staggers with the racer's
+	// entry bias (T1): a downward shift would leave the band's top
+	// sliver uncarved, so +entry deepens into the floor below the band
+	// instead and -entry lifts the lane with a compensating height gain.
 	if (GetX(pBot) > GR_SeamX1 - 20 && GetX(pBot) < GR_SeamX2 + 20)
 	{
 		var sy, sh;
@@ -400,7 +504,13 @@ global func GRDriveBot(int plr)
 	// dig assist: solid diggable material ahead -> carve a walk corridor
 	// (tall enough for the 20px clonk shape; model-assisted digging,
 	// sturmfront R7 precedent). Corridor scale = the racer's aggr/10 (T1).
-	if (GBackSolid(GetX(pBot) + 15, GetY(pBot) - 8))
+	// The probe checks BOTH head and feet level: the Phase-B seam/vein
+	// re-paint can bury the walk band with a low sand mound whose face a
+	// head-height probe alone misses (cycle-201 cup stall: legs 2-3
+	// wedged at x~870 y~368 against a fresh vein across the finish
+	// chase, shuffling without ever tripping the Stuck watchdog) - carve
+	// low blockages like a human player would.
+	if (GBackSolid(GetX(pBot) + 15, GetY(pBot) - 8) || GBackSolid(GetX(pBot) + 15, GetY(pBot)))
 	{
 		var aw = 34 * bias[1] / 10;
 		var ah = 34 * bias[1] / 10;
@@ -415,6 +525,41 @@ global func GRDriveBot(int plr)
 		var wh = 36 * bias[1] / 10;
 		DigFreeRect(GetX(pBot), GetY(pBot) - 16, ww, wh);
 		GRLogCarve(plr, GetX(pBot), GetY(pBot) - 16, ww, wh);
+	}
+	// no-progress watchdog (cycle-201 cup): Stuck() only fires when the
+	// physics wedges a racer completely. The Phase-B re-seed (seam
+	// refill + six fresh veins) dumps instable Sand into the carved
+	// terrain; it flows and settles as a dam where the leader shuffles
+	// in place - moving a few px per slice, so Stuck() never trips, and
+	// the dig-assist probes (x+15) stay clear of the dam face. Any racer
+	// that fails to advance while its waypoint is still distant gets a
+	// corridor carved AHEAD of it (same aggr/10 scale as the assist) -
+	// deterministic, location-independent, self-healing.
+	if (g_GRwpx[plr] == 0 || GetX(pBot) > g_GRwpx[plr] + 15 ||
+	    GetX(pBot) < g_GRwpx[plr] - 5 || GetY(pBot) > g_GRwpy[plr] + 8)
+	{
+		// advanced (or first slice / respawn): re-arm the probe
+		g_GRwpx[plr] = GetX(pBot);
+		g_GRwpy[plr] = GetY(pBot);
+		g_GRwstall[plr] = 0;
+	}
+	else
+	{
+		++g_GRwstall[plr];
+		// wedge carve for ANY stalled racer that did not just arrive at
+		// its current target (waypoint or gamble detour - a detour vein
+		// behind a sand dump is as wedged as a finish-straight dam; the
+		// arrival block above has already advanced past true waypoints)
+		if (g_GRwstall[plr] >= 3 && !(Abs(GetX(pBot) - iTx) <= 15 && Abs(GetY(pBot) - iTy) <= 30))
+		{
+			var nw = 34 * bias[1] / 10;
+			var nh = 40 * bias[1] / 10;
+			DigFreeRect(GetX(pBot) + 8, GetY(pBot) - 16, nw, nh);
+			GRLogCarve(plr, GetX(pBot) + 8, GetY(pBot) - 16, nw, nh);
+			Log(Format("GRWEDGE:plr=%d x=%d y=%d", plr, GetX(pBot), GetY(pBot)));
+			g_GRwpx[plr] = GetX(pBot) + 25; // probe re-arms past the carve
+			g_GRwstall[plr] = 0;
+		}
 	}
 	// (re-)issue the real MoveTo command (GiantSquid/JungleClonk form)
 	SetCommand(pBot, "MoveTo", 0, iTx, iTy);
@@ -477,16 +622,24 @@ global func GRStepRace()
 		    GetMaterial(530, 310) != Material("Sand"))
 			FatalError("GrabsteinRallyeRound FAIL: fixed seam band missing (probes 510/530 x 285/310)");
 	}
-	// deadline: a finisher within 40 steps (1400 ticks)
-	if (g_Step > 40)
+	// deadline: the 3-leg cup (each leg re-walks the course, ~18-25
+	// steps apiece) plus the engine-end sequence; the 4200-tick smoke
+	// budget (120 steps) bounds the run, so this is the safety net for
+	// runs beyond the smoke-run frame
+	if (g_Step > 130)
 		FatalError(Format("GrabsteinRallyeRound FAIL: race not finished by step %d", g_Step));
 	for (i = 0; i < GetPlayerCount(); ++i)
 	{
 		var pCursor = GetCursor(GetPlayerByIndex(i));
 		if (pCursor && GetX(pCursor) > GR_FinishX)
 		{
-			g_Phase = 2;
-			Log(Format("GrabsteinRallyeRound: leader crossed at step %d", g_Step));
+			// only the leg-3 crossing ends the race; legs 1-2 crossings
+			// are measurement feeds re-armed by GRCupAdvanceLeg
+			if (g_CupLeg == 3)
+			{
+				g_Phase = 2;
+				Log(Format("GrabsteinRallyeRound: leader crossed at step %d (leg %d)", g_Step, g_CupLeg));
+			}
 			return 1;
 		}
 	}
@@ -495,9 +648,10 @@ global func GRStepRace()
 
 global func GRStepDiff()
 {
-	// the GRRace effect emits the heatmap diff on its own poll cadence;
-	// the diff MUST show at least one dug cell (telemetry plumbing)
-	if (g_GRlapDone && g_GRdug > 0)
+	// the GRRace effect emits the leg-end heatmap on its own poll
+	// cadence; the leg-3 diff MUST show at least one dug cell
+	// (telemetry plumbing)
+	if (g_GRlapDone && g_CupLeg == 3 && g_GRdug > 0)
 	{
 		Log("GrabsteinRallyeRound PASS");
 		g_Phase = 3;
@@ -506,7 +660,7 @@ global func GRStepDiff()
 	}
 	if (g_GRlapDone && g_GRdug <= 0)
 		FatalError("GrabsteinRallyeRound FAIL: GRHM diff emitted zero dug cells");
-	if (g_Step > 46) // diff never ran within ~6 steps of the crossing
+	if (g_Step > 46) // diff never ran within ~6 steps of the leg-3 crossing
 		FatalError(Format("GrabsteinRallyeRound FAIL: telemetry never emitted (step %d)", g_Step));
 	return 1;
 }
