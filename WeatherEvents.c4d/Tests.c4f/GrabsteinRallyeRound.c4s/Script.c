@@ -74,6 +74,20 @@ static g_GRseamsPainted;  // 1 once the seam painter ran (first effect tick)
 static g_GRTimes;         // per-plr finish tick; 0 = not finished yet
 static g_GRwpIdx;         // per-plr current waypoint index
 
+// ---- Phase-B per-racer line bias (T1): each bot rolls a deterministic
+// triple in GRStepSetup so the pack stops being lockstep clones.
+//   [0] entryY   -10/0/+10 px vertical shift of the seam-swipe lane
+//   [1] aggr      7/10/14 -> dig-assist + watchdog corridor scale /10
+//   [2] gamble    1 = commit one detour waypoint at the nearest painted
+//                  vein centre on the seam approach
+static g_GRbias;          // per-plr [entryY, aggr, gamble]
+static g_GRveinX;         // painted vein centres (x), 6 seeds
+static g_GRveinY;         // painted vein centres (y)
+static g_GRdetour;        // per-plr gamble state: 0 idle, 1 committed
+static g_GRdetourX;       // gamble detour waypoint (x), 0 = none yet
+static g_GRdetourY;       // gamble detour waypoint (y)
+static g_GRcarveLog;      // per-plr GRCARVE line counter (log cap)
+
 // RunTest phases: 0 setup, 1 race watch, 2 diff wait, 3 late canary
 static g_Phase;
 static g_Step;
@@ -85,6 +99,13 @@ protected func Initialize()
 	g_GRmat = CreateArray(GR_GridW * GR_GridH);
 	g_GRTimes = CreateArray(4);
 	g_GRwpIdx = CreateArray(4);
+	g_GRbias = CreateArray(4);
+	g_GRveinX = CreateArray(6);
+	g_GRveinY = CreateArray(6);
+	g_GRdetour = CreateArray(4);
+	g_GRdetourX = CreateArray(4);
+	g_GRdetourY = CreateArray(4);
+	g_GRcarveLog = CreateArray(4);
 	AddEffect("GRRace", 0, 1, 35);
 	AddEffect("GRBotDriver", 0, 1, 35);
 	AddEffect("RunTest", 0, 1, 35);
@@ -117,6 +138,10 @@ global func GRPaintSeams()
 		var vx = 150 + Random(750);
 		var vy = 260 + Random(180);
 		DrawMaterialQuad("Sand", vx, vy, vx + 30, vy, vx + 55, vy + 60, vx + 25, vy + 60);
+		// record the painted vein centre: the gamble-flag bots route one
+		// detour waypoint through the nearest one (T1 line bias)
+		g_GRveinX[i] = vx + 27;  // quad corners avg ~ (vx+27, vy+30)
+		g_GRveinY[i] = vy + 30;
 	}
 	return true;
 }
@@ -212,16 +237,74 @@ global func FxGRBotDriverTimer(target, effect, time)
 	return 1;
 }
 
+// raw carve telemetry: one line per driver DigFreeRect, capped at the
+// first 40 per plr (carves are few; the cap just bounds the log)
+global func GRLogCarve(int plr, int x, int y, int w, int h)
+{
+	if (g_GRcarveLog[plr] >= 40) return true;
+	g_GRcarveLog[plr] += 1;
+	Log(Format("GRCARVE:plr=%d x=%d y=%d w=%d h=%d", plr, x, y, w, h));
+	return true;
+}
+
 global func GRDriveBot(int plr)
 {
 	var pBot = GetCursor(plr);
 	if (!pBot) return;
+	// per-racer line bias (rolled in GRStepSetup; neutral default covers
+	// the first driver tick, which can fire before the roll)
+	var bias = g_GRbias[plr];
+	if (!bias) bias = [0, 10, 0];
 	var iWp = g_GRwpIdx[plr];
 	if (iWp >= GR_WPCount) iWp = GR_WPCount - 1;  // hold at the finish press
 	var iTx = GRWaypointX(iWp);
 	var iTy = GRWaypointY(iWp);
-	// arrived? advance to the next waypoint
-	if (Abs(GetX(pBot) - iTx) <= 15 && Abs(GetY(pBot) - iTy) <= 30)
+	// gamble bias: on the seam approach, commit ONE detour waypoint at the
+	// nearest painted vein centre before the seam (ahead of the bot, on the
+	// walking band - deep-buried centres would pit the racer unrecoverably),
+	// then rejoin the flock line. Deterministic: veins are already painted
+	// (seams ran at t=35).
+	if (g_GRseamsPainted && bias[2] == 1 && g_GRdetour[plr] == 0
+	    && GetX(pBot) > 250 && GetX(pBot) < GR_SeamX1 - 20)
+	{
+		var j, iNearest = -1, iD, iMinD = 1000000;
+		for (j = 0; j < 6; ++j)
+		{
+			if (g_GRveinX[j] <= GetX(pBot)) continue;        // only ahead
+			if (g_GRveinX[j] >= GR_SeamX1 - 10) continue;    // before the seam
+			if (g_GRveinY[j] > 345) continue;                // on the walk band
+			iD = (g_GRveinX[j] - GetX(pBot)) * (g_GRveinX[j] - GetX(pBot))
+			   + (g_GRveinY[j] - GetY(pBot)) * (g_GRveinY[j] - GetY(pBot));
+			if (iD < iMinD) { iMinD = iD; iNearest = j; }
+		}
+		if (iNearest >= 0)
+		{
+			g_GRdetourX[plr] = g_GRveinX[iNearest];
+			g_GRdetourY[plr] = g_GRveinY[iNearest];
+			g_GRdetour[plr] = 1;
+		}
+	}
+	// an active detour overrides the current waypoint target
+	if (g_GRdetour[plr] == 1)
+	{
+		iTx = g_GRdetourX[plr];
+		iTy = g_GRdetourY[plr];
+	}
+	// arrived? (at the detour: resume the course and catch up past any
+	// waypoint the detour overshot - never walk backwards; at a
+	// waypoint: advance to the next one)
+	if (g_GRdetour[plr] == 1)
+	{
+		if (Abs(GetX(pBot) - iTx) <= 15 && Abs(GetY(pBot) - iTy) <= 30)
+		{
+			g_GRdetour[plr] = 2;  // detour done - never re-rolls
+			while (g_GRwpIdx[plr] < GR_WPCount - 1 && GRWaypointX(g_GRwpIdx[plr]) + 15 < GetX(pBot))
+				++g_GRwpIdx[plr];
+			iTx = GRWaypointX(g_GRwpIdx[plr]);
+			iTy = GRWaypointY(g_GRwpIdx[plr]);
+		}
+	}
+	else if (Abs(GetX(pBot) - iTx) <= 15 && Abs(GetY(pBot) - iTy) <= 30)
 	{
 		if (g_GRwpIdx[plr] < GR_WPCount - 1) ++g_GRwpIdx[plr];
 		iTx = GRWaypointX(g_GRwpIdx[plr]);
@@ -233,16 +316,47 @@ global func GRDriveBot(int plr)
 	// the collapse piles up above the shelf floor and jams the racer
 	// (T5 diagnosis - all four bots wedged at x 517 / y 286 against the
 	// pillar, re-settled sand mound at their feet). Idempotent.
+	// The lane's y-range shifts with the racer's entry bias (T1), but
+	// every lane still FULLY covers the band 280..320 (8px margins):
+	// a downward shift would leave the band's top sliver uncarved and
+	// re-open the refill wedge, so +entry deepens into the floor below
+	// the band instead and -entry lifts the lane with a compensating
+	// height gain.
 	if (GetX(pBot) > GR_SeamX1 - 20 && GetX(pBot) < GR_SeamX2 + 20)
-		DigFreeRect(GR_SeamX1, GR_SeamY1 - 8, GR_SeamX2 - GR_SeamX1, GR_SeamY2 - GR_SeamY1 + 8);
+	{
+		var sy, sh;
+		if (bias[0] >= 0)
+		{
+			sy = GR_SeamY1 - 8;                        // 272: band top covered
+			sh = (GR_SeamY2 - GR_SeamY1 + 8) + bias[0]; // deepen into the floor
+		}
+		else
+		{
+			sy = GR_SeamY1 - 8 + bias[0];              // lift the lane
+			sh = (GR_SeamY2 - GR_SeamY1 + 8) - bias[0]; // keep the floor margin
+		}
+		DigFreeRect(GR_SeamX1, sy, GR_SeamX2 - GR_SeamX1, sh);
+		GRLogCarve(plr, GR_SeamX1, sy, GR_SeamX2 - GR_SeamX1, sh);
+	}
 	// dig assist: solid diggable material ahead -> carve a walk corridor
 	// (tall enough for the 20px clonk shape; model-assisted digging,
-	// sturmfront R7 precedent)
+	// sturmfront R7 precedent). Corridor scale = the racer's aggr/10 (T1).
 	if (GBackSolid(GetX(pBot) + 15, GetY(pBot) - 8))
-		DigFreeRect(GetX(pBot) + 4, GetY(pBot) - 16, 34, 34);
-	// stuck watchdog: carve free at the bot's own position
+	{
+		var aw = 34 * bias[1] / 10;
+		var ah = 34 * bias[1] / 10;
+		DigFreeRect(GetX(pBot) + 4, GetY(pBot) - 16, aw, ah);
+		GRLogCarve(plr, GetX(pBot) + 4, GetY(pBot) - 16, aw, ah);
+	}
+	// stuck watchdog: carve free at the bot's own position (unchanged
+	// mechanism; scale follows aggr/10, T1)
 	if (Stuck(pBot))
-		DigFreeRect(GetX(pBot), GetY(pBot) - 16, 24, 36);
+	{
+		var ww = 24 * bias[1] / 10;
+		var wh = 36 * bias[1] / 10;
+		DigFreeRect(GetX(pBot), GetY(pBot) - 16, ww, wh);
+		GRLogCarve(plr, GetX(pBot), GetY(pBot) - 16, ww, wh);
+	}
 	// (re-)issue the real MoveTo command (GiantSquid/JungleClonk form)
 	SetCommand(pBot, "MoveTo", 0, iTx, iTy);
 	return true;
@@ -270,6 +384,19 @@ global func GRStepSetup()
 			FatalError(Format("GrabsteinRallyeRound FAIL: player %d has no crew", plr));
 		if (!GetCursor(plr))
 			FatalError(Format("GrabsteinRallyeRound FAIL: player %d has no cursor", plr));
+	}
+	// Phase-B T1: each racer rolls a deterministic line bias once, off the
+	// pinned-seed Random stream. entryY shifts the seam-swipe lane,
+	// aggr scales the peripheral dig corridors (/10), gamble 1 commits a
+	// detour waypoint through the nearest painted vein centre.
+	for (i = 0; i < 4; ++i)
+	{
+		var plr = GetPlayerByIndex(i);
+		var entryY = (Random(3) - 1) * 10;  // -10, 0, +10
+		var aggr = [7, 10, 14][Random(3)];  // 7/10/14 = shy/normal/heavy digging
+		var gamble = Random(2);             // 0 = flock line, 1 = vein detour
+		g_GRbias[plr] = [entryY, aggr, gamble];
+		Log(Format("GRBIAS:plr=%d aggr=%d entry=%d gamble=%d", plr, aggr, entryY, gamble));
 	}
 	Log("GrabsteinRallyeRound setup: 4 racers at the gate");
 	g_Phase = 1;
