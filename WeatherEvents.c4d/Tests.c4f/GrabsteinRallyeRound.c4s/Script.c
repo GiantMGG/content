@@ -624,9 +624,11 @@ global func GRStepRace()
 	}
 	// deadline: the 3-leg cup (each leg re-walks the course, ~18-25
 	// steps apiece) plus the engine-end sequence; the 4200-tick smoke
-	// budget (120 steps) bounds the run, so this is the safety net for
-	// runs beyond the smoke-run frame
-	if (g_Step > 130)
+	// budget is 120 steps, so this must fire INSIDE it (review cycle-201
+	// F1): the worst observed completion is ~2850 ticks (seed 206),
+	// g_Step>108 = 3780 ticks leaves ~930 ticks of headroom, and any
+	// stall beyond it exits RED instead of a green-but-empty smoke run
+	if (g_Step > 108)
 		FatalError(Format("GrabsteinRallyeRound FAIL: race not finished by step %d", g_Step));
 	for (i = 0; i < GetPlayerCount(); ++i)
 	{
@@ -660,7 +662,10 @@ global func GRStepDiff()
 	}
 	if (g_GRlapDone && g_GRdug <= 0)
 		FatalError("GrabsteinRallyeRound FAIL: GRHM diff emitted zero dug cells");
-	if (g_Step > 46) // diff never ran within ~6 steps of the leg-3 crossing
+	if (g_Step > 80) // telemetry never emitted: aligned to the observed leg-3
+		// crossing step (54-72 across 11 seeds; review cycle-201 GLM F4) + 8
+		// steps of headroom - the Phase-A >46 deadline had elapsed by the
+		// time phase 2 is entered and would fatal a healthy run on arrival
 		FatalError(Format("GrabsteinRallyeRound FAIL: telemetry never emitted (step %d)", g_Step));
 	return 1;
 }
