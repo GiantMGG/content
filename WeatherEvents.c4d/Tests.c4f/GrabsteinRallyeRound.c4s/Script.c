@@ -361,6 +361,10 @@ global func GRCupAdvanceLeg()
 // ---- per-frame finish poll (Phase B T2): stamps the first crossing of
 // GR_FinishX at 1-tick resolution (FrameCounter()), killing the Phase-A
 // 35-tick quantization. Global effect form (gotcha #4).
+// NOTE (review cycle-201 GLM F3): the PLAY scenario still stamps inside
+// its 35-tick FxGRRaceTimer - the twin is per-frame; mirror discipline
+// is format-true but resolution-drifted (a 1.0 s quantization is
+// material at the margin bar's KILL < 1.0 s threshold).
 global func FxGRTMPollTimer(target, effect, time)
 {
 	var i;
