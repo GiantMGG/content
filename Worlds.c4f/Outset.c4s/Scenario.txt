@@ -68,6 +68,7 @@ Sky=Clouds2
 MapWidth=100,0,64,250
 MapHeight=40,0,40,250
 Amplitude=18,10,0,100
+AutoScanSideOpen=0
 Phase=50,50,0,100
 Period=18,10,0,100
 Random=25,20,0,100
