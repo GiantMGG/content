@@ -8,7 +8,10 @@
   precedent). FLDD is a physical flood: dynamic-extent rise/recede walks, a
   warm front at the 8750 announce breaking the winter, onset 4200 ticks
   later (2:00, re-paced), and a claim sweep at peak. GameOver fires once
-  both cards resolve. Wolves stay ambient (WLSP rule). --*/
+  all dealt cards resolve. Cycle 210 adds C5 Wolf Nights and C6 Storm
+  Watch: C5 rides the stock WLSP rule through its WLSP_SetForcePhase
+  phase-override API (now a scenario-facing contract), C6 rides the stock
+  STRM event; no engine changes. --*/
 
 #strict 2
 
@@ -33,6 +36,15 @@ static const FR_RISE_PX    = 40;     // rise ceiling above the onset waterline
 static const FR_FLOOD_RATE  = 1880;  // rise cells per director call (dynamic body)
 static const FR_RECEDE_RATE = 1254;  // recede cells per director call (covers rise volume)
 
+// ---------------- C5 wolf nights / C6 storm watch (cycle 210) ------------
+static const FR_T_NIGHT1    = 4550;  // wolf night 1 dusk (inside drought)
+static const FR_T_NIGHT2    = 6300;  // wolf night 2 dusk (inside drought)
+static const FR_T_NIGHT3    = 11550; // wolf night 3 dusk (pre-flood)
+static const FR_NIGHT_LEN   = 700;   // dusk->dawn window (35*20)
+static const FR_T_STORM_ANN = 7070;  // storm announce (~58 s lead)
+static const FR_T_STORM     = 9100;  // storm onset (post-drought gap)
+static const FR_STORM_LEN   = 1750;  // storm window 9100-10850 (35*50)
+
 // ---------------- hunger tuning ------------------------------------------
 static const FR_HUNGER_DRAIN = 2;    // energy points per 35-tick drain
 static const FR_HUNGER_FLOOR = 15;   // drain stops above lethality
@@ -43,6 +55,10 @@ static const FR_BAND_MARGIN = 60;    // px above the waterline = floodplain
 // ---------------- card state (0 pending, 1 won, -1 lost) -----------------
 static g_fr_c3;
 static g_fr_c4;
+static g_fr_c5;
+static g_fr_c6;
+static g_fr_roster0;   // crew baseline snapshotted at night-1 dusk
+static g_fr_c5_loss;   // latched when any in-window sample drops below roster0
 static g_fr_grny;
 
 // ---------------- flood runtime state (snapshotted once at onset) --------
@@ -113,17 +129,43 @@ protected func Initialize()
 		return FRLatticeFatal("FR_RISE_LEN+FR_HOLD_LEN+FR_RECEDE_LEN == FR_FLDD_LEN");
 	if (FR_T_EVAL != FR_T_FLDD + FR_FLDD_LEN)
 		return FRLatticeFatal("FR_T_EVAL == FR_T_FLDD + FR_FLDD_LEN");
+	if (FR_T_NIGHT1 % 35 != 0) return FRLatticeFatal("FR_T_NIGHT1");
+	if (FR_T_NIGHT2 % 35 != 0) return FRLatticeFatal("FR_T_NIGHT2");
+	if (FR_T_NIGHT3 % 35 != 0) return FRLatticeFatal("FR_T_NIGHT3");
+	if (FR_NIGHT_LEN % 35 != 0) return FRLatticeFatal("FR_NIGHT_LEN");
+	if (FR_T_STORM_ANN % 35 != 0) return FRLatticeFatal("FR_T_STORM_ANN");
+	if (FR_T_STORM % 35 != 0) return FRLatticeFatal("FR_T_STORM");
+	if (FR_STORM_LEN % 35 != 0) return FRLatticeFatal("FR_STORM_LEN");
+	if ((FR_T_NIGHT1 + FR_NIGHT_LEN) % 35 != 0) return FRLatticeFatal("FR_T_NIGHT1+FR_NIGHT_LEN");
+	if ((FR_T_NIGHT2 + FR_NIGHT_LEN) % 35 != 0) return FRLatticeFatal("FR_T_NIGHT2+FR_NIGHT_LEN");
+	if ((FR_T_NIGHT3 + FR_NIGHT_LEN) % 35 != 0) return FRLatticeFatal("FR_T_NIGHT3+FR_NIGHT_LEN");
+	if ((FR_T_STORM + FR_STORM_LEN) % 35 != 0) return FRLatticeFatal("FR_T_STORM+FR_STORM_LEN");
+	// Ordering guards: nothing may overlap the flood spine (spec §7.1).
+	if (FR_T_STORM + FR_STORM_LEN > FR_T_FLDD)
+		FatalError(Format("Frontier lattice: storm window %d exceeds flood onset %d",
+		                  FR_T_STORM + FR_STORM_LEN, FR_T_FLDD));
+	if (FR_T_NIGHT3 + FR_NIGHT_LEN > FR_T_FLDD)
+		FatalError(Format("Frontier lattice: night-3 window %d exceeds flood onset %d",
+		                  FR_T_NIGHT3 + FR_NIGHT_LEN, FR_T_FLDD));
 
 	g_fr_c3 = 0;
 	g_fr_c4 = 0;
+	g_fr_c5 = 0;
+	g_fr_c6 = 0;
+	g_fr_c5_loss = 0;
+	g_fr_roster0 = -1;
 
-	// The deal: spawn the two goal cards and print both objectives
+	// The deal: spawn the four goal cards and print all objectives
 	// (display path: Activate -> MessageWindow(GetDesc()), Goal.c4d:156-160).
 	var pC3 = CreateObject(GSTV, 0, 0, NO_OWNER);
 	var pC4 = CreateObject(GHWV, 0, 0, NO_OWNER);
-	if (!pC3 || !pC4) FatalError("Frontier: goal card spawn failed");
+	var pC5 = CreateObject(GWNV, 0, 0, NO_OWNER);
+	var pC6 = CreateObject(GSWV, 0, 0, NO_OWNER);
+	if (!pC3 || !pC4 || !pC5 || !pC6) FatalError("Frontier: goal card spawn failed");
 	FRAnnounce("CURRENT GOAL -- A drought is coming -- plant before it, and keep every clonk fed. Wheat needs 3:20 to ripen: sow NOW. -- Drought at 2:00 -- counter: 8 edibles in the granary at drought end");
 	FRAnnounce("CURRENT GOAL -- The river tops the floodplain -- anything on the ground is forfeit. Bank your sheaves. -- counter: 10 banked (granary + carried) at flood end");
+	FRAnnounce("CURRENT GOAL -- Hold the homestead through three wolf nights -- no clonk lost. -- counter: every clonk standing at each dawn");
+	FRAnnounce("CURRENT GOAL -- The storm is coming -- keep the mill and the granary standing. -- build the windmill before it breaks. -- counter: mill and granary unburned at storm end");
 
 	AddEffect("FrontDirector", 0, 1, 35, 0, 0);
 	AddEffect("FRHunger", 0, 1, 35, 0, 0);
@@ -165,6 +207,55 @@ global func FxFrontDirectorTimer(target, effect, time)
 		Log("Frontier: drought ends");
 		FREvalC3();
 	}
+
+	// --- C5 wolf nights / C6 storm watch (cycle 210) --------------------
+	var wlsp, night;
+	if (t == FR_T_NIGHT1 || t == FR_T_NIGHT2 || t == FR_T_NIGHT3)
+	{
+		wlsp = FindObject(WLSP);
+		if (wlsp) wlsp->WLSP_SetForcePhase(1);
+		if (t == FR_T_NIGHT1) g_fr_roster0 = FRCrewTotal();
+		night = 3;
+		if (t == FR_T_NIGHT1) night = 1;
+		else if (t == FR_T_NIGHT2) night = 2;
+		FRAnnounce("Night falls -- wolves prowl the treeline. Hold the homestead.");
+		Log(Format("FRMT:night=%d_begin", night));
+	}
+	if (t == FR_T_NIGHT1 + FR_NIGHT_LEN || t == FR_T_NIGHT2 + FR_NIGHT_LEN
+	 || t == FR_T_NIGHT3 + FR_NIGHT_LEN)
+	{
+		wlsp = FindObject(WLSP);
+		if (wlsp) wlsp->WLSP_SetForcePhase(-1);
+		FRCrewSample();
+		night = 3;
+		if (t == FR_T_NIGHT1 + FR_NIGHT_LEN) night = 1;
+		else if (t == FR_T_NIGHT2 + FR_NIGHT_LEN) night = 2;
+		Log(Format("FRMT:dawn=%d crew=%d", night, FRCrewTotal()));
+	}
+	// Every director tick inside a night window samples the roster; any
+	// sample below the night-1 baseline latches g_fr_c5_loss (spec 4.2).
+	if (g_fr_roster0 >= 0
+	 && ((t >= FR_T_NIGHT1 && t <= FR_T_NIGHT1 + FR_NIGHT_LEN)
+	  || (t >= FR_T_NIGHT2 && t <= FR_T_NIGHT2 + FR_NIGHT_LEN)
+	  || (t >= FR_T_NIGHT3 && t <= FR_T_NIGHT3 + FR_NIGHT_LEN)))
+		FRCrewSample();
+	if (t == FR_T_STORM_ANN)
+		FRAnnounce("The storm is coming -- keep the mill and the granary standing. Finish the windmill now.");
+	if (t == FR_T_STORM)
+	{
+		LaunchWeatherEvent(STRM, 50, FR_STORM_LEN);
+		Log("FRMT:storm_begins");
+		FRAnnounce("The storm is upon us -- hold the mill and the granary.");
+	}
+	if (t == FR_T_STORM + FR_STORM_LEN)
+	{
+		StopWeatherEvent();   // belt-and-braces no-op (EventDuration already auto-stopped)
+		FREvalC6();
+	}
+	// C5 verdict rides the night-3 dawn beat (12250) -- placed after the
+	// dawn block so the final in-window roster sample folds into it.
+	if (t == FR_T_NIGHT3 + FR_NIGHT_LEN)
+		FREvalC5();
 
 	if (t == FR_T_FLDD_ANN)
 	{
@@ -363,11 +454,62 @@ global func FREvalC4()
 	return true;
 }
 
+// ---------------- C5 wolf nights / C6 storm watch eval (cycle 210) --------
+
+global func FRCrewTotal()
+{
+	var n = 0, i;
+	for (i = 0; i < GetPlayerCount(); i++)
+		n += GetCrewCount(GetPlayerByIndex(i));
+	return n;
+}
+
+global func FRCrewSample()
+{
+	if (g_fr_roster0 < 0) return false;
+	if (FRCrewTotal() < g_fr_roster0) g_fr_c5_loss = 1;
+	return true;
+}
+
+global func FREvalC5()
+{
+	g_fr_c5 = 1;
+	if (g_fr_c5_loss) g_fr_c5 = -1;
+	var v = "won";
+	if (g_fr_c5 == -1) v = "lost";
+	Log(Format("FRMT:c5_resolved=%s crew=%d", v, FRCrewTotal()));
+	if (g_fr_c5 == 1)
+		FRAnnounce("Three wolf nights broken -- every clonk held the homestead.");
+	else
+		FRAnnounce("The wolves took their due -- the homestead did not hold through three nights.");
+	return true;
+}
+
+global func FREvalC6()
+{
+	var mill = FindObject(AGWM);
+	var grny = FindObject(GRNY);
+	var mill_ok = 0;
+	var grny_ok = 0;
+	if (mill && !OnFire(mill)) mill_ok = 1;
+	if (grny && !OnFire(grny)) grny_ok = 1;
+	g_fr_c6 = 1;
+	if (!mill_ok || !grny_ok) g_fr_c6 = -1;
+	var v = "won";
+	if (g_fr_c6 == -1) v = "lost";
+	Log(Format("FRMT:c6_resolved=%s mill=%d granary=%d", v, mill_ok, grny_ok));
+	if (g_fr_c6 == 1)
+		FRAnnounce("The storm breaks -- the mill and the granary still stand.");
+	else
+		FRAnnounce("The storm took its toll -- the mill or the granary did not hold.");
+	return true;
+}
+
 global func FRFinish()
 {
-	if (g_fr_c3 == 0 || g_fr_c4 == 0) return false;
-	if (g_fr_c3 == 1 && g_fr_c4 == 1) Log("FRMT:outcome=WIN");
-	else Log(Format("FRMT:outcome=LOSE|c3=%d c4=%d", g_fr_c3, g_fr_c4));
+	if (g_fr_c3 == 0 || g_fr_c4 == 0 || g_fr_c5 == 0 || g_fr_c6 == 0) return false;
+	if (g_fr_c3 == 1 && g_fr_c4 == 1 && g_fr_c5 == 1 && g_fr_c6 == 1) Log("FRMT:outcome=WIN");
+	else Log(Format("FRMT:outcome=LOSE|c3=%d c4=%d c5=%d c6=%d", g_fr_c3, g_fr_c4, g_fr_c5, g_fr_c6));
 	GameOver();
 	return true;
 }
