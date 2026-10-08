@@ -39,8 +39,10 @@ protected func Initialize()
 	return true;
 }
 
-/* ===== Test hooks for deterministic smoke tests ===== */
+/* ===== WLSP phase-override API (scenario-facing) ===== */
 /* WLSP_SetForcePhase(0) = force day, 1 = force night, -1 = auto. */
+/* Scenarios (Outset C5 wolf nights) and deterministic smoke tests both  */
+/* drive it -- the override is the documented contract (cycle 210).      */
 public func WLSP_SetForcePhase(int phase) { SetLocal(2, phase); return true; }
 
 /* ===== Global API ===== */
