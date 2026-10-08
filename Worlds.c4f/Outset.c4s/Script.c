@@ -1,12 +1,14 @@
 /*-- Frontier: Green Vale -- dealt goal cards + announced fronts (cycle 199,
-  roadmap frontier-mvp). Outset.c4s is the Free Game pin; its [Landscape]
-  sliders carry the Green Vale preset, and this script deals the two goal
-  cards (GSTV Starving Season + GHWV High Water Harvest), spawns the
-  scenario-local GRNY granary, runs the FRHunger driver through the DRGT
-  window, launches DRGT and FLDD via the stock LaunchWeatherEvent platform
-  (EventSmoke.c4s precedent), delivers the flood bite as the FRSweep claim
-  over the floodplain band, and calls GameOver once both cards resolve.
-  Wolves stay ambient (WLSP rule). --*/
+  roadmap frontier-mvp; refreshed cycle 205 for frontier-flood-physical).
+  Outset.c4s is the Free Game pin; its [Landscape] sliders carry the Green
+  Vale preset (border sealed via AutoScanSideOpen=0), and this script deals
+  GSTV + GHWV, spawns the scenario-local GRNY granary, runs the FRHunger
+  driver through the DRGT window, resolves C3 at drought end, and launches
+  DRGT and FLDD via the stock LaunchWeatherEvent platform (EventSmoke.c4s
+  precedent). FLDD is a physical flood: dynamic-extent rise/recede walks, a
+  warm front at the 8750 announce breaking the winter, onset 4200 ticks
+  later (2:00, re-paced), and a claim sweep at peak. GameOver fires once
+  both cards resolve. Wolves stay ambient (WLSP rule). --*/
 
 #strict 2
 
