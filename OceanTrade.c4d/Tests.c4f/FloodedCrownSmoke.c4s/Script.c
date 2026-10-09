@@ -58,9 +58,22 @@ global func FxRunTestTimer(object target, int effect, int timer) {
 	++g_iStep;
 
 	// [CAL] per-fire telemetry (tick-keyed sim state only, no GetTime).
-	if (g_iStep <= 8)
+	// After the founder swap the Cog is a CWCK wreck whose script owns no
+	// flood API; the readout then prints flood/phase as -1 ("state died
+	// with the Cog def") and keeps the y/ydir sink readout.
+	if (g_iStep <= 8) {
+		var iCalFlood = 0;
+		var iCalPhase = 0;
+		if (GetID(pCog) == CWCK) {
+			iCalFlood = -1;
+			iCalPhase = -1;
+		} else {
+			iCalFlood = pCog->GetFloodLevel();
+			iCalPhase = pCog->GetFloodPhase();
+		}
 		Log(Format("[CAL] fire %d: flood %d y %d ydir %d phase %d", g_iStep,
-			pCog->GetFloodLevel(), GetY(pCog), GetYDir(pCog), pCog->GetFloodPhase()));
+			iCalFlood, GetY(pCog), GetYDir(pCog), iCalPhase));
+	}
 
 	// ---- Fire 1 (frame ~35, step 0): afloat + dry, open two breaches ----
 	if (g_iStep == 1) {
@@ -96,6 +109,7 @@ global func FxRunTestTimer(object target, int effect, int timer) {
 		if (pCog->GetOpenBreaches() != 1)
 			FatalError(Format("FloodedCrownSmoke FAIL step 2: open breaches %d != 1",
 				pCog->GetOpenBreaches()));
+		g_iLastFlood = pCog->GetFloodLevel(); // per-step delta base for fire 4
 	}
 
 	// ---- Fire 4 (frame ~140, step 3): halved delta, AWASH band, settle ----
@@ -119,7 +133,7 @@ global func FxRunTestTimer(object target, int effect, int timer) {
 		if (GetID(pCog) != CWCK)
 			FatalError(Format("FloodedCrownSmoke FAIL step 4: founder not fired (id %d)",
 				GetID(pCog)));
-		if (!FindObject(Find_ID(SILK), Find_NoContainer(),
+		if (!FindObject2(Find_ID(SILK), Find_NoContainer(),
 				Find_Distance(150, GetX(pCog), GetY(pCog))))
 			FatalError("FloodedCrownSmoke FAIL step 4: no SILK salvage ejected");
 		g_iLastY = GetY(pCog);
