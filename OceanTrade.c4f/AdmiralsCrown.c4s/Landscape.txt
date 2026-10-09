@@ -1,0 +1,23 @@
+map AdmiralsCrown {
+  /* Open sea between two island pads (west = crew + west port, east =    */
+  /* consumer port). Canvas = 100 x 50 (Scenario.txt MapWidth=100/50):    */
+  /* S2 overlay coordinates are percent of the canvas. Each `;`-terminated */
+  /* sibling chain paints independently; later siblings override earlier  */
+  /* ones (a chained `&` stack is an intersection and paints nothing —    */
+  /* engine behavior verified at cycle 213).                              */
+  /* The sea base: water from 12% down. Map pixels the overlays do not    */
+  /* touch resolve to the scenario's base material (Water), so the whole  */
+  /* open lane is liquid to the sealed bottom.                            */
+  overlay { x = 0; wdt = 100; y = 12; hgt = 38; mat = Water; tex = Smooth;
+    loosebounds = 1;
+  };
+  /* West island: full column (cliff island, ~6% above the waterline);   */
+  /* its east face is the dock. */
+  overlay { x = 10; wdt = 14; y = 6; hgt = 94; mat = Earth; tex = Smooth;
+    loosebounds = 1; turbulence = 10; lambda = 2; zoomX = 40; zoomY = 30;
+  };
+  /* East island: west face is the delivery dock. */
+  overlay { x = 76; wdt = 14; y = 6; hgt = 94; mat = Earth; tex = Smooth;
+    loosebounds = 1; turbulence = 10; lambda = 2; zoomX = 40; zoomY = 30;
+  };
+};
