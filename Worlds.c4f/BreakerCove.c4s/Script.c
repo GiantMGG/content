@@ -5,8 +5,8 @@
   one card -- C1 The Beacon. The scenario-stamped lighthouse starts DARK
   (a LocalN flip; Lighthouse.c4d defaults untouched), relight burns one
   WOOD (kindling rule, scenario-owned), FOGG fires at 2:00 via the stock
-  LaunchWeatherEvent platform (2100-tick window), win = a lit LHGT at
-  fog end, GameOver at t=6300 (~3:00). No [WeatherEvents] ambient table:
+  LaunchWeatherEvent platform (700-tick window), win = a lit LHGT at
+  fog end, GameOver at t=4900 (~2:20). No [WeatherEvents] ambient table:
   the dealt FOGG is the only front, exactly like Outset. --*/
 
 #strict 2
@@ -16,8 +16,8 @@ static const BC_T_STAMP    = 35;    // stamps + dark start
 static const BC_T_FORECAST = 70;    // forecast announce (the fantasy line)
 static const BC_T_FOG_ANN  = 2450;  // fog countdown announce (~50 s lead)
 static const BC_T_FOG      = 4200;  // fog onset (2:00)
-static const BC_FOG_LEN    = 2100;  // fog window (4200-6300)
-static const BC_T_EVAL     = 6300;  // verdict + finish (~3:00)
+static const BC_FOG_LEN    = 700;   // fog window (4200-4900)
+static const BC_T_EVAL     = 4900;  // verdict + finish (~2:20)
 static const BC_RELIGHT_RADIUS = 45; // kindling radius around the tower
 
 // ---------------- card state (0 pending, 1 won, -1 lost) ----------------

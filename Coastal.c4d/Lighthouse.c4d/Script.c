@@ -35,7 +35,9 @@ public func InBeaconCone(int iX, int iY)
 func FxBeaconTimer(object pTarget, int fx)
 {
 	if (!bLit) return 1;
-	// Sweeping warm particle cone at the lighthouse top.
-	CastParticles("MSpark", 4, 15, 0, -30, 20, 20, 5, 5);
+	// Sweeping warm particle cone at the lighthouse top. 14 bright gold
+	// MSpark per beat (cycle 218): a lit beacon must read as lit even in
+	// a static screenshot.
+	CastParticles("MSpark", 14, 25, 0, -30, 35, 55, RGB(255, 205, 115), RGB(255, 235, 170));
 	return 1;
 }
