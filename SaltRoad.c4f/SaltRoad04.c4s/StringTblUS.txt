@@ -1,0 +1,7 @@
+MsgIntro=The salt pans wait at the oasis. Boil the brine, load the camels, and run the salt east.
+MsgDeparture=The caravan rides east with the salt. Guard it on the road!
+MsgAmbush=Ambush! Scorpions on the road!
+MsgActComplete=Act IV complete: the salt is delivered at the market.
+MsgDefeat=The caravan is lost. The Salt Road ends here.
+BtnReplayActIV=&Replay Act IV
+BtnReplayActIVDesc=The Salt Run, once more.
