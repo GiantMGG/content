@@ -73,7 +73,7 @@ Phase=50,50,0,100
 Period=10,10,0,100
 Random=20,20,0,100
 Liquid=Water-Smooth
-LiquidLevel=55,30,0,100
+LiquidLevel=45,30,0,100
 Material=Earth
 Layers=Rock=7;Rock-Ridge=7;Gold=7;Granite=4;Water-Smooth=5;Earth-Rough=50;Earth-Smooth2=50
 SkyScrollMode=2
