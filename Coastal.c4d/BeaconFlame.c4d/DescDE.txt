@@ -1,0 +1,2 @@
+[Desc]
+1=BeaconFlame: die gezeichnete Flamme des Leuchtfeuers.

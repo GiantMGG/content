@@ -1,0 +1,12 @@
+[DefCore]
+id=BFLM
+Version=1
+Name=BeaconFlame
+Category=C4D_StaticBack|C4D_Foreground|C4D_MouseIgnore
+Width=16
+Height=24
+Offset=-8,-24
+Vertices=1
+VertexX=0
+VertexY=0
+Picture=0,0,16,24
