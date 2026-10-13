@@ -1,11 +1,30 @@
 /* Desert map preset -- C4MapCreatorS2 syntax.                   */
-/* Sand dunes over a Sandstone basement, with Rock outcrops for  */
-/* quarry-adjacent building.                                     */
+/* Rolling walkable dunes over a Sandstone basement.             */
+
+/* Cycle 226 finding: the previous dune belt (algo=bozo; a=8;    */
+/* b=12; turbulence=80) produces ceiling-high spires and         */
+/* near-vertical cliffs on every seed -- the seed-226 map's open */
+/* air is DISCONNECTED between the west camp and the east market */
+/* (task2-flood.txt), so no caravan can ever cross. The act's    */
+/* road must be walkable by construction.                        */
+/*                                                               */
+/* algo=sin is an analytic sine surface ("a sine curve where     */
+/* bottom is filled", C4MapCreatorS2 AlgoSin): with turbulence=0 */
+/* the shape is exactly the curve -- no seed dependence, no      */
+/* spikes. Shape knobs (canvas is 180x40 @ 8 px/unit):           */
+/*   surface y = oy + (Sin((x-ox)*ZoomX/10 deg) + 1) * 10*100/ZoomY */
+/*   zoomX=60  -> ZoomX=40  -> one full dune every 90 canvas px  */
+/*                              (720 scenario px)                */
+/*   zoomY=-100 -> ZoomY=200 -> half-amplitude 5 canvas px       */
+/*                              (40 scenario px)                 */
+/*   -> max ground slope 5*sin'(1) = 0.35 (~19 degrees),         */
+/*   walkable for the caravan (proven by saltroad04_round_gate). */
+/* Dune valleys (deepest ground) at x~644 (the salt works) and   */
+/* x~1364 (under the far market); hilltops at x~284 and x~1004.  */
 
 map Desert {
-  // Dune belt: rolling Sand over a Sandstone basement.
-  overlay Dunes { algo=bozo; a=8; b=12; mat=Sand; tex=Smooth; turbulence=80; sub=0; };
+  // Dune belt: two full rolling dunes across the map.
+  overlay Dunes { algo=sin; zoomX=60; zoomY=-100; ox=58px; oy=16px; mat=Sand; tex=Smooth; sub=0; };
+  // Sandstone basement, fully buried below the dune belt.
   overlay Basement { algo=solid; y=30px; mat=Sandstone; tex=Ridge; sub=0; };
-  // Scattered Rock outcrops for quarry-adjacent building.
-  overlay Outcrops { algo=bozo; a=4; b=6; mat=Rock; tex=Rough; turbulence=120; sub=0; };
 };
