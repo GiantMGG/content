@@ -1,0 +1,29 @@
+overlay AlterMat {
+  sub = 1;
+  turbulence = 10;
+  algo = rndchecker;
+  zoomX = -70;
+  zoomY = -70;
+};
+
+map Dustsprint {
+  /* Team 1 dune (left) */
+  overlay { x = 5; wdt = 15; y = 15; hgt = 8;
+    turbulence = 500; lambda = 2; loosebounds = 1;
+    zoomX = 60; zoomY = 40; grp = 1;
+  } |
+  /* Team 2 dune (right) — mirrored around x=50 */
+  overlay { x = 80; wdt = 15; y = 15; hgt = 8;
+    turbulence = 500; lambda = 2; loosebounds = 1;
+    zoomX = 60; zoomY = 40; grp = 1;
+  } & overlay {
+    sub = 1; mat = Sand; tex = Rough;
+    AlterMat { mat = Sand; tex = Ridge; a = 4; };
+    AlterMat { mat = Sand; tex = Smooth2; a = 4; };
+    AlterMat { zoomX = 20; zoomY = 20; loosebounds = 1;
+      mat = Sand; tex = Smooth; a = 3; };
+    AlterMat { zoomX = -20; zoomY = -20; loosebounds = 1;
+      mat = Rock; tex = Rough; a = 2;
+      AlterMat { mat = Rock; tex = Ridge; a = 3; }; };
+  };
+};
