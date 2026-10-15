@@ -22,7 +22,12 @@ protected func Timer() {
   for (i = 0; i < GetPlayerCount(); i++) {
     var plr = GetPlayerByIndex(i);
     if (GetPlayerTeam(plr) == GetPlayerTeam(team) && GetCrewCount(plr) < Local(1)) {
-      var clonk = CreateObject(CLNK, GetX(), GetY(), plr);
+      // CreateObject offsets are RELATIVE to the calling object
+      // (C4Script.cpp:1994-1997) - the old GetX()/GetY() form spawned the
+      // clonk at DOUBLE the respawner position (cycle 235 finding: a
+      // respawner away from the origin spawned its crew into the void, and
+      // the DustrunnerCrossing retry loop burned all charges on spawn-kills)
+      var clonk = CreateObject(CLNK, 0, 0, plr);
       if (clonk) MakeCrewMember(clonk, plr);
       Local(0)--;
       if (SoundExists("RespawnChime")) Sound("RespawnChime");
