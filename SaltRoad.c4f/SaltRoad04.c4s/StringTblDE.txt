@@ -1,7 +1,0 @@
-MsgIntro=Die Salzpfannen der Oase warten. Koche die Sole, lade die Kamele und bringe das Salz nach Osten.
-MsgDeparture=Die Karawane reitet mit dem Salz nach Osten. Beschütze es auf dem Weg!
-MsgAmbush=Hinterhalt! Skorpione auf der Straße!
-MsgActComplete=Akt IV geschafft: Das Salz ist am Markt geliefert.
-MsgDefeat=Die Karawane ist verloren. Hier endet die Salzstraße.
-BtnReplayActIV=Akt IV &wiederholen
-BtnReplayActIVDesc=Der Salzweg, noch einmal.
