@@ -607,6 +607,17 @@ global func FxDustrunnerDriveTimer(target, effect, time)
   return 1;
 }
 
+// D1 (cycle 245, spec input-path-truth): driver-phase transition log —
+// log-only, behavior-identical.
+global func DRCSetPhase(int team, int new_phase)
+{
+  var old_phase = g_driPhase[team];
+  g_driPhase[team] = new_phase;
+  if (old_phase != new_phase)
+    Log(Format("DUSTRUNNER PHASE team=%d old=%d new=%d", team, old_phase, new_phase));
+  return 1;
+}
+
 global func DRCDriveTeam(int team)
 {
   var phase = g_driPhase[team];
@@ -614,7 +625,7 @@ global func DRCDriveTeam(int team)
   if (phase != DRC_PH_WAIT && phase != DRC_PH_RETRY)
     if (!DRCCarrierOK(team))
     {
-      g_driPhase[team] = DRC_PH_RETRY;
+      DRCSetPhase(team, DRC_PH_RETRY);
       g_driWait[team] = 0;
       phase = DRC_PH_RETRY;
     }
@@ -671,7 +682,7 @@ global func DRCDriveWait(int team)
   g_driMage[team] = mage;
   g_driCrew[team] = carrier;
   g_driWait[team] = 0;
-  g_driPhase[team] = DRC_PH_EXTRACT;
+  DRCSetPhase(team, DRC_PH_EXTRACT);
   return 1;
 }
 
@@ -703,7 +714,7 @@ global func DRCDriveExtract(int team)
   {
     g_driWait[team] = 0;
     DRCResetAttempt(team);
-    g_driPhase[team] = DRC_PH_LOAD;
+    DRCSetPhase(team, DRC_PH_LOAD);
   }
   return 1;
 }
@@ -733,7 +744,7 @@ global func DRCDriveLoad(int team)
     g_driAnchor[team] = 0;   // first cast fires at once: the deck overlaps the slab
     g_driLastX[team] = GetX(crew);
     g_driStuck[team] = 0;
-    g_driPhase[team] = DRC_PH_CROSS;
+    DRCSetPhase(team, DRC_PH_CROSS);
     return 1;
   }
   var nug = DRCNextNugget(team, crew);
@@ -796,7 +807,7 @@ global func DRCDriveCross(int team)
     g_driLastX[team] = GetX(crew);
     g_driStuck[team] = 0;
     g_driAnchor[team] = GetX(crew);
-    g_driPhase[team] = DRC_PH_RETURN;
+    DRCSetPhase(team, DRC_PH_RETURN);
     return 1;
   }
   // CROSSENTRY: first tick past the home slab inner edge (latched per attempt)
@@ -829,7 +840,7 @@ global func DRCDriveCross(int team)
       Log(Format("DUSTRUNNER CROSSTOUCH tick=%d carrier=%d team=%d x=%d",
         FrameCounter(), ObjectNumber(crew), team, GetX(crew)));
     }
-    g_driPhase[team] = DRC_PH_DELIVER;
+    DRCSetPhase(team, DRC_PH_DELIVER);
     return 1;
   }
   var dir = 1, edge = 1320;
@@ -848,7 +859,7 @@ global func DRCDriveDeliver(int team)
     g_driLastX[team] = GetX(crew);
     g_driStuck[team] = 0;
     g_driAnchor[team] = GetX(crew);
-    g_driPhase[team] = DRC_PH_RETURN;
+    DRCSetPhase(team, DRC_PH_RETURN);
   }
   return 1;
 }
@@ -864,7 +875,7 @@ global func DRCDriveReturn(int team)
   {
     SetComDir(COMD_Stop, crew);
     DRCResetAttempt(team);
-    g_driPhase[team] = DRC_PH_LOAD;   // attempt complete: LOAD the next nugget
+    DRCSetPhase(team, DRC_PH_LOAD);   // attempt complete: LOAD the next nugget
     return 1;
   }
   var dir = -1, edge = 180;
@@ -980,7 +991,7 @@ global func DRCDriveRetry(int team)
     Log(Format("DUSTRUNNER GRANT team=%d spells=%d respawn=1", team, DRC_Regrant));
   }
   g_driWait[team] = 0;
-  g_driPhase[team] = DRC_PH_EXTRACT;
+  DRCSetPhase(team, DRC_PH_EXTRACT);
   return 1;
 }
 
