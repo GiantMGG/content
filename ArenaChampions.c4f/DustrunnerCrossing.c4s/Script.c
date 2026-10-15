@@ -107,8 +107,6 @@ func Initialize() {
   pBase2 = CreateConstruction(HUT3, LandscapeWidth()-150, 270, NO_OWNER, 100, 1);
   g_pChestL = CreateObject(TCHS, 150, 270, NO_OWNER);
   g_pChestR = CreateObject(TCHS, LandscapeWidth()-150, 270, NO_OWNER);
-  CreateObject(RSPN, 150, 270, NO_OWNER);
-  CreateObject(RSPN, LandscapeWidth()-150, 270, NO_OWNER);
   CreateObject(BNDR, 0, 0, NO_OWNER);
   CreateObject(BNDR, LandscapeWidth(), 0, NO_OWNER);
   CreateObject(BNDR, 0, LandscapeHeight(), NO_OWNER);
@@ -294,6 +292,37 @@ global func DRCFinishScan(int row)
   var census = GetLength(FindObjects(Find_ID(GOLD)));
   Log(Format("DUSTRUNNER ROUNDSTART seed=%d voidline=%d cap=%d gold=%d",
     DRC_Seed, g_drVoidLine, DRC_CapTicks, census));
+  DRCScoreInit();
+  return 1;
+}
+
+// ---- prototype layer: visible score (design dustrunner-human D2) --------------
+//
+// Scoreboard, 2 columns x 2 rows, row ids = team ids. The window title
+// carries the win condition; the label column (SBRD_Caption) names the
+// sides; data column 1 shows banked/DRC_WinGold per side. Populated once
+// at ROUNDSTART, updated event-driven only: each DEPOSIT rewrites the
+// banking team's cell (DRCDetectDelivery). Exactly ONE DoScoreboardShow
+// fires, ever - after a TAB-close nothing re-opens the panel. The opening
+// announcement is a plain localized Log, NOT DUSTRUNNER-prefixed, so the
+// pinned 32-event DUSTRUNNER sequence survives untouched.
+
+global func DRCScoreInit()
+{
+  SetScoreboardData(SBRD_Caption, SBRD_Caption, "$MsgSBRDTitle$");
+  SetScoreboardData(SBRD_Caption, 1, "$MsgSBRDBanked$");
+  SetScoreboardData(1, SBRD_Caption, "$MsgSBRDLeft$");
+  SetScoreboardData(2, SBRD_Caption, "$MsgSBRDRight$");
+  DRCScoreRefresh(1);
+  DRCScoreRefresh(2);
+  Log("$MsgAnnounce$");
+  DoScoreboardShow(1, 0);
+  return 1;
+}
+
+global func DRCScoreRefresh(int team)
+{
+  SetScoreboardData(team, 1, Format("%d/%d", g_drScore[team], DRC_WinGold));
   return 1;
 }
 
@@ -427,6 +456,7 @@ global func DRCDetectDelivery()
             FrameCounter(), ObjectNumber(crew), team, GetX(crew)));
         }
         g_drScore[team] = g_drScore[team] + moved;
+        DRCScoreRefresh(team);
         Log(Format("DUSTRUNNER DEPOSIT team=%d carrier=%d amount=%d score=%d",
           team, ObjectNumber(crew), moved, g_drScore[team]));
         // lift the carrier out of the enemy nugget row at once: the seeded
@@ -484,7 +514,14 @@ global func DRCArmSide(int iPlr, int team)
 {
   if (g_drArmed[team]) return 1;
   g_drArmed[team] = 1;
-  g_driPlr[team] = iPlr;   // the driver drives this side's first-joining player
+  // D1 (design dustrunner-human): gate the auto-carrier on the player name.
+  // TestPlayer fixtures keep the bot driver (harness gate #218 + the pinned
+  // 32-event sequence); any other name arms no driver - that side's humans
+  // are the carriers.
+  if (SEqual(GetPlayerName(iPlr), "TestPlayer"))
+    g_driPlr[team] = iPlr;    // fixture: driver armed exactly as today
+  else
+    g_driPlr[team] = -1;      // human: no driver on this side
   var bx = 150;
   if (team == 2) bx = LandscapeWidth() - 150;
   var rspn = CreateObject(RSPN, bx, 270, iPlr);
